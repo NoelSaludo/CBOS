@@ -1,11 +1,10 @@
 {
   "version": 2,
-  "dgSpecHash": "ZliJ94SJe18=",
+  "dgSpecHash": "yX85wA9eUns=",
   "success": true,
   "projectFilePath": "/home/Noel/Projects/CBOS/CBOS.csproj",
   "expectedPackageFiles": [
     "/home/Noel/.nuget/packages/microsoft.aspnetcore.app.internal.assets/10.0.3/microsoft.aspnetcore.app.internal.assets.10.0.3.nupkg.sha512",
-    "/home/Noel/.nuget/packages/microsoft.aspnetcore.authentication.google/10.0.5/microsoft.aspnetcore.authentication.google.10.0.5.nupkg.sha512",
     "/home/Noel/.nuget/packages/microsoft.identitymodel.abstractions/7.5.1/microsoft.identitymodel.abstractions.7.5.1.nupkg.sha512",
     "/home/Noel/.nuget/packages/microsoft.identitymodel.jsonwebtokens/7.5.1/microsoft.identitymodel.jsonwebtokens.7.5.1.nupkg.sha512",
     "/home/Noel/.nuget/packages/microsoft.identitymodel.logging/7.5.1/microsoft.identitymodel.logging.7.5.1.nupkg.sha512",
