@@ -1,0 +1,51 @@
+@page "/Admin/Login"
+@layout AdminLayout
+
+<h3>Login</h3>
+
+<form>
+    <div class="mb-3">
+        <label for="adminId" class="form-label">Admin ID</label>
+        <input type="text" class="form-control" id="adminId" @bind="AdminId">
+    </div>
+    <div class="mb-3">
+        <label for="password" class="form-label">Password</label>
+        <input type="password" class="form-control" id="password" @bind="Password">
+    </div>
+    <button type="button" class="btn btn-primary" @onclick="Submit">Submit</button>
+    
+    @if(isAdminValid)
+    {
+        <div class="alert alert-danger mt-3" role="alert">
+            Invalid Admin ID or Password. Please try again.
+        </div>
+    }
+</form>
+
+@code {
+    private String AdminId;
+    private String Password;
+    private bool isAdminValid;
+
+    private AdminSupabase adminSupabase;
+
+    public Login()
+    {
+            adminSupabase = new AdminSupabase();
+    }
+
+    public void Submit()
+    {
+        var validatingAdmin = adminSupabase.IsAdminValid(AdminId, Password);
+        var result = validatingAdmin.Result;
+        if (result.isValid)
+        {
+            //TODO: Redirect to admin dashboard or another page
+        }
+        else
+        {
+            isAdminValid = result.isValid;
+        }
+    }
+
+}
