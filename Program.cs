@@ -1,5 +1,19 @@
 using CBOS.Components;
+using CBOS.Components.Pages.Admin;
+using DotNetEnv;
 using Microsoft.AspNetCore.Authentication.Cookies;
+
+Env.Load();
+var url = Environment.GetEnvironmentVariable("SUPABASE_URL");
+var key = Environment.GetEnvironmentVariable("SUPABASE_KEY");
+
+var options = new Supabase.SupabaseOptions
+{
+    AutoConnectRealtime = true
+};
+
+var supabase = new Supabase.Client(url, key, options);
+await supabase.InitializeAsync();
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -7,6 +21,9 @@ var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddRazorComponents()
     .AddInteractiveServerComponents();
 
+builder.Services.AddSingleton(supabase);
+
+builder.Services.AddScoped<AdminSupabase>();
 var app = builder.Build();
 
 // Configure the HTTP request pipeline.

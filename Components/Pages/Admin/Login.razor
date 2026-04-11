@@ -1,51 +1,81 @@
 @page "/Admin/Login"
 @layout AdminLayout
 
-<h3>Login</h3>
+@using System.ComponentModel.DataAnnotations
 
-<form>
-    <div class="mb-3">
-        <label for="adminId" class="form-label">Admin ID</label>
-        <input type="text" class="form-control" id="adminId" @bind="AdminId">
+@inject NavigationManager Navigation
+@inject ILogger<Login> Logger
+@inject AdminSupabase AdminSupabase
+
+@rendermode InteractiveServer
+
+<div class="login-card align-content-center">
+    <div class="login-header">
+        <h2>Welcome</h2>
+        <h3>CBOS Batangas</h3>
     </div>
-    <div class="mb-3">
-        <label for="password" class="form-label">Password</label>
-        <input type="password" class="form-control" id="password" @bind="Password">
-    </div>
-    <button type="button" class="btn btn-primary" @onclick="Submit">Submit</button>
-    
-    @if(isAdminValid)
-    {
-        <div class="alert alert-danger mt-3" role="alert">
-            Invalid Admin ID or Password. Please try again.
+    <EditForm Model="@Model" OnValidSubmit="OnValidSubmit" FormName="admin-login-form">
+        <DataAnnotationsValidator/>
+        <ValidationSummary/>
+        @if (!string.IsNullOrEmpty(LoginWarning))
+        {
+            <div class="alert alert-warning" role="alert">
+                @LoginWarning
+            </div>
+        }
+        <div class="mb-3">
+            <InputText class="form-control capsule"
+                       id="adminId"
+                       placeholder="Administrator ID"
+                       @bind-Value="Model.id"/>
         </div>
-    }
-</form>
+        <div class="mb-3">
+            <div class="password-field">
+                <InputText class="form-control password-input capsule"
+                           id="password"
+                           placeholder="Password"
+                           @bind-Value="Model.password"/>
+            </div>
+        </div>
+        <button type="submit" class="btn btn-primary submit-btn">Submit</button>
+    </EditForm>
+</div>
+
 
 @code {
-    private String AdminId;
-    private String Password;
-    private bool isAdminValid;
-
-    private AdminSupabase adminSupabase;
-
-    public Login()
+    private AdminLoginModel? Model;
+    private string? LoginWarning;
+ 
+    protected override void OnInitialized()
     {
-            adminSupabase = new AdminSupabase();
+        Model = new();
     }
 
-    public void Submit()
+    public async Task OnValidSubmit()
     {
-        var validatingAdmin = adminSupabase.IsAdminValid(AdminId, Password);
-        var result = validatingAdmin.Result;
+        Logger.LogInformation("Attempting admin login with ID: {AdminId}", Model?.id);
+        var result = AdminSupabase.IsAdminValid(Model?.id ?? string.Empty, Model?.password ?? string.Empty).Result;
+
         if (result.isValid)
         {
-            //TODO: Redirect to admin dashboard or another page
+            // TODO: How to create a session for the admin
+            Navigation.NavigateTo("/admin/app");
         }
         else
         {
-            isAdminValid = result.isValid;
+            LoginWarning = "Invalid administrator ID or password. Please try again.";
+            Logger.LogWarning("Admin login failed for ID: {AdminId}", Model?.id);
         }
+        
     }
 
+
+    public class AdminLoginModel
+    {
+        [Required]
+        [StringLength(50, MinimumLength = 3, ErrorMessage = "ID must be between 3 and 50 characters.")]
+        public string? id { get; set; }
+        [Required]
+        public string? password { get; set; }
+    }
 }
