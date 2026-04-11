@@ -1,6 +1,7 @@
 using CBOS.Components;
 using CBOS.Components.Pages.Admin;
 using DotNetEnv;
+using CBOS.Components.Services;
 using Microsoft.AspNetCore.Authentication.Cookies;
 
 Env.Load();
@@ -24,6 +25,18 @@ builder.Services.AddRazorComponents()
 builder.Services.AddSingleton(supabase);
 
 builder.Services.AddScoped<AdminSupabase>();
+builder.Services.AddScoped<AuthService>();
+builder.Services.AddAuthentication(CookieAuthenticationDefaults.AuthenticationScheme)
+    .AddCookie(opt =>
+    {
+        opt.LoginPath        = "/login";
+        opt.LogoutPath       = "/logout";
+        opt.AccessDeniedPath = "/login";
+        opt.ExpireTimeSpan   = TimeSpan.FromHours(8);
+        opt.SlidingExpiration = true;
+    });
+builder.Services.AddAuthorization();
+builder.Services.AddHttpContextAccessor();
 var app = builder.Build();
 
 // Configure the HTTP request pipeline.
@@ -35,6 +48,8 @@ if (!app.Environment.IsDevelopment())
 }
 app.UseStatusCodePagesWithReExecute("/not-found", createScopeForStatusCodePages: true);
 app.UseHttpsRedirection();
+app.UseAuthentication();
+app.UseAuthorization();
 
 app.UseAntiforgery();
 
