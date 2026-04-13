@@ -2,6 +2,7 @@ using CBOS.Components;
 using CBOS.Components.Pages.Admin;
 using DotNetEnv;
 using Microsoft.AspNetCore.Authentication.Cookies;
+using Microsoft.AspNetCore.Components.Authorization;
 
 Env.Load();
 var url = Environment.GetEnvironmentVariable("SUPABASE_URL");
@@ -9,6 +10,7 @@ var key = Environment.GetEnvironmentVariable("SUPABASE_KEY");
 
 var options = new Supabase.SupabaseOptions
 {
+    AutoRefreshToken = true,
     AutoConnectRealtime = true
 };
 
@@ -23,6 +25,13 @@ builder.Services.AddRazorComponents()
 
 builder.Services.AddSingleton(supabase);
 
+builder.Services.AddAuthentication();
+
+builder.Services.AddScoped<AuthenticationStateProvider, AdminAuthenticator>();
+
+builder.Services.AddAuthorization();
+builder.Services.AddCascadingAuthenticationState();
+
 builder.Services.AddScoped<AdminSupabase>();
 var app = builder.Build();
 
@@ -35,6 +44,9 @@ if (!app.Environment.IsDevelopment())
 }
 app.UseStatusCodePagesWithReExecute("/not-found", createScopeForStatusCodePages: true);
 app.UseHttpsRedirection();
+
+app.UseAuthentication();
+app.UseAuthorization();
 
 app.UseAntiforgery();
 
