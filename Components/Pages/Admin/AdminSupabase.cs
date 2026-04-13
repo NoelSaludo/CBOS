@@ -1,17 +1,29 @@
+using Supabase.Postgrest.Attributes;
+using Supabase.Postgrest.Models;
+
 namespace CBOS.Components.Pages.Admin;
 
+public enum AdminSupabaseCode
+{
+    Success,
+    InvalidCredentials,
+    AdminNotFound
+}
 
 public struct AdminLoginResult
 {
     public Model.Admin? Admin;
-    public bool isValid;
+    public AdminSupabaseCode Code;
+    public string sessionToken;
 
     public AdminLoginResult()
     {
         Admin = null;
-        isValid = false;
+        sessionToken = string.Empty;
+        Code = AdminSupabaseCode.AdminNotFound;
     }
 }
+// handles all supabase related operations for admin login and authentication
 public class AdminSupabase {
     
     private readonly ILogger<AdminSupabase> logger;
@@ -21,7 +33,18 @@ public class AdminSupabase {
         this.logger = logger;
      }
 
-    public async Task<AdminLoginResult> IsAdminValid(string verificationNumber, string password)
+    public async Task SignUp(Model.Admin admin)
+    {
+        await supabase.From<Model.Admin>().Insert(admin);
+    }
+    public async Task<bool> CheckSessionKey(string sessionKey)
+    {
+        var session = await supabase.From<AdminSession>()
+            .Where(s => s.SessonKey == sessionKey && s.expirationAt > DateTime.UtcNow).Single();
+
+        return session != null;
+    }   
+    public async Task<AdminLoginResult> Login(string verificationNumber, string password)
     {
         AdminLoginResult result= new AdminLoginResult();
         
@@ -31,20 +54,43 @@ public class AdminSupabase {
         if (admin != null) {
             if (admin.Password == password)
             {
+                string sessionToken = GenerateSessionToken(admin.VerificationNumber);
                 result.Admin = admin;
-                result.isValid = true;
-                logger.LogInformation("Admin with verification number {VerificationNumber} successfully authenticated.", verificationNumber);
+                result.sessionToken = sessionToken;
+                result.Code = AdminSupabaseCode.Success;
+
+                await supabase.From<AdminSession>().Insert(new AdminSession
+                {
+                    SessonKey = sessionToken, 
+                    createdAt = DateTime.UtcNow,
+                    expirationAt = DateTime.UtcNow.AddHours(1)
+                });
+
+                return result;
             }
-            else
-            {
-                logger.LogWarning("Failed authentication attempt for verification number {VerificationNumber}: Incorrect password.", verificationNumber);
-            }
-        }
-        else
-        {
-            logger.LogWarning("Failed authentication attempt: No admin found with verification number {VerificationNumber}.", verificationNumber);         
+            result.Code = AdminSupabaseCode.InvalidCredentials;
+            return result;
         }
 
         return result;
     }
+
+    private string GenerateSessionToken(string verificationNumber)
+    {
+        // In a real application, use a secure method to generate session tokens
+        return Convert.ToBase64String(Guid.NewGuid().ToByteArray()) + verificationNumber;
+    }
+}
+
+[Table("admin_session")]
+class AdminSession : BaseModel
+{
+    [Column("session_key")]
+    public string SessonKey {get; set;}
+
+    [Column("created_at")]
+    public DateTime createdAt {get; set;}
+    
+    [Column("expiration_at")]
+    public DateTime expirationAt {get; set;}
 }
