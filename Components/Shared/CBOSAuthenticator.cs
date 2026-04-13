@@ -12,10 +12,7 @@ class AdminAuthenticator : AuthenticationStateProvider
     }
     public override Task<AuthenticationState> GetAuthenticationStateAsync()
     {
-        var identity = new ClaimsIdentity();
-        var user = new ClaimsPrincipal(identity);
-
-        return Task.FromResult(new AuthenticationState(user));
+        return Task.FromResult(new AuthenticationState(_currentUser));
     }
 
     public async Task Authenticate(string id)
