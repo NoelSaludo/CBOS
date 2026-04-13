@@ -2,10 +2,12 @@
 @layout AdminLayout
 
 @using System.ComponentModel.DataAnnotations
+@using Microsoft.AspNetCore.Components.Authorization
 
 @inject NavigationManager Navigation
-@inject ILogger<Login> Logger
+@inject ILogger<AdminLogin> Logger
 @inject AdminSupabase AdminSupabase
+@inject AuthenticationStateProvider AuthProvider
 
 @rendermode InteractiveServer
 
@@ -32,6 +34,7 @@
         <div class="mb-3">
             <div class="password-field">
                 <InputText class="form-control password-input capsule"
+                           type="password"
                            id="password"
                            placeholder="Password"
                            @bind-Value="Model.password"/>
@@ -54,11 +57,14 @@
     public async Task OnValidSubmit()
     {
         Logger.LogInformation("Attempting admin login with ID: {AdminId}", Model?.id);
-        var result = AdminSupabase.IsAdminValid(Model?.id ?? string.Empty, Model?.password ?? string.Empty).Result;
+
+        var auth = (AdminAuthenticator)AuthProvider;
+        var result = await AdminSupabase.IsAdminValid(Model?.id ?? string.Empty, Model?.password ?? string.Empty);
 
         if (result.isValid)
         {
-            // TODO: How to create a session for the admin
+            var admin = result.Admin;
+            await auth.Authenticate(admin?.VerificationNumber ?? string.Empty);
             Navigation.NavigateTo("/admin/app");
         }
         else
@@ -66,7 +72,6 @@
             LoginWarning = "Invalid administrator ID or password. Please try again.";
             Logger.LogWarning("Admin login failed for ID: {AdminId}", Model?.id);
         }
-        
     }
 
 
