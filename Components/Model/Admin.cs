@@ -7,29 +7,32 @@ namespace CBOS.Components.Model;
 public class Admin : BaseModel
 {
     [PrimaryKey("id")]
-    public int id { get; set; }
+    public long Id { get; set; }
     
-    [Column("firstname")]
-    public string? firstName { get; set; }
+    [Column("first_name")]
+    public string FirstName { get; set; }
     
-    [Column("middlename")]
-    public string? middleName  { get; set; }
+    [Column("middle_name")]
+    public string MiddleName  { get; set; }
     
-    [Column("lastname")]
-    public string? lastName { get; set; }
+    [Column("last_name")]
+    public string LastName { get; set; }
     
     [Column("verification_number")]
-    public string? verificationNumber { get; set; }
+    public string VerificationNumber { get; set; }
     
-    [Column("hashedpassword")]
-    public string? password { get; set; }
+    [Column("password")]
+    public string Password { get; set; }
     
     [Column("created_at")]
-    public DateTime? createdAt { get; set; }
+    public DateTime CreatedAt { get; set; }
+
+    [Column("barangay_id")]
+    public long BarangayId { get; set; }
 
     public string GetName()
     {
-        return firstName + " " + middleName + " " + lastName;
+        return FirstName + " " + MiddleName + " " + LastName;
     }
     
 }
