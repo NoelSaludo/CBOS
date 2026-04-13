@@ -27,12 +27,11 @@ builder.Services.AddSingleton(supabase);
 
 builder.Services.AddAuthentication();
 
-builder.Services.AddScoped<AuthenticationStateProvider, AdminAuthenticator>();
-
 builder.Services.AddAuthorization();
 builder.Services.AddCascadingAuthenticationState();
 
 builder.Services.AddScoped<AdminSupabase>();
+
 var app = builder.Build();
 
 // Configure the HTTP request pipeline.
