@@ -2,6 +2,25 @@
   "version": 3,
   "targets": {
     "net10.0": {
+      "Blazor-ApexCharts/6.1.0": {
+        "type": "package",
+        "compile": {
+          "lib/net10.0/Blazor-ApexCharts.dll": {
+            "related": ".xml"
+          }
+        },
+        "runtime": {
+          "lib/net10.0/Blazor-ApexCharts.dll": {
+            "related": ".xml"
+          }
+        },
+        "build": {
+          "buildTransitive/Blazor-ApexCharts.props": {}
+        },
+        "buildMultiTargeting": {
+          "buildMultiTargeting/Blazor-ApexCharts.props": {}
+        }
+      },
       "DotNetEnv/3.1.1": {
         "type": "package",
         "dependencies": {
@@ -15,7 +34,7 @@
           "lib/netstandard1.3/DotNetEnv.dll": {}
         }
       },
-      "Microsoft.AspNetCore.App.Internal.Assets/10.0.3": {
+      "Microsoft.AspNetCore.App.Internal.Assets/10.0.5": {
         "type": "package",
         "build": {
           "build/Microsoft.AspNetCore.App.Internal.Assets.props": {},
@@ -330,6 +349,78 @@
     }
   },
   "libraries": {
+    "Blazor-ApexCharts/6.1.0": {
+      "sha512": "H2mkr7HEVk+BoQKcyoQtqq3ifoo/VxS7I8B35wO9tpiarGMdnAsL9pwcQBU4E/YnADNF+zOKTIaRxhd93Qr9HA==",
+      "type": "package",
+      "path": "blazor-apexcharts/6.1.0",
+      "files": [
+        ".nupkg.metadata",
+        ".signature.p7s",
+        "LICENSE",
+        "README.md",
+        "apexchart_logo.png",
+        "blazor-apexcharts.6.1.0.nupkg.sha512",
+        "blazor-apexcharts.nuspec",
+        "build/Blazor-ApexCharts.props",
+        "build/Microsoft.AspNetCore.StaticWebAssetEndpoints.props",
+        "build/Microsoft.AspNetCore.StaticWebAssets.props",
+        "buildMultiTargeting/Blazor-ApexCharts.props",
+        "buildTransitive/Blazor-ApexCharts.props",
+        "lib/net10.0/Blazor-ApexCharts.dll",
+        "lib/net10.0/Blazor-ApexCharts.xml",
+        "lib/net8.0/Blazor-ApexCharts.dll",
+        "lib/net8.0/Blazor-ApexCharts.xml",
+        "lib/net9.0/Blazor-ApexCharts.dll",
+        "lib/net9.0/Blazor-ApexCharts.xml",
+        "staticwebassets/css/apexcharts.css",
+        "staticwebassets/js/apexcharts.esm.js",
+        "staticwebassets/js/blazor-apexcharts.js",
+        "staticwebassets/locales/ar.json",
+        "staticwebassets/locales/be-cyrl.json",
+        "staticwebassets/locales/be-latn.json",
+        "staticwebassets/locales/ca.json",
+        "staticwebassets/locales/cs.json",
+        "staticwebassets/locales/da.json",
+        "staticwebassets/locales/de.json",
+        "staticwebassets/locales/el.json",
+        "staticwebassets/locales/en.json",
+        "staticwebassets/locales/es.json",
+        "staticwebassets/locales/et.json",
+        "staticwebassets/locales/fa.json",
+        "staticwebassets/locales/fi.json",
+        "staticwebassets/locales/fr.json",
+        "staticwebassets/locales/he.json",
+        "staticwebassets/locales/hi.json",
+        "staticwebassets/locales/hr.json",
+        "staticwebassets/locales/hu.json",
+        "staticwebassets/locales/hy.json",
+        "staticwebassets/locales/id.json",
+        "staticwebassets/locales/it.json",
+        "staticwebassets/locales/ja.json",
+        "staticwebassets/locales/ka.json",
+        "staticwebassets/locales/ko.json",
+        "staticwebassets/locales/lt.json",
+        "staticwebassets/locales/lv.json",
+        "staticwebassets/locales/ms.json",
+        "staticwebassets/locales/nb.json",
+        "staticwebassets/locales/nl.json",
+        "staticwebassets/locales/pl.json",
+        "staticwebassets/locales/pt-br.json",
+        "staticwebassets/locales/pt.json",
+        "staticwebassets/locales/ru.json",
+        "staticwebassets/locales/sk.json",
+        "staticwebassets/locales/sl.json",
+        "staticwebassets/locales/sq.json",
+        "staticwebassets/locales/sr.json",
+        "staticwebassets/locales/sv.json",
+        "staticwebassets/locales/th.json",
+        "staticwebassets/locales/tr.json",
+        "staticwebassets/locales/uk.json",
+        "staticwebassets/locales/vi.json",
+        "staticwebassets/locales/zh-cn.json",
+        "staticwebassets/locales/zh-tw.json"
+      ]
+    },
     "DotNetEnv/3.1.1": {
       "sha512": "o4SqUVCq0pqHF/HYsZk6k22XGIVmvsDVo+Dy7l0ubq9uQ45JkXswrMRJmYvhGLXWFYF0M5OupMonytB+0zvpGQ==",
       "type": "package",
@@ -344,10 +435,10 @@
         "lib/netstandard1.3/DotNetEnv.dll"
       ]
     },
-    "Microsoft.AspNetCore.App.Internal.Assets/10.0.3": {
-      "sha512": "mr3Zn+ht8lijYvlMIasftw9opU9hsLKDdnOgQMmYI3RjWPJLOF9l8+YHDseRkTs97wOrULmJgo/NDCmzL/EGDg==",
+    "Microsoft.AspNetCore.App.Internal.Assets/10.0.5": {
+      "sha512": "Oxw9Ps1/nd6c/EMCAI13AeJFEqXezAvCEOshMjUWmL7LeGirHJNzytR2e/3jINYg0j2TmPvNUowGHf+gp8zDSQ==",
       "type": "package",
-      "path": "microsoft.aspnetcore.app.internal.assets/10.0.3",
+      "path": "microsoft.aspnetcore.app.internal.assets/10.0.5",
       "files": [
         ".nupkg.metadata",
         ".signature.p7s",
@@ -363,7 +454,7 @@
         "build/Microsoft.AspNetCore.App.Internal.Assets.targets",
         "buildMultiTargeting/Microsoft.AspNetCore.App.Internal.Assets.targets",
         "buildTransitive/Microsoft.AspNetCore.App.Internal.Assets.targets",
-        "microsoft.aspnetcore.app.internal.assets.10.0.3.nupkg.sha512",
+        "microsoft.aspnetcore.app.internal.assets.10.0.5.nupkg.sha512",
         "microsoft.aspnetcore.app.internal.assets.nuspec"
       ]
     },
@@ -759,31 +850,31 @@
   },
   "projectFileDependencyGroups": {
     "net10.0": [
+      "Blazor-ApexCharts >= 6.1.0",
       "DotNetEnv >= 3.1.1",
-      "Microsoft.AspNetCore.App.Internal.Assets >= 10.0.3",
+      "Microsoft.AspNetCore.App.Internal.Assets >= 10.0.5",
       "Supabase >= 1.1.1"
     ]
   },
   "packageFolders": {
-    "/home/Noel/.nuget/packages/": {}
+    "C:\\Users\\Republic of Gamers\\.nuget\\packages\\": {}
   },
   "project": {
     "version": "1.0.0",
     "restore": {
-      "projectUniqueName": "/home/Noel/Projects/CBOS/CBOS.csproj",
+      "projectUniqueName": "C:\\Users\\Republic of Gamers\\Desktop\\CBOS\\CBOS.csproj",
       "projectName": "CBOS",
-      "projectPath": "/home/Noel/Projects/CBOS/CBOS.csproj",
-      "packagesPath": "/home/Noel/.nuget/packages/",
-      "outputPath": "/home/Noel/Projects/CBOS/obj/",
+      "projectPath": "C:\\Users\\Republic of Gamers\\Desktop\\CBOS\\CBOS.csproj",
+      "packagesPath": "C:\\Users\\Republic of Gamers\\.nuget\\packages\\",
+      "outputPath": "C:\\Users\\Republic of Gamers\\Desktop\\CBOS\\obj\\",
       "projectStyle": "PackageReference",
       "configFilePaths": [
-        "/home/Noel/.nuget/NuGet/NuGet.Config"
+        "C:\\Users\\Republic of Gamers\\AppData\\Roaming\\NuGet\\NuGet.Config"
       ],
       "originalTargetFrameworks": [
         "net10.0"
       ],
       "sources": {
-        "/usr/lib64/dotnet/library-packs": {},
         "https://api.nuget.org/v3/index.json": {}
       },
       "frameworks": {
@@ -802,12 +893,16 @@
         "auditLevel": "low",
         "auditMode": "all"
       },
-      "SdkAnalysisLevel": "10.0.100"
+      "SdkAnalysisLevel": "10.0.200"
     },
     "frameworks": {
       "net10.0": {
         "targetAlias": "net10.0",
         "dependencies": {
+          "Blazor-ApexCharts": {
+            "target": "Package",
+            "version": "[6.1.0, )"
+          },
           "DotNetEnv": {
             "target": "Package",
             "version": "[3.1.1, )"
@@ -815,7 +910,7 @@
           "Microsoft.AspNetCore.App.Internal.Assets": {
             "suppressParent": "All",
             "target": "Package",
-            "version": "[10.0.3, )",
+            "version": "[10.0.5, )",
             "autoReferenced": true
           },
           "Supabase": {
@@ -842,7 +937,7 @@
             "privateAssets": "all"
           }
         },
-        "runtimeIdentifierGraphPath": "/usr/lib64/dotnet/sdk/10.0.103/PortableRuntimeIdentifierGraph.json",
+        "runtimeIdentifierGraphPath": "C:\\Program Files\\dotnet\\sdk\\10.0.201/PortableRuntimeIdentifierGraph.json",
         "packagesToPrune": {
           "Microsoft.AspNetCore": "(,10.0.32767]",
           "Microsoft.AspNetCore.Antiforgery": "(,10.0.32767]",

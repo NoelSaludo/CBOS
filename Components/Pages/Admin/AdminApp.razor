@@ -23,44 +23,52 @@ else
         <!-- Sidebar -->
         <aside class="sidebar">
             <div class="sidebar-header">
-                <div class="logo-mark">CB</div>
                 <div class="brand-text">
                     <span class="brand-title">CBOS</span>
-                    <span class="brand-sub">Batangas Admin</span>
+                    <span class="brand-sub">ADMIN WORKSPACE</span>
                 </div>
             </div>
 
             <nav class="sidebar-nav">
+                <button class="nav-item @(ActiveFilter == NotifFilter.Home ? "active" : "")"
+                        @onclick="() => SetFilter(NotifFilter.Home)">
+                    <span class="nav-icon"><i class="bi bi-grid-1x2-fill">⛶</i></span>
+                    <span>DASHBOARD</span>
+                </button>
+                <button class="nav-item @(ActiveFilter == NotifFilter.Incident ? "active" : "")"
+                        @onclick="() => SetFilter(NotifFilter.Incident)">
+                    <span class="nav-icon">⚠️</span>
+                    <span>INCIDENT REPORTS</span>
+                </button>
+                <button class="nav-item @(ActiveFilter == NotifFilter.Appointment ? "active" : "")"
+                        @onclick="() => SetFilter(NotifFilter.Appointment)">
+                    <span class="nav-icon">📅</span>
+                    <span>APPOINTMENTS</span>
+                </button>
                 <button class="nav-item @(ActiveFilter == NotifFilter.All ? "active" : "")"
                         @onclick="() => SetFilter(NotifFilter.All)">
-                    <span class="nav-icon">🔔</span>
-                    <span>All Notifications</span>
+                    <span class="nav-icon">💬</span>
+                    <span>COMMUNITY FEED</span>
                     @if (UnreadCount > 0)
                     {
                         <span class="badge">@UnreadCount</span>
                     }
                 </button>
-                <button class="nav-item @(ActiveFilter == NotifFilter.Appointment ? "active" : "")"
-                        @onclick="() => SetFilter(NotifFilter.Appointment)">
-                    <span class="nav-icon">📅</span>
-                    <span>Appointment Schedules</span>
-                </button>
-                <button class="nav-item @(ActiveFilter == NotifFilter.Incident ? "active" : "")"
-                        @onclick="() => SetFilter(NotifFilter.Incident)">
-                    <span class="nav-icon">⚠️</span>
-                    <span>Incident Reports</span>
-                </button>
                 <button class="nav-item @(ActiveFilter == NotifFilter.Verification ? "active" : "")"
                         @onclick="() => SetFilter(NotifFilter.Verification)">
                     <span class="nav-icon">✅</span>
-                    <span>Verification Requests</span>
+                    <span>VERIFICATION</span>
+                </button>
+                <button class="nav-item">
+                    <span class="nav-icon">⚙️</span>
+                    <span>SETTINGS</span>
                 </button>
             </nav>
 
             <div class="sidebar-footer">
                 <button class="logout-btn" @onclick="Logout">
                     <span class="nav-icon">🚪</span>
-                    <span>Logout</span>
+                    <span>LOGOUT</span>
                 </button>
             </div>
         </aside>
@@ -68,17 +76,326 @@ else
         <!-- Main content -->
         <main class="main-content">
             <header class="topbar">
-                <div class="topbar-title">
-                    <h1>Admin Dashboard</h1>
-                    <span class="topbar-subtitle">@FilterLabel</span>
+                <div class="topbar-left">
+                    <span class="topbar-brand">CBOS Admin Workspace</span>
+                    <div class="search-container">
+                        <span class="search-icon">🔍</span>
+                        <input type="text" class="search-input" placeholder="Search records, residents, or reports..." />
+                    </div>
                 </div>
                 <div class="topbar-actions">
-                    <span class="admin-chip">Administrator</span>
+                    <div class="notification-bell">
+                        <span class="bell-icon">🔔</span>
+                        <span class="bell-dot"></span>
+                    </div>
+                    <div class="admin-profile">
+                        <div class="profile-text">
+                            <span class="profile-name">Official Name</span>
+                            <span class="profile-role">BARANGAY ADMIN</span>
+                        </div>
+                        <img src="https://i.pravatar.cc/150?u=admin" alt="Admin Profile" class="profile-avatar" />
+                    </div>
                 </div>
             </header>
 
             <section class="content-area">
-                <p class="placeholder-text">Admin Dashboard</p>
+                @if (ActiveFilter == NotifFilter.Home)
+                {
+                    <div class="welcome-section">
+                        <h1>Welcome back, Official Name.</h1>
+                        <p>Here is a comprehensive overview of your Barangay's activities today.</p>
+                    </div>
+
+                    <div class="analytics-grid">
+                        <div class="stat-card">
+                            <div class="stat-card-top">
+                                <div class="stat-icon-wrapper green">
+                                    <span class="stat-icon">✅</span>
+                                </div>
+                            </div>
+                            <div class="stat-info">
+                                <p class="stat-number">1,024</p>
+                                <h3>FULLY VERIFIED USERS</h3>
+                            </div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="stat-card-top">
+                                <div class="stat-icon-wrapper orange">
+                                    <span class="stat-icon">⏳</span>
+                                </div>
+                            </div>
+                            <div class="stat-info">
+                                <p class="stat-number">45</p>
+                                <h3>PARTIALLY UNVERIFIED</h3>
+                            </div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="stat-card-top">
+                                <div class="stat-icon-wrapper red">
+                                    <span class="stat-icon">🚨</span>
+                                </div>
+                            </div>
+                            <div class="stat-info">
+                                <p class="stat-number">12</p>
+                                <h3>INCIDENT REPORTS</h3>
+                            </div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="stat-card-top">
+                                <div class="stat-icon-wrapper blue">
+                                    <span class="stat-icon">📅</span>
+                                </div>
+                            </div>
+                            <div class="stat-info">
+                                <p class="stat-number">08</p>
+                                <h3>APPOINTMENTS</h3>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="analytics-chart-container">
+                        <div class="architectural-card">
+                            <div class="card-header-split">
+                                <div class="chart-title-left">
+                                    <h2 class="card-title">User Growth Analytics</h2>
+                                    <p class="card-subtitle">Resident registration trends over the last 6 months</p>
+                                </div>
+                                <span class="stat-badge live">LIVE</span>
+                            </div>
+                            <div class="chart-placeholder">
+                                <ApexChart TItem="RegistrationData"
+                                           Height="@("250")"
+                                           Options="chartOptions">
+                                    <ApexPointSeries TItem="RegistrationData"
+                                                     Items="trendData"
+                                                     Name="Registrations"
+                                                     SeriesType="SeriesType.Area"
+                                                     XValue="@(e => e.Month)"
+                                                     YValue="@(e => e.Count)" />
+                                </ApexChart>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="dashboard-split">
+                        <!-- Left Column (Incident Reports) -->
+                        <div class="dashboard-col-left">
+                            <div class="architectural-card list-card">
+                                <div class="card-header-split">
+                                    <h2 class="card-title">User Verification</h2>
+                                    <a href="#" class="card-link">VIEW ALL</a>
+                                </div>
+                                <div class="table-container">
+                                    <table class="data-table">
+                                        <thead>
+                                            <tr>
+                                                <th>ID</th>
+                                                <th>NAME</th>
+                                                <th>DATE REGISTERED</th>
+                                                <th>STATUS</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            <tr>
+                                                <td class="id-cell">#USR-3001</td>
+                                                <td class="bold-cell">Ana Patricia Reyes</td>
+                                                <td class="light-cell">Oct 22, 2023</td>
+                                                <td><span class="data-chip approved">FULLY VERIFIED</span></td>
+                                            </tr>
+                                            <tr>
+                                                <td class="id-cell">#USR-3002</td>
+                                                <td class="bold-cell">Carlos Miguel Torres</td>
+                                                <td class="light-cell">Oct 23, 2023</td>
+                                                <td><span class="data-chip yellow">PARTIALLY VERIFIED</span></td>
+                                            </tr>
+                                            <tr>
+                                                <td class="id-cell">#USR-3003</td>
+                                                <td class="bold-cell">Diana Rose Lim</td>
+                                                <td class="light-cell">Oct 24, 2023</td>
+                                                <td><span class="data-chip approved">FULLY VERIFIED</span></td>
+                                            </tr>
+                                            <tr>
+                                                <td class="id-cell">#USR-3004</td>
+                                                <td class="bold-cell">Roberto Santos Jr.</td>
+                                                <td class="light-cell">Oct 24, 2023</td>
+                                                <td><span class="data-chip yellow">PARTIALLY VERIFIED</span></td>
+                                            </tr>
+                                        </tbody>
+                                    </table>
+                                </div>
+
+                            </div>
+
+                            <div class="architectural-card list-card">
+                                <div class="card-header-split">
+                                    <h2 class="card-title">Recent Incident Reports</h2>
+                                    <a href="#" class="card-link">VIEW ALL</a>
+                                </div>
+                                <div class="table-container">
+                                    <table class="data-table">
+                                        <thead>
+                                            <tr>
+                                                <th>ID</th>
+                                                <th>COMPLAINANT</th>
+                                                <th>TITLE</th>
+                                                <th>CATEGORY</th>
+                                                <th>DATE</th>
+                                                <th>STATUS</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            <tr>
+                                                <td class="id-cell">#INC-4021</td>
+                                                <td class="bold-cell">Maria Santos</td>
+                                                <td class="light-cell">Stray Animal Complaint</td>
+                                                <td><span class="data-chip yellow">Complaint</span></td>
+                                                <td class="light-cell">Oct 24, 2023</td>
+                                                <td><span class="data-chip yellow">PENDING</span></td>
+                                            </tr>
+                                            <tr>
+                                                <td class="id-cell">#INC-4020</td>
+                                                <td class="bold-cell">Juan Dela Cruz</td>
+                                                <td class="light-cell">Noise Disturbance</td>
+                                                <td><span class="data-chip gray">Other</span></td>
+                                                <td class="light-cell">Oct 24, 2023</td>
+                                                <td><span class="data-chip rejected">REJECTED</span></td>
+                                            </tr>
+                                            <tr>
+                                                <td class="id-cell">#INC-4019</td>
+                                                <td class="bold-cell">Elena Rodriguez</td>
+                                                <td class="light-cell">Clogged Drainage</td>
+                                                <td><span class="data-chip rejected">Emergency</span></td>
+                                                <td class="light-cell">Oct 23, 2023</td>
+                                                <td><span class="data-chip resolved">RESOLVED</span></td>
+                                            </tr>
+                                            <tr>
+                                                <td class="id-cell">#INC-4018</td>
+                                                <td class="bold-cell">Mark Jayson Sy</td>
+                                                <td class="light-cell">More Streetlights</td>
+                                                <td><span class="data-chip resolved">Suggestion</span></td>
+                                                <td class="light-cell">Oct 23, 2023</td>
+                                                <td><span class="data-chip resolved">RESOLVED</span></td>
+                                            </tr>
+                                        </tbody>
+                                    </table>
+                                </div>
+
+                            </div>
+                            
+                            <div class="architectural-card list-card">
+                                <div class="card-header-split">
+                                    <h2 class="card-title">Recent Community Posts</h2>
+                                    <a href="#" class="card-link">VIEW ALL</a>
+                                </div>
+                                <div class="table-container">
+                                    <table class="data-table">
+                                        <thead>
+                                            <tr>
+                                                <th>ID</th>
+                                                <th>AUTHOR</th>
+                                                <th>TOPIC</th>
+                                                <th>DATE</th>
+                                                <th>STATUS</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            <tr>
+                                                <td class="id-cell">#PST-1052</td>
+                                                <td class="bold-cell">Juan Dela Cruz</td>
+                                                <td class="light-cell">Barangay Fiesta</td>
+                                                <td class="light-cell">Oct 24, 2023</td>
+                                                <td><span class="data-chip yellow">PENDING</span></td>
+                                            </tr>
+                                            <tr>
+                                                <td class="id-cell">#PST-1051</td>
+                                                <td class="bold-cell">Maria Santos</td>
+                                                <td class="light-cell">Clean &amp; Green Drive</td>
+                                                <td class="light-cell">Oct 24, 2023</td>
+                                                <td><span class="data-chip approved">APPROVED</span></td>
+                                            </tr>
+                                            <tr>
+                                                <td class="id-cell">#PST-1050</td>
+                                                <td class="bold-cell">Pedro Penduko</td>
+                                                <td class="light-cell">Lost Pet</td>
+                                                <td class="light-cell">Oct 23, 2023</td>
+                                                <td><span class="data-chip rejected">REJECTED</span></td>
+                                            </tr>
+                                        </tbody>
+                                    </table>
+                                </div>
+
+                            </div>
+                        </div>
+
+                        <!-- Right Column (Appointments & System Update) -->
+                        <div class="dashboard-col-right">
+                            <div class="architectural-card appointments-card">
+                                <div class="card-header-split">
+                                    <h2 class="card-title">Appointments</h2>
+                                    <a href="#" class="card-link">VIEW ALL</a>
+                                </div>
+                                <div class="appointments-list">
+                                    <div class="appointment-item">
+                                        <div class="app-header-row">
+                                            <span class="app-id">#APP-5001</span>
+                                            <span class="data-chip yellow">PENDING</span>
+                                        </div>
+                                        <div class="app-body">
+                                            <div class="app-name">Elena Rodriguez</div>
+                                            <div class="app-meta">
+                                                <span class="app-category">DOCUMENT REQUEST</span>
+                                                <span class="app-service">Barangay Clearance</span>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="appointment-item">
+                                        <div class="app-header-row">
+                                            <span class="app-id">#APP-5002</span>
+                                            <span class="data-chip approved">APPROVED</span>
+                                        </div>
+                                        <div class="app-body">
+                                            <div class="app-name">Mark Jayson Sy</div>
+                                            <div class="app-meta">
+                                                <span class="app-category">PERMITS &amp; CLEARANCES</span>
+                                                <span class="app-service">Barangay Business Permit</span>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="appointment-item">
+                                        <div class="app-header-row">
+                                            <span class="app-id">#APP-5003</span>
+                                            <span class="data-chip rescheduled">RESCHEDULED</span>
+                                        </div>
+                                        <div class="app-body">
+                                            <div class="app-name">Maria Clara Santos</div>
+                                            <div class="app-meta">
+                                                <span class="app-category">DOCUMENT REQUEST</span>
+                                                <span class="app-service">Certificate of Residency</span>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="appointment-item">
+                                        <div class="app-header-row">
+                                            <span class="app-id">#APP-5004</span>
+                                            <span class="data-chip rejected">REJECTED</span>
+                                        </div>
+                                        <div class="app-body">
+                                            <div class="app-name">Juan Dela Cruz</div>
+                                            <div class="app-meta">
+                                                <span class="app-category">COMPLAINT AND MEDIATION</span>
+                                                <span class="app-service">Mediation Session</span>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                }
+                else
+                {
+                    <p class="placeholder-text">@FilterLabel View - Coming Soon</p>
+                }
             </section>
         </main>
     </div>
@@ -87,18 +404,51 @@ else
 @code {
     private bool _isAuthorized = false;
 
-    public enum NotifFilter { All, Appointment, Incident, Verification }
-    private NotifFilter ActiveFilter = NotifFilter.All;
+    private List<RegistrationData> trendData = new();
+    private ApexChartOptions<RegistrationData> chartOptions = new();
+
+    public class RegistrationData
+    {
+        public string Month { get; set; } = "";
+        public int Count { get; set; }
+    }
+    public enum NotifFilter { Home, All, Appointment, Incident, Verification }
+    private NotifFilter ActiveFilter = NotifFilter.Home;
     private int UnreadCount = 0;
 
     private string FilterLabel => ActiveFilter switch
     {
+        NotifFilter.Home         => "General Analytics",
         NotifFilter.All          => "All Unread Notifications",
         NotifFilter.Appointment  => "Appointment Schedules",
         NotifFilter.Incident     => "Incident Reports",
         NotifFilter.Verification => "Verification Requests",
         _                        => string.Empty
     };
+
+    protected override void OnInitialized()
+    {
+        trendData = new List<RegistrationData>
+        {
+            new RegistrationData { Month = "JAN", Count = 120 },
+            new RegistrationData { Month = "FEB", Count = 230 },
+            new RegistrationData { Month = "MAR", Count = 310 },
+            new RegistrationData { Month = "APR", Count = 480 },
+            new RegistrationData { Month = "MAY", Count = 550 },
+            new RegistrationData { Month = "JUN", Count = 820 }
+        };
+
+        chartOptions = new ApexChartOptions<RegistrationData>
+        {
+            Chart = new Chart { Toolbar = new Toolbar { Show = false } },
+            DataLabels = new DataLabels { Enabled = false },
+            Stroke = new Stroke { Curve = Curve.Smooth, Width = 4, Colors = new List<string> { "#001d44" } },
+            Fill = new Fill { Type = new List<FillType> { FillType.Solid }, Colors = new List<string> { "#f3f4f5" }, Opacity = 1 },
+            Xaxis = new XAxis { Labels = new XAxisLabels { Style = new AxisLabelStyle { FontSize = "10px", FontWeight = "700" } } },
+            Yaxis = new List<YAxis> { new YAxis { Show = false } },
+            Grid = new Grid { Show = false }
+        };
+    }
 
     protected override async Task OnAfterRenderAsync(bool firstRender)
     {
