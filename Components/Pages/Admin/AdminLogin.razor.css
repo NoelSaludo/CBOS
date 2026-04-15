@@ -2,30 +2,24 @@
     min-width: 200px;
     width: 600px;
     margin: 0 auto;
-    margin-top: 100px;
+    margin-top: 3rem;
     padding: 20px 5rem;
     box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
     border-radius: 8px;
-    background-color: #ffffff;
-    font-family: 'Inter', sans-serif;
+    background: linear-gradient(145deg, #ffffff, #cacaca);
     align-content: center;
-}
-.login-card h2 {
-    font-size: 3.8rem;
-}
-.login-card h3 {
-    font-size: 2.8rem;
+    border-color:black;
+    border-width: 2px;
 }
 
-.login-card h2, h3 {
-    text-align: center;
+.login-card-header h3, h6 {
     color: #0a53be;
     font-weight: bolder;
 }
 
-.login-header {
+.login-card-header {
     margin-top: 20px;
-    margin-bottom: 20px;
+    margin-bottom: 2rem;
 }
 
 .password-field {
