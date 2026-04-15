@@ -43,7 +43,14 @@ public class AdminSupabase {
             .Where(s => s.SessonKey == sessionKey && s.expirationAt > DateTime.UtcNow).Single();
 
         return session != null;
-    }   
+    }
+
+    public async Task DeleteSession(string sessionKey)
+    {
+        await supabase.From<AdminSession>()
+            .Where(s => s.SessonKey == sessionKey)
+            .Delete();
+    }
     public async Task<AdminLoginResult> Login(string verificationNumber, string password)
     {
         AdminLoginResult result= new AdminLoginResult();
@@ -77,7 +84,6 @@ public class AdminSupabase {
 
     private string GenerateSessionToken(string verificationNumber)
     {
-        // In a real application, use a secure method to generate session tokens
         return Convert.ToBase64String(Guid.NewGuid().ToByteArray()) + verificationNumber;
     }
 }
