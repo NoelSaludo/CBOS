@@ -2,7 +2,7 @@
   "version": 3,
   "targets": {
     "net10.0": {
-      "Microsoft.AspNetCore.App.Internal.Assets/10.0.3": {
+      "Microsoft.AspNetCore.App.Internal.Assets/10.0.5": {
         "type": "package",
         "build": {
           "build/Microsoft.AspNetCore.App.Internal.Assets.props": {},
@@ -289,10 +289,10 @@
     }
   },
   "libraries": {
-    "Microsoft.AspNetCore.App.Internal.Assets/10.0.3": {
-      "sha512": "mr3Zn+ht8lijYvlMIasftw9opU9hsLKDdnOgQMmYI3RjWPJLOF9l8+YHDseRkTs97wOrULmJgo/NDCmzL/EGDg==",
+    "Microsoft.AspNetCore.App.Internal.Assets/10.0.5": {
+      "sha512": "Oxw9Ps1/nd6c/EMCAI13AeJFEqXezAvCEOshMjUWmL7LeGirHJNzytR2e/3jINYg0j2TmPvNUowGHf+gp8zDSQ==",
       "type": "package",
-      "path": "microsoft.aspnetcore.app.internal.assets/10.0.3",
+      "path": "microsoft.aspnetcore.app.internal.assets/10.0.5",
       "files": [
         ".nupkg.metadata",
         ".signature.p7s",
@@ -308,7 +308,7 @@
         "build/Microsoft.AspNetCore.App.Internal.Assets.targets",
         "buildMultiTargeting/Microsoft.AspNetCore.App.Internal.Assets.targets",
         "buildTransitive/Microsoft.AspNetCore.App.Internal.Assets.targets",
-        "microsoft.aspnetcore.app.internal.assets.10.0.3.nupkg.sha512",
+        "microsoft.aspnetcore.app.internal.assets.10.0.5.nupkg.sha512",
         "microsoft.aspnetcore.app.internal.assets.nuspec"
       ]
     },
@@ -651,30 +651,29 @@
   },
   "projectFileDependencyGroups": {
     "net10.0": [
-      "Microsoft.AspNetCore.App.Internal.Assets >= 10.0.3",
+      "Microsoft.AspNetCore.App.Internal.Assets >= 10.0.5",
       "Supabase >= 1.1.1"
     ]
   },
   "packageFolders": {
-    "/home/Noel/.nuget/packages/": {}
+    "C:\\Users\\Chester Calog\\.nuget\\packages\\": {}
   },
   "project": {
     "version": "1.0.0",
     "restore": {
-      "projectUniqueName": "/home/Noel/Projects/CBOS/CBOS.csproj",
+      "projectUniqueName": "C:\\Users\\Chester Calog\\RiderProjects\\CBOS\\CBOS.csproj",
       "projectName": "CBOS",
-      "projectPath": "/home/Noel/Projects/CBOS/CBOS.csproj",
-      "packagesPath": "/home/Noel/.nuget/packages/",
-      "outputPath": "/home/Noel/Projects/CBOS/obj/",
+      "projectPath": "C:\\Users\\Chester Calog\\RiderProjects\\CBOS\\CBOS.csproj",
+      "packagesPath": "C:\\Users\\Chester Calog\\.nuget\\packages\\",
+      "outputPath": "C:\\Users\\Chester Calog\\RiderProjects\\CBOS\\obj\\",
       "projectStyle": "PackageReference",
       "configFilePaths": [
-        "/home/Noel/.nuget/NuGet/NuGet.Config"
+        "C:\\Users\\Chester Calog\\AppData\\Roaming\\NuGet\\NuGet.Config"
       ],
       "originalTargetFrameworks": [
         "net10.0"
       ],
       "sources": {
-        "/usr/lib64/dotnet/library-packs": {},
         "https://api.nuget.org/v3/index.json": {}
       },
       "frameworks": {
@@ -693,7 +692,7 @@
         "auditLevel": "low",
         "auditMode": "all"
       },
-      "SdkAnalysisLevel": "10.0.100"
+      "SdkAnalysisLevel": "10.0.200"
     },
     "frameworks": {
       "net10.0": {
@@ -702,7 +701,7 @@
           "Microsoft.AspNetCore.App.Internal.Assets": {
             "suppressParent": "All",
             "target": "Package",
-            "version": "[10.0.3, )",
+            "version": "[10.0.5, )",
             "autoReferenced": true
           },
           "Supabase": {
@@ -729,7 +728,7 @@
             "privateAssets": "all"
           }
         },
-        "runtimeIdentifierGraphPath": "/usr/lib64/dotnet/sdk/10.0.103/PortableRuntimeIdentifierGraph.json",
+        "runtimeIdentifierGraphPath": "C:\\Users\\Chester Calog\\.dotnet\\sdk\\10.0.201/PortableRuntimeIdentifierGraph.json",
         "packagesToPrune": {
           "Microsoft.AspNetCore": "(,10.0.32767]",
           "Microsoft.AspNetCore.Antiforgery": "(,10.0.32767]",
