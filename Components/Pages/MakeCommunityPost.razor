@@ -1,0 +1,307 @@
+@page "/app/make-post"
+@layout MainLayout
+@inject NavigationManager Navigation
+@inject IJSRuntime JS
+
+<div class="make-post-wrapper">
+    <div class="make-post-container">
+        <!-- Back Button -->
+        <button class="back-button" @onclick="GoBack">
+            <span class="back-arrow">←</span>
+        </button>
+
+        <!-- Title -->
+        <h1 class="make-post-title">Make a Community Post</h1>
+
+        <!-- Form -->
+        <form @onsubmit="HandleSubmit">
+            <!-- Description Section -->
+            <div class="form-section">
+                <label class="section-label">Add description to your post</label>
+                <textarea 
+                    class="post-textarea"
+                    @bind="postDescription"
+                    placeholder="Write your post here..."
+                    rows="6">
+                </textarea>
+            </div>
+
+            <!-- Media Section -->
+            <div class="form-section">
+                <label class="section-label">Add photo or video to your post (optional)</label>
+                
+                @if (!string.IsNullOrEmpty(mediaPreview))
+                {
+                    <div class="media-preview">
+                        <img src="@mediaPreview" alt="Preview" />
+                        <button type="button" class="remove-media-btn" @onclick="RemoveMedia">×</button>
+                    </div>
+                }
+
+                <button type="button" class="attach-media-btn" @onclick="HandleAttachMedia">
+                    Attach media
+                </button>
+                <InputFile 
+                    @ref="fileInput" 
+                    id="fileInputElement"
+                    style="display:none;" 
+                    accept="image/*,video/*"
+                    OnChange="HandleFileUpload" 
+                />
+            </div>
+
+            <!-- Notice Section -->
+            <div class="notice-section">
+                <h3 class="notice-title">Notice</h3>
+                <p class="notice-text">
+                    Your posts will be subject for approval first being posted at the community feed for regulation. Expect updates regarding the status of your post.
+                </p>
+            </div>
+
+            <!-- Submit Button -->
+            <button type="submit" class="submit-button">
+                Submit
+            </button>
+        </form>
+    </div>
+</div>
+
+@code {
+    private string postDescription = "";
+    private string mediaPreview = "";
+    private InputFile fileInput;
+
+    private void GoBack()
+    {
+        Navigation.NavigateTo("/app");
+    }
+
+    private async Task HandleAttachMedia()
+    {
+        await TriggerFileInput();
+    }
+
+    private async Task TriggerFileInput()
+    {
+        try
+        {
+            await JS.InvokeVoidAsync("clickElement", "fileInputElement");
+        }
+        catch
+        {
+            // Fallback if JS interop fails
+        }
+    }
+
+    private async Task HandleFileUpload(InputFileChangeEventArgs e)
+    {
+        await ProcessFileUpload(e);
+    }
+
+    private async Task ProcessFileUpload(InputFileChangeEventArgs e)
+    {
+        var file = e.GetMultipleFiles().FirstOrDefault();
+        if (file != null)
+        {
+            var stream = file.OpenReadStream(maxAllowedSize: 5242880); // 5MB
+            var bytes = new byte[stream.Length];
+            await stream.ReadAsync(bytes);
+            mediaPreview = $"data:{file.ContentType};base64,{Convert.ToBase64String(bytes)}";
+            await stream.DisposeAsync();
+        }
+    }
+
+    private void RemoveMedia()
+    {
+        mediaPreview = "";
+    }
+
+    private async Task HandleSubmit()
+    {
+        // TODO: Implement post submission logic
+        // This should send the post data (description + media) to your backend
+        Console.WriteLine($"Post submitted: {postDescription}");
+        postDescription = "";
+        mediaPreview = "";
+    }
+}
+
+<style>
+.make-post-wrapper {
+    background: linear-gradient(135deg, #00a8e8 0%, #0078d4 100%);
+    min-height: 100vh;
+    padding: 20px;
+}
+
+.make-post-container {
+    background: white;
+    border-radius: 20px;
+    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.1);
+    max-width: 900px;
+    margin: 40px auto;
+    padding: 40px;
+    position: relative;
+}
+
+.back-button {
+    position: absolute;
+    top: 30px;
+    left: 30px;
+    background: none;
+    border: none;
+    cursor: pointer;
+    font-size: 28px;
+    color: #0078d4;
+    padding: 8px 12px;
+    transition: opacity 0.2s;
+}
+
+.back-button:hover {
+    opacity: 0.7;
+}
+
+.back-arrow {
+    display: inline-block;
+}
+
+.make-post-title {
+    text-align: center;
+    color: #0078d4;
+    font-size: 2.5rem;
+    font-weight: 600;
+    margin: 0 0 40px 0;
+    padding-top: 20px;
+}
+
+.form-section {
+    margin-bottom: 30px;
+}
+
+.section-label {
+    display: block;
+    color: #666;
+    font-size: 1rem;
+    margin-bottom: 12px;
+    font-weight: 500;
+}
+
+.post-textarea {
+    width: 100%;
+    border: 1px solid #e0e0e0;
+    border-radius: 8px;
+    padding: 16px;
+    font-size: 0.95rem;
+    font-family: inherit;
+    color: #333;
+    resize: vertical;
+    background-color: #f5f5f5;
+    transition: border-color 0.2s;
+}
+
+.post-textarea:focus {
+    outline: none;
+    border-color: #0078d4;
+    background-color: #fff;
+}
+
+.post-textarea::placeholder {
+    color: #999;
+}
+
+.media-preview {
+    position: relative;
+    margin-bottom: 12px;
+    border-radius: 8px;
+    overflow: hidden;
+    max-width: 300px;
+}
+
+.media-preview img {
+    width: 100%;
+    height: auto;
+    display: block;
+}
+
+.remove-media-btn {
+    position: absolute;
+    top: 8px;
+    right: 8px;
+    background: rgba(0, 0, 0, 0.6);
+    color: white;
+    border: none;
+    border-radius: 50%;
+    width: 32px;
+    height: 32px;
+    font-size: 24px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: background 0.2s;
+}
+
+.remove-media-btn:hover {
+    background: rgba(0, 0, 0, 0.8);
+}
+
+.attach-media-btn {
+    background-color: #0078d4;
+    color: white;
+    border: none;
+    border-radius: 24px;
+    padding: 10px 24px;
+    font-size: 0.95rem;
+    font-weight: 500;
+    cursor: pointer;
+    transition: background-color 0.2s;
+}
+
+.attach-media-btn:hover {
+    background-color: #005fa3;
+}
+
+.notice-section {
+    background-color: #f0f8ff;
+    border-left: 4px solid #0078d4;
+    border-radius: 8px;
+    padding: 20px;
+    margin-bottom: 30px;
+}
+
+.notice-title {
+    margin: 0 0 10px 0;
+    color: #0078d4;
+    font-size: 1.1rem;
+    font-weight: 600;
+}
+
+.notice-text {
+    margin: 0;
+    color: #666;
+    font-size: 0.9rem;
+    line-height: 1.6;
+    font-style: italic;
+}
+
+.submit-button {
+    width: 100%;
+    background-color: #0078d4;
+    color: white;
+    border: none;
+    border-radius: 24px;
+    padding: 14px 32px;
+    font-size: 1rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background-color 0.2s;
+}
+
+.submit-button:hover {
+    background-color: #005fa3;
+}
+
+.submit-button:active {
+    transform: scale(0.98);
+}
+</style>
+

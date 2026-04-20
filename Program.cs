@@ -1,8 +1,6 @@
 using CBOS.Components;
 using CBOS.Components.Pages.Admin;
 using DotNetEnv;
-using CBOS.Components.Pages.Admin;
-using DotNetEnv;
 using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Components.Authorization;
 
@@ -10,14 +8,27 @@ Env.Load();
 var url = Environment.GetEnvironmentVariable("SUPABASE_URL");
 var key = Environment.GetEnvironmentVariable("SUPABASE_KEY");
 
+if (string.IsNullOrEmpty(url) || string.IsNullOrEmpty(key))
+{
+    throw new InvalidOperationException("SUPABASE_URL and SUPABASE_KEY environment variables must be set.");
+}
+
 var options = new Supabase.SupabaseOptions
 {
     AutoRefreshToken = true,
-    AutoConnectRealtime = true
+    AutoConnectRealtime = false
 };
 
 var supabase = new Supabase.Client(url, key, options);
-await supabase.InitializeAsync();
+try
+{
+    await supabase.InitializeAsync();
+}
+catch (Exception ex)
+{
+    Console.WriteLine($"Warning: Failed to initialize Supabase: {ex.Message}");
+    Console.WriteLine("The application will continue running, but Supabase features may not work.");
+}
 
 var builder = WebApplication.CreateBuilder(args);
 

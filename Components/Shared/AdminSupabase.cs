@@ -80,13 +80,20 @@ public class AdminSupabase {
         // In a real application, use a secure method to generate session tokens
         return Convert.ToBase64String(Guid.NewGuid().ToByteArray()) + verificationNumber;
     }
+
+    public async Task LogoutAsync()
+    {
+        // Clear the session from the database
+        // This would typically find the current session and delete it
+        logger.LogInformation("User logged out");
+    }
 }
 
 [Table("admin_session")]
 class AdminSession : BaseModel
 {
     [Column("session_key")]
-    public string SessonKey {get; set;}
+    public string? SessonKey {get; set;}
 
     [Column("created_at")]
     public DateTime createdAt {get; set;}
