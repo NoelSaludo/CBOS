@@ -1,8 +1,11 @@
 @page "/register"
+@rendermode InteractiveServer
 @layout BlankLayout
 @using System.Text.RegularExpressions
 @using CBOS.Components.Layout
+@using CBOS.Models
 @inject NavigationManager Navigation
+@inject Supabase.Client SupabaseClient
 
 <PageTitle>CBOS - Registration</PageTitle>
 
@@ -34,6 +37,7 @@
         overflow: hidden;
         box-shadow: 0 24px 80px rgba(0, 60, 140, 0.30);
         animation: fadeUp .55s cubic-bezier(.22,1,.36,1) both;
+        position: relative;
     }
 
     @@keyframes fadeUp {
@@ -290,6 +294,144 @@
 
     .btn-submit:disabled { opacity: .6; cursor: not-allowed; }
 
+    /* success overlay */
+    .success-overlay {
+        position: absolute;
+        inset: 0;
+        background: rgba(255,255,255,0.97);
+        border-radius: 22px;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        text-align: center;
+        padding: 48px;
+        z-index: 10;
+        animation: fadeUp .4s ease both;
+    }
+
+    .success-icon {
+        width: 80px;
+        height: 80px;
+        background: linear-gradient(135deg, #00BBFF, #0066CC);
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 40px;
+        color: #fff;
+        margin-bottom: 24px;
+    }
+
+    .success-title {
+        font-size: 22px;
+        font-weight: 700;
+        color: #1A2B3C;
+        margin-bottom: 10px;
+    }
+
+    .success-msg {
+        font-size: 14px;
+        color: #5A6B7C;
+        line-height: 1.7;
+        max-width: 380px;
+        margin-bottom: 24px;
+    }
+
+    .success-email {
+        font-weight: 600;
+        color: #0088DD;
+    }
+
+    .btn-login {
+        padding: 11px 40px;
+        background: linear-gradient(135deg, #00BBFF, #0066CC);
+        color: #fff;
+        border: none;
+        border-radius: 10px;
+        font-family: 'Poppins', sans-serif;
+        font-size: 14px;
+        font-weight: 600;
+        cursor: pointer;
+        text-decoration: none;
+        transition: transform .2s, box-shadow .2s;
+        box-shadow: 0 4px 14px rgba(0,120,200,.3);
+    }
+
+    .btn-login:hover {
+        transform: translateY(-1px);
+        box-shadow: 0 6px 20px rgba(0,120,200,.4);
+        color: #fff;
+    }
+
+    .btn-register-again {
+        margin-top: 12px;
+        padding: 10px 36px;
+        background: transparent;
+        color: #5A6B7C;
+        border: 1.5px solid #D5E2EE;
+        border-radius: 10px;
+        font-family: 'Poppins', sans-serif;
+        font-size: 13px;
+        font-weight: 500;
+        cursor: pointer;
+        transition: all .2s;
+    }
+
+    .btn-register-again:hover {
+        border-color: #00AAFF;
+        color: #0088DD;
+    }
+
+    /* password rules */
+    .pw-rules {
+        width: 100%;
+        margin-top: 10px;
+        padding: 10px 14px;
+        background: rgba(255,255,255,.1);
+        border-radius: 10px;
+        border: 1px solid rgba(255,255,255,.15);
+    }
+
+    .pw-rules-title {
+        font-size: 10px;
+        font-weight: 600;
+        color: rgba(255,255,255,.6);
+        text-transform: uppercase;
+        letter-spacing: .5px;
+        margin-bottom: 6px;
+    }
+
+    .pw-rule {
+        display: flex;
+        align-items: center;
+        gap: 7px;
+        font-size: 11.5px;
+        color: rgba(255,255,255,.55);
+        padding: 2px 0;
+        transition: color .2s;
+    }
+
+    .pw-rule.met { color: #6FFFB0; }
+
+    .pw-dot {
+        width: 12px;
+        height: 12px;
+        border-radius: 50%;
+        border: 1.5px solid currentColor;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 8px;
+        flex-shrink: 0;
+    }
+
+    .pw-rule.met .pw-dot {
+        background: #6FFFB0;
+        border-color: #6FFFB0;
+        color: #006644;
+    }
+
     /* responsive */
     @@media (max-width: 720px) {
         .reg-card { flex-direction: column; }
@@ -302,6 +444,21 @@
 
 <div class="reg-bg">
     <div class="reg-card">
+
+        @if (registrationSuccess)
+        {
+            <div class="success-overlay">
+                <div class="success-icon">&#9993;</div>
+                <div class="success-title">Check Your Email</div>
+                <div class="success-msg">
+                    We've sent a verification link to
+                    <span class="success-email">@email</span>.
+                    Please check your inbox and click the link to verify your account.
+                </div>
+                <a class="btn-login" href="/">Go to Login</a>
+                <button class="btn-register-again" @onclick="ResetForm">Register Another</button>
+            </div>
+        }
 
         <!-- ── LEFT PANEL ── -->
         <div class="lp">
@@ -342,6 +499,30 @@
                            @bind="confirmPassword" @bind:event="oninput" />
                 </div>
                 @if (confirmPasswordError != null) { <div class="cred-err">@confirmPasswordError</div> }
+            </div>
+
+            <div class="pw-rules">
+                <div class="pw-rules-title">Password Requirements</div>
+                <div class="pw-rule @(password?.Length > 8 ? "met" : "")">
+                    <span class="pw-dot">@(password?.Length > 8 ? "✓" : "")</span>
+                    More than 8 characters
+                </div>
+                <div class="pw-rule @(HasLowercase ? "met" : "")">
+                    <span class="pw-dot">@(HasLowercase ? "✓" : "")</span>
+                    At least 1 lowercase letter
+                </div>
+                <div class="pw-rule @(HasUppercase ? "met" : "")">
+                    <span class="pw-dot">@(HasUppercase ? "✓" : "")</span>
+                    At least 1 uppercase letter
+                </div>
+                <div class="pw-rule @(HasNumber ? "met" : "")">
+                    <span class="pw-dot">@(HasNumber ? "✓" : "")</span>
+                    At least 1 number
+                </div>
+                <div class="pw-rule @(HasSpecialChar ? "met" : "")">
+                    <span class="pw-dot">@(HasSpecialChar ? "✓" : "")</span>
+                    At least 1 special character
+                </div>
             </div>
 
             <div class="cred-note">Input all required fields</div>
@@ -427,16 +608,6 @@
                 </div>
             </div>
 
-            <!-- Contact Information -->
-            <div class="sec-head">Contact Information</div>
-
-            <div class="row2" style="margin-bottom:14px;">
-                <div class="fg span2">
-                    <label>Email Address</label>
-                    <input type="text" value="@email" readonly />
-                </div>
-            </div>
-
             <div class="row2">
                 <div class="fg">
                     <label>Mobile Number</label>
@@ -463,6 +634,10 @@
             </div>
 
             <!-- Submit -->
+            @if (registrationError != null)
+            {
+                <div style="color:#E53E3E; font-size:12px; text-align:right; margin-bottom:8px;">@registrationError</div>
+            }
             <div class="submit-row">
                 <button class="btn-submit" @onclick="HandleSubmit" disabled="@isSubmitting">
                     @(isSubmitting ? "Submitting..." : "Submit")
@@ -498,6 +673,8 @@
     private string? mobileError;
 
     private bool isSubmitting = false;
+    private bool registrationSuccess = false;
+    private string? registrationError;
 
     private bool HasLowercase   => Regex.IsMatch(password ?? "", "[a-z]");
     private bool HasUppercase   => Regex.IsMatch(password ?? "", "[A-Z]");
@@ -543,35 +720,95 @@
         return ok;
     }
 
-    // TODO: Replace with actual Supabase Auth signup + Mailtrap email verification
     private async Task HandleSubmit()
     {
         if (!ValidateForm()) return;
 
         isSubmitting = true;
+        registrationError = null;
         StateHasChanged();
 
         try
         {
-            // -------------------------------------------------------
-            // SUPABASE AUTH INTEGRATION POINT
-            // -------------------------------------------------------
-            // 1. var result = await Supabase.Auth.SignUp(email, password);
-            // 2. await Supabase.From<Profile>().Insert(new Profile { ... });
-            // 3. Navigation.NavigateTo("/dashboard");
-            // -------------------------------------------------------
+            var options = new Supabase.Gotrue.SignUpOptions
+            {
+                Data = new Dictionary<string, object>
+                {
+                    { "first_name",   firstName },
+                    { "middle_name",  middleName },
+                    { "last_name",    surname },
+                    { "birth_date",   birthDate?.ToString("yyyy-MM-dd") ?? "" },
+                    { "sex",          sex },
+                    { "civil_status", civilStatus },
+                    { "barangay",     barangay },
+                    { "street",       street },
+                    { "house_number", houseNumber },
+                    { "mobile",       mobileNumber },
+                    { "landline",     phoneNumber }
+                }
+            };
 
-            await Task.Delay(1500); // Remove when real auth is added
-            Navigation.NavigateTo("/dashboard");
+            var session = await SupabaseClient.Auth.SignUp(email, password, options);
+
+            if (session?.User != null)
+            {
+                // Calculate age from birthdate
+                long? age = null;
+                if (birthDate.HasValue)
+                {
+                    var today = DateTime.Today;
+                    age = today.Year - birthDate.Value.Year;
+                    if (birthDate.Value.Date > today.AddYears(-(int)age)) age--;
+                }
+
+                // Combine address
+                var address = string.Join(", ",
+                    new[] { houseNumber, street, barangay }
+                    .Where(s => !string.IsNullOrWhiteSpace(s)));
+
+                // Insert into users table
+                var profile = new UserProfile
+                {
+                    EmailAddress = email,
+                    FirstName = firstName,
+                    MiddleName = string.IsNullOrWhiteSpace(middleName) ? null : middleName,
+                    LastName = surname,
+                    PhoneNumber = mobileNumber,
+                    BirthDate = birthDate,
+                    Age = age,
+                    PhysicalAddress = string.IsNullOrWhiteSpace(address) ? null : address
+                };
+
+                await SupabaseClient.From<UserProfile>().Insert(profile);
+
+                registrationSuccess = true;
+            }
+            else
+            {
+                registrationError = "Registration failed. Please try again.";
+            }
         }
         catch (Exception ex)
         {
-            Console.WriteLine($"Registration error: {ex.Message}");
+            registrationError = ex.Message;
         }
         finally
         {
             isSubmitting = false;
             StateHasChanged();
         }
+    }
+
+    private void ResetForm()
+    {
+        email = password = confirmPassword = "";
+        firstName = middleName = surname = "";
+        birthDate = null;
+        sex = civilStatus = barangay = street = houseNumber = "";
+        mobileNumber = phoneNumber = "";
+        emailError = passwordError = confirmPasswordError = null;
+        firstNameError = surnameError = birthDateError = mobileError = null;
+        registrationError = null;
+        registrationSuccess = false;
     }
 }
