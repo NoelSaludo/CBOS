@@ -1,9 +1,10 @@
+// ── usings: all from dev, plus login branch additions ──
 using CBOS.Components;
 using CBOS.Components.Pages.Admin;
 using DotNetEnv;
-using CBOS.Components.Services;
+using CBOS.Components.Services;                          // from login branch
 using Microsoft.AspNetCore.Authentication.Cookies;
-using Microsoft.AspNetCore.Components.Authorization;
+using Microsoft.AspNetCore.Components.Authorization;     // from dev
 
 Env.Load();
 var url = Environment.GetEnvironmentVariable("SUPABASE_URL");
@@ -11,7 +12,7 @@ var key = Environment.GetEnvironmentVariable("SUPABASE_KEY");
 
 var options = new Supabase.SupabaseOptions
 {
-    AutoRefreshToken = true,        // added from second
+    AutoRefreshToken = true,        // from dev
     AutoConnectRealtime = true
 };
 
@@ -27,9 +28,9 @@ builder.Services.AddRazorComponents()
 builder.Services.AddSingleton(supabase);
 
 builder.Services.AddScoped<AdminSupabase>();
-builder.Services.AddScoped<AuthService>();         // kept from first
+builder.Services.AddScoped<AuthService>();               // from login branch
 builder.Services.AddAuthentication(CookieAuthenticationDefaults.AuthenticationScheme)
-    .AddCookie(opt =>                              // kept from first (more complete)
+    .AddCookie(opt =>                                    // from login branch (replaces bare AddAuthentication() from dev)
     {
         opt.LoginPath         = "/login";
         opt.LogoutPath        = "/logout";
@@ -38,8 +39,8 @@ builder.Services.AddAuthentication(CookieAuthenticationDefaults.AuthenticationSc
         opt.SlidingExpiration = true;
     });
 builder.Services.AddAuthorization();
-builder.Services.AddCascadingAuthenticationState(); // added from second
-builder.Services.AddHttpContextAccessor();          // kept from first
+builder.Services.AddCascadingAuthenticationState();      // from dev
+builder.Services.AddHttpContextAccessor();               // from login branch
 
 var app = builder.Build();
 
@@ -47,6 +48,7 @@ var app = builder.Build();
 if (!app.Environment.IsDevelopment())
 {
     app.UseExceptionHandler("/Error", createScopeForErrors: true);
+    // The default HSTS value is 30 days. You may want to change this for production scenarios, see https://aka.ms/aspnetcore-hsts.
     app.UseHsts();
 }
 
