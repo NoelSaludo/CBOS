@@ -1,0 +1,316 @@
+
+/* ── Reset / base ─────────────────────────────────────────────── */
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+.login-page-root {
+    min-height: 100vh;
+    font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
+}
+
+/* ── Two-column layout ────────────────────────────────────────── */
+.cbos-login-container {
+    display: flex;
+    min-height: 100vh;
+    width: 100%;
+}
+
+/* ================================================================
+   LEFT PANEL
+   ================================================================ */
+.cbos-left-panel {
+    position: relative;
+    flex: 0 0 62%;
+  
+    background: linear-gradient(160deg, #00d4ff 0%, #0099ff 45%, #0066ff 100%);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    overflow: hidden;
+}
+
+
+.cbos-city-bg {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    mix-blend-mode: luminosity;
+    opacity: 1;
+    pointer-events: none;
+}
+
+.cbos-logo-watermark {
+    position: relative;
+    z-index: 1;
+    width: min(68%, 760px);
+    pointer-events: none;
+    user-select: none;
+}
+
+/* ================================================================
+   RIGHT PANEL
+   ================================================================ */
+.cbos-right-panel {
+    flex: 1;
+    background: #f0f4ff;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 2rem;
+}
+
+.cbos-form-card {
+    width: 100%;
+    max-width: 380px;
+}
+
+/* ── Brand header ─────────────────────────────────────────────── */
+.cbos-brand {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    margin-bottom: 2rem;
+}
+
+.cbos-brand-icon {
+    width: 64px;
+    height: 64px;
+    margin-bottom: 0.75rem;
+    object-fit: contain;
+}
+
+
+.cbos-brand-icon-placeholder {
+    margin-bottom: 0.75rem;
+}
+
+.cbos-welcome {
+    font-size: 2.4rem;
+    font-weight: 900;
+    letter-spacing: -0.01em;
+    color: #0066ff;
+    line-height: 1;
+    margin-bottom: 0.3rem;
+}
+
+.cbos-sub {
+    font-size: 1rem;
+    font-weight: 500;
+    color: #0066ff;
+}
+
+/* ── Error banner ─────────────────────────────────────────────── */
+.cbos-error {
+    background: #fef2f2;
+    border: 1px solid #f5a0a0;
+    color: #e50000;       
+    border-radius: 6px;
+    padding: 0.65rem 1rem;
+    font-size: 0.85rem;
+    font-weight: 500;
+    margin-bottom: 1.1rem;
+    display: flex;
+    align-items: center;
+    gap: 0.45rem;
+    animation: cbos-shake 0.3s ease;
+}
+
+@keyframes cbos-shake {
+    0%, 100% { transform: translateX(0); }
+    25%       { transform: translateX(-4px); }
+    75%       { transform: translateX(4px); }
+}
+
+/* ── Fields ───────────────────────────────────────────────────── */
+.cbos-fields {
+    display: flex;
+    flex-direction: column;
+    gap: 0.85rem;
+}
+
+.cbos-input-wrap {
+    position: relative;
+    display: flex;
+    align-items: center;
+    background: #e8eef8;
+    border-radius: 10px;
+    border: 1px solid transparent;
+    transition: border-color 0.15s, box-shadow 0.15s, background 0.15s;
+}
+
+/* Focus ring matches app.css .form-control:focus rule */
+.cbos-input-wrap:focus-within {
+    border-color: #258cfb;
+    box-shadow: 0 0 0 0.1rem white, 0 0 0 0.25rem #258cfb;
+    background: #fff;
+}
+
+/* Matches .invalid in app.css */
+.cbos-input-wrap--error {
+    outline: 1px solid #e50000;
+    border-color: #e50000 !important;
+    box-shadow: none !important;
+}
+
+.cbos-input-icon {
+    flex-shrink: 0;
+    display: flex;
+    align-items: center;
+    padding: 0 0 0 0.9rem;
+    color: #6c757d;
+    pointer-events: none;
+}
+
+.cbos-input {
+    flex: 1;
+    background: transparent;
+    border: none;
+    outline: none;
+    padding: 0.8rem 0.8rem 0.8rem 0.5rem;
+    font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
+    font-size: 0.92rem;
+    color: #212529;
+    min-width: 0;
+}
+
+.cbos-input::placeholder { color: #adb5bd; }
+
+.cbos-input:disabled {
+    opacity: 0.65;
+    cursor: not-allowed;
+}
+
+/* Show/hide password toggle */
+.cbos-eye-btn {
+    background: none;
+    border: none;
+    cursor: pointer;
+    padding: 0 0.8rem;
+    color: #6c757d;
+    display: flex;
+    align-items: center;
+    transition: color 0.15s;
+    flex-shrink: 0;
+}
+
+.cbos-eye-btn:hover  { color: #1b6ec2; }
+.cbos-eye-btn:focus  {
+    outline: none;
+    box-shadow: 0 0 0 0.1rem white, 0 0 0 0.25rem #258cfb;
+    border-radius: 4px;
+}
+
+/* ── Forgot row ───────────────────────────────────────────────── */
+.cbos-forgot-row {
+    display: flex;
+    justify-content: flex-end;
+    margin-top: -0.2rem;
+}
+
+.cbos-forgot-link {
+    font-size: 0.82rem;
+    color: #0066ff;   /* matches app.css anchor color */
+    text-decoration: none;
+    transition: color 0.15s;
+}
+.cbos-forgot-link:hover { color: #1861ac; text-decoration: underline; }
+
+/* ── Sign-in button ───────────────────────────────────────────── */
+/* Colors mirror .btn-primary in app.css */
+.cbos-signin-btn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    width: 100%;
+    padding: 0.8rem;
+    border: 1px solid #0066ff;
+    border-radius: 50px;
+    background-color: #0066ff;
+    color: #fff;
+    font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
+    font-size: 1rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background-color 0.15s, box-shadow 0.15s, transform 0.12s;
+    box-shadow: 0 3px 10px rgba(27, 110, 194, 0.3);
+    margin-top: 0.4rem;
+}
+
+.cbos-signin-btn:hover:not(:disabled) {
+    background-color: #1861ac;
+    transform: translateY(-1px);
+    box-shadow: 0 5px 14px rgba(27, 110, 194, 0.38);
+}
+
+.cbos-signin-btn:active:not(:disabled) {
+    transform: translateY(0);
+    box-shadow: none;
+}
+
+/* Focus ring matches app.css .btn:focus */
+.cbos-signin-btn:focus {
+    outline: none;
+    box-shadow: 0 0 0 0.1rem white, 0 0 0 0.25rem #258cfb;
+}
+
+.cbos-signin-btn:disabled {
+    opacity: 0.65;
+    cursor: not-allowed;
+}
+
+/* Spinner inside button */
+.cbos-spinner {
+    width: 15px;
+    height: 15px;
+    border: 2px solid rgba(255, 255, 255, 0.4);
+    border-top-color: #fff;
+    border-radius: 50%;
+    animation: cbos-spin 0.7s linear infinite;
+    flex-shrink: 0;
+}
+
+@keyframes cbos-spin {
+    to { transform: rotate(360deg); }
+}
+
+/* ── Sign-up row ──────────────────────────────────────────────── */
+.cbos-signup-row {
+    text-align: center;
+    font-size: 0.85rem;
+    color: #6c757d;
+    margin-top: 0.25rem;
+}
+
+.cbos-signup-link {
+    color: #0066ff;
+    font-weight: 700;
+    text-decoration: none;
+    transition: color 0.15s;
+}
+.cbos-signup-link:hover { color: #1861ac; text-decoration: underline; }
+
+/* ================================================================
+   RESPONSIVE
+   ================================================================ */
+@media (max-width: 900px) {
+    .cbos-left-panel { flex: 0 0 50%; }
+}
+
+@media (max-width: 640px) {
+    .cbos-login-container { flex-direction: column; }
+
+    .cbos-left-panel {
+        flex: 0 0 200px;
+    }
+
+    .cbos-logo-watermark { width: 55%; }
+
+    .cbos-right-panel {
+        flex: 1;
+        padding: 2rem 1.5rem;
+    }
+
+    .cbos-welcome { font-size: 2rem; }
+}
