@@ -1,13 +1,9 @@
 ﻿@page "/"
-@using Microsoft.AspNetCore.Components
 @inject NavigationManager Navigation
-
-<PageTitle>Community Feed</PageTitle>
 
 @code {
     protected override void OnInitialized()
     {
-        // Redirect to Community Feed on app load
-        Navigation.NavigateTo("/app", replace: true);
+        Navigation.NavigateTo("/login", replace: true);
     }
 }

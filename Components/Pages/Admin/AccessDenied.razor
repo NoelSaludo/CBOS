@@ -1,0 +1,16 @@
+@page "/admin/access-denied"
+@layout AdminDashboardLayout
+
+@rendermode InteractiveServer
+
+<div class="denied-wrapper">
+    <div class="denied-card">
+        <div class="denied-icon">🔒</div>
+        <h1 class="denied-title">Access Denied</h1>
+        <p class="denied-message">
+            You do not have permission to view this page.<br />
+            A valid administrator session is required.
+        </p>
+        <a href="/Admin/Login" class="back-btn">Go to Login</a>
+    </div>
+</div>
