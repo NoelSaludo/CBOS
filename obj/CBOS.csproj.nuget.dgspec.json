@@ -1,20 +1,20 @@
 {
   "format": 1,
   "restore": {
-    "C:\\src\\SE-Projects\\CBOS\\CBOS.csproj": {}
+    "C:\\Users\\Republic of Gamers\\Desktop\\CBOS\\CBOS.csproj": {}
   },
   "projects": {
-    "C:\\src\\SE-Projects\\CBOS\\CBOS.csproj": {
+    "C:\\Users\\Republic of Gamers\\Desktop\\CBOS\\CBOS.csproj": {
       "version": "1.0.0",
       "restore": {
-        "projectUniqueName": "C:\\src\\SE-Projects\\CBOS\\CBOS.csproj",
+        "projectUniqueName": "C:\\Users\\Republic of Gamers\\Desktop\\CBOS\\CBOS.csproj",
         "projectName": "CBOS",
-        "projectPath": "C:\\src\\SE-Projects\\CBOS\\CBOS.csproj",
-        "packagesPath": "C:\\Users\\Marielle Camba\\.nuget\\packages\\",
-        "outputPath": "C:\\src\\SE-Projects\\CBOS\\obj\\",
+        "projectPath": "C:\\Users\\Republic of Gamers\\Desktop\\CBOS\\CBOS.csproj",
+        "packagesPath": "C:\\Users\\Republic of Gamers\\.nuget\\packages\\",
+        "outputPath": "C:\\Users\\Republic of Gamers\\Desktop\\CBOS\\obj\\",
         "projectStyle": "PackageReference",
         "configFilePaths": [
-          "C:\\Users\\Marielle Camba\\AppData\\Roaming\\NuGet\\NuGet.Config"
+          "C:\\Users\\Republic of Gamers\\AppData\\Roaming\\NuGet\\NuGet.Config"
         ],
         "originalTargetFrameworks": [
           "net10.0"
@@ -44,6 +44,10 @@
         "net10.0": {
           "targetAlias": "net10.0",
           "dependencies": {
+            "Blazor-ApexCharts": {
+              "target": "Package",
+              "version": "[6.1.0, )"
+            },
             "DotNetEnv": {
               "target": "Package",
               "version": "[3.1.1, )"
