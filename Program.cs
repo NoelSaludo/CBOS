@@ -1,6 +1,7 @@
 using CBOS.Components;
 using CBOS.Components.Pages.Admin;
 using DotNetEnv;
+using CBOS.Components.Services;
 using Microsoft.AspNetCore.Authentication.Cookies;
 
 Env.Load();
@@ -22,7 +23,7 @@ builder.Services.AddRazorComponents()
     .AddInteractiveServerComponents();
 
 builder.Services.AddSingleton(supabase);
-
+builder.Services.AddScoped<AuthService>();
 builder.Services.AddScoped<AdminSupabase>();
 var app = builder.Build();
 
