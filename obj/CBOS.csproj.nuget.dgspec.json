@@ -1,26 +1,25 @@
 {
   "format": 1,
   "restore": {
-    "/home/Noel/Projects/CBOS/CBOS.csproj": {}
+    "C:\\src\\SE-Projects\\CBOS\\CBOS.csproj": {}
   },
   "projects": {
-    "/home/Noel/Projects/CBOS/CBOS.csproj": {
+    "C:\\src\\SE-Projects\\CBOS\\CBOS.csproj": {
       "version": "1.0.0",
       "restore": {
-        "projectUniqueName": "/home/Noel/Projects/CBOS/CBOS.csproj",
+        "projectUniqueName": "C:\\src\\SE-Projects\\CBOS\\CBOS.csproj",
         "projectName": "CBOS",
-        "projectPath": "/home/Noel/Projects/CBOS/CBOS.csproj",
-        "packagesPath": "/home/Noel/.nuget/packages/",
-        "outputPath": "/home/Noel/Projects/CBOS/obj/",
+        "projectPath": "C:\\src\\SE-Projects\\CBOS\\CBOS.csproj",
+        "packagesPath": "C:\\Users\\Marielle Camba\\.nuget\\packages\\",
+        "outputPath": "C:\\src\\SE-Projects\\CBOS\\obj\\",
         "projectStyle": "PackageReference",
         "configFilePaths": [
-          "/home/Noel/.nuget/NuGet/NuGet.Config"
+          "C:\\Users\\Marielle Camba\\AppData\\Roaming\\NuGet\\NuGet.Config"
         ],
         "originalTargetFrameworks": [
           "net10.0"
         ],
         "sources": {
-          "/usr/lib64/dotnet/library-packs": {},
           "https://api.nuget.org/v3/index.json": {}
         },
         "frameworks": {
@@ -39,16 +38,20 @@
           "auditLevel": "low",
           "auditMode": "all"
         },
-        "SdkAnalysisLevel": "10.0.100"
+        "SdkAnalysisLevel": "10.0.200"
       },
       "frameworks": {
         "net10.0": {
           "targetAlias": "net10.0",
           "dependencies": {
+            "DotNetEnv": {
+              "target": "Package",
+              "version": "[3.1.1, )"
+            },
             "Microsoft.AspNetCore.App.Internal.Assets": {
               "suppressParent": "All",
               "target": "Package",
-              "version": "[10.0.3, )",
+              "version": "[10.0.5, )",
               "autoReferenced": true
             },
             "Supabase": {
@@ -75,7 +78,7 @@
               "privateAssets": "all"
             }
           },
-          "runtimeIdentifierGraphPath": "/usr/lib64/dotnet/sdk/10.0.103/PortableRuntimeIdentifierGraph.json",
+          "runtimeIdentifierGraphPath": "C:\\Program Files\\dotnet\\sdk\\10.0.201/PortableRuntimeIdentifierGraph.json",
           "packagesToPrune": {
             "Microsoft.AspNetCore": "(,10.0.32767]",
             "Microsoft.AspNetCore.Antiforgery": "(,10.0.32767]",
