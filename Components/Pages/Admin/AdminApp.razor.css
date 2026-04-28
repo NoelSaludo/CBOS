@@ -1,8 +1,4 @@
-/* ═══════════════════════════════════════════════════════════════
-   CBOS Admin Dashboard — Unified Design System
-   ═══════════════════════════════════════════════════════════════ */
-
-/* ─── Auth Loading Overlay ─── */
+/* Auth Loading Overlay */
 .auth-loading {
     display: flex;
     flex-direction: column;
@@ -28,7 +24,7 @@
     to { transform: rotate(360deg); }
 }
 
-/* ─── Design Tokens & Shell ─── */
+/* Design Tokens & Shell*/
 .dashboard-wrapper {
     /* Color Palette */
     --primary: #001d44;
@@ -71,9 +67,7 @@
     overflow: hidden;
 }
 
-/* ═══════════════════════════════════════════════════════════════
-   SIDEBAR
-   ═══════════════════════════════════════════════════════════════ */
+/* SIDEBAR */
 .sidebar {
     width: 264px;
     min-width: 264px;
@@ -218,9 +212,7 @@
     transform: translateX(2px);
 }
 
-/* ═══════════════════════════════════════════════════════════════
-   MAIN CONTENT
-   ═══════════════════════════════════════════════════════════════ */
+/* MAIN CONTENT */
 .main-content {
     flex: 1;
     display: flex;
@@ -247,9 +239,7 @@
     background: rgba(0, 29, 68, 0.25);
 }
 
-/* ═══════════════════════════════════════════════════════════════
-   TOPBAR
-   ═══════════════════════════════════════════════════════════════ */
+/* TOPBAR */
 .topbar {
     display: flex;
     align-items: center;
@@ -404,9 +394,7 @@
     transform: scale(1.08);
 }
 
-/* ═══════════════════════════════════════════════════════════════
-   CONTENT AREA
-   ═══════════════════════════════════════════════════════════════ */
+/* CONTENT AREA */
 .content-area {
     display: flex;
     flex-direction: column;
@@ -429,9 +417,7 @@
     line-height: 1.5;
 }
 
-/* ═══════════════════════════════════════════════════════════════
-   STAT CARDS (Top Grid)
-   ═══════════════════════════════════════════════════════════════ */
+/* STAT CARDS (Top Grid) */
 .analytics-grid {
     display: grid;
     grid-template-columns: repeat(4, 1fr);
@@ -515,9 +501,7 @@
     text-transform: uppercase;
 }
 
-/* ═══════════════════════════════════════════════════════════════
-   CHART COMPONENT
-   ═══════════════════════════════════════════════════════════════ */
+/* CHART COMPONENT */
 .analytics-chart-container {
     margin-bottom: 0;
 }
@@ -542,9 +526,7 @@
     background: transparent;
 }
 
-/* ═══════════════════════════════════════════════════════════════
-   DASHBOARD SPLIT LAYOUT
-   ═══════════════════════════════════════════════════════════════ */
+/* DASHBOARD SPLIT LAYOUT */
 .dashboard-split {
     display: grid;
     grid-template-columns: 1.8fr 1fr;
@@ -604,9 +586,7 @@
     background: var(--accent-subtle);
 }
 
-/* ═══════════════════════════════════════════════════════════════
-   DATA TABLE
-   ═══════════════════════════════════════════════════════════════ */
+/* DATA TABLE */
 .table-container {
     width: 100%;
     overflow-x: auto;
@@ -668,7 +648,7 @@
     line-height: 1.4;
 }
 
-/* ─── Data Chips (Unified) ─── */
+/*  Data Chips  */
 .data-chip {
     display: inline-flex;
     align-items: center;
@@ -698,9 +678,7 @@
     text-transform: uppercase;
 }
 
-/* ═══════════════════════════════════════════════════════════════
-   APPOINTMENTS LIST
-   ═══════════════════════════════════════════════════════════════ */
+/* APPOINTMENTS LIST */
 .appointments-list {
     display: flex;
     flex-direction: column;
@@ -766,7 +744,7 @@
     font-weight: 600;
 }
 
-/* ─── Placeholder ─── */
+/*  Placeholder  */
 .placeholder-text {
     font-size: 1rem;
     font-weight: 600;
