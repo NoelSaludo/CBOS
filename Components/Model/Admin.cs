@@ -10,19 +10,19 @@ public class Admin : BaseModel
     public long Id { get; set; }
     
     [Column("first_name")]
-    public string FirstName { get; set; }
+    public string? FirstName { get; set; }
     
     [Column("middle_name")]
-    public string MiddleName  { get; set; }
+    public string? MiddleName  { get; set; }
     
     [Column("last_name")]
-    public string LastName { get; set; }
+    public string? LastName { get; set; }
     
     [Column("verification_number")]
-    public string VerificationNumber { get; set; }
+    public string? VerificationNumber { get; set; }
     
     [Column("password")]
-    public string Password { get; set; }
+    public string? Password { get; set; }
     
     [Column("created_at")]
     public DateTime CreatedAt { get; set; }
