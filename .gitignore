@@ -3,3 +3,4 @@ obj/Debug/
 obj/Release/
 .vscode/
 .idea/
+.env
