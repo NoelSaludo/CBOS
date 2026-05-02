@@ -2,32 +2,24 @@
   "format": 1,
   "restore": {
     "/home/Noel/Projects/CBOS/CBOS.csproj": {}
-    "/home/Noel/Projects/CBOS/CBOS.csproj": {}
   },
   "projects": {
-    "/home/Noel/Projects/CBOS/CBOS.csproj": {
     "/home/Noel/Projects/CBOS/CBOS.csproj": {
       "version": "1.0.0",
       "restore": {
         "projectUniqueName": "/home/Noel/Projects/CBOS/CBOS.csproj",
-        "projectUniqueName": "/home/Noel/Projects/CBOS/CBOS.csproj",
         "projectName": "CBOS",
-        "projectPath": "/home/Noel/Projects/CBOS/CBOS.csproj",
-        "packagesPath": "/home/Noel/.nuget/packages/",
-        "outputPath": "/home/Noel/Projects/CBOS/obj/",
         "projectPath": "/home/Noel/Projects/CBOS/CBOS.csproj",
         "packagesPath": "/home/Noel/.nuget/packages/",
         "outputPath": "/home/Noel/Projects/CBOS/obj/",
         "projectStyle": "PackageReference",
         "configFilePaths": [
           "/home/Noel/.nuget/NuGet/NuGet.Config"
-          "/home/Noel/.nuget/NuGet/NuGet.Config"
         ],
         "originalTargetFrameworks": [
           "net10.0"
         ],
         "sources": {
-          "/usr/lib64/dotnet/library-packs": {},
           "/usr/lib64/dotnet/library-packs": {},
           "https://api.nuget.org/v3/index.json": {}
         },
@@ -48,7 +40,6 @@
           "auditMode": "all"
         },
         "SdkAnalysisLevel": "10.0.100"
-        "SdkAnalysisLevel": "10.0.100"
       },
       "frameworks": {
         "net10.0": {
@@ -65,7 +56,6 @@
             "Microsoft.AspNetCore.App.Internal.Assets": {
               "suppressParent": "All",
               "target": "Package",
-              "version": "[10.0.3, )",
               "version": "[10.0.3, )",
               "autoReferenced": true
             },
@@ -93,7 +83,6 @@
               "privateAssets": "all"
             }
           },
-          "runtimeIdentifierGraphPath": "/usr/lib64/dotnet/sdk/10.0.103/PortableRuntimeIdentifierGraph.json",
           "runtimeIdentifierGraphPath": "/usr/lib64/dotnet/sdk/10.0.103/PortableRuntimeIdentifierGraph.json",
           "packagesToPrune": {
             "Microsoft.AspNetCore": "(,10.0.32767]",
