@@ -137,15 +137,12 @@
     private bool   _emailError;
     private bool   _passwordError;
 
-    // ── Lifecycle ─────────────────────────────────────────────────
     protected override void OnInitialized()
     {
-        // Already logged in → skip straight to the feed
         if (AuthService.IsAuthenticated)
             Navigation.NavigateTo("/app/feed", replace: true);
     }
 
-    // ── Input handlers (clear errors as user types) ───────────────
     private void OnEmailInput(ChangeEventArgs e)
     {
         _email      = e.Value?.ToString() ?? "";
@@ -162,22 +159,18 @@
 
     private void TogglePassword() => _showPassword = !_showPassword;
 
-    // ── Enter key submits ─────────────────────────────────────────
     private async Task HandleKeyDown(KeyboardEventArgs e)
     {
         if (e.Key == "Enter")
             await HandleLogin();
     }
 
-    // ── Main login logic ──────────────────────────────────────────
     private async Task HandleLogin()
     {
-        // Reset state
         _errorMessage  = "";
         _emailError    = false;
         _passwordError = false;
 
-        // Client-side: empty field checks
         if (string.IsNullOrWhiteSpace(_email))
         {
             _emailError   = true;
@@ -192,7 +185,6 @@
             return;
         }
 
-        // Basic email format check
         if (!_email.Contains('@') || !_email.Contains('.'))
         {
             _emailError   = true;
@@ -205,18 +197,20 @@
 
         try
         {
-            // Authenticate against Supabase Auth
             var session = await Supabase.Auth.SignIn(_email.Trim().ToLower(), _password);
 
             if (session?.User != null)
             {
-                // Store session in AuthService for the circuit lifetime
-                AuthService.SetSession(session);
+                // Read first name directly from Supabase user metadata — no DB query needed
+                var firstName = session.User.UserMetadata
+                    ?.GetValueOrDefault("first_name")
+                    ?.ToString() ?? "";
+
+                AuthService.SetSession(session, firstName);
                 Navigation.NavigateTo("/app/feed", replace: true);
             }
             else
             {
-                // Supabase returned no user — credentials are wrong
                 _errorMessage  = "Invalid email or password. Please try again.";
                 _emailError    = true;
                 _passwordError = true;
@@ -224,7 +218,6 @@
         }
         catch (Supabase.Gotrue.Exceptions.GotrueException ex)
         {
-            // Supabase throws this for wrong credentials or unconfirmed email
             _errorMessage = ex.Message.Contains("Email not confirmed", StringComparison.OrdinalIgnoreCase)
                 ? "Please confirm your email address before logging in."
                 : "Invalid email or password. Please try again.";
