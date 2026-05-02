@@ -142,7 +142,7 @@
     {
         // Already logged in → skip straight to the feed
         if (AuthService.IsAuthenticated)
-            Navigation.NavigateTo("/communityfeed", replace: true);
+            Navigation.NavigateTo("/app/feed", replace: true);
     }
 
     // ── Input handlers (clear errors as user types) ───────────────
@@ -212,7 +212,7 @@
             {
                 // Store session in AuthService for the circuit lifetime
                 AuthService.SetSession(session);
-                Navigation.NavigateTo("/communityfeed", replace: true);
+                Navigation.NavigateTo("/app/feed", replace: true);
             }
             else
             {
