@@ -1,5 +1,6 @@
 @page "/login"
 @layout LoginLayout
+@rendermode InteractiveServer
 @inject Supabase.Client Supabase
 @inject CBOS.Components.Services.AuthService AuthService
 @inject NavigationManager Navigation
@@ -8,30 +9,16 @@
 
 <div class="cbos-login-container">
 
-    @* ═══════════════════════════════════════════════════
-       LEFT PANEL – blue gradient hero + logo watermark
-
-       ADD your background aerial city image:
-       <img src="/images/city-bg.jpg" class="cbos-city-bg" alt="City background" />
-
-       ADD your large outline logo watermark:
-       <img src="/images/cbos-logo-outline.svg" class="cbos-logo-watermark" alt="CBOS" />
-    ═══════════════════════════════════════════════════ *@
     <div class="cbos-left-panel">
-         <img src="/images/city-bg.png"           class="cbos-city-bg"       alt="City background" /> 
-         <img src="/images/cbos-logo-outline.png" class="cbos-logo-watermark" alt="CBOS Logo"       /> 
+        <img src="/images/city-bg.png"            class="cbos-city-bg"        alt="City background" />
+        <img src="/images/cbos-logo-outline.png"  class="cbos-logo-watermark" alt="CBOS Logo"       />
     </div>
 
-    @* ═══════════════════════════════════════════════════
-       RIGHT PANEL – form
-    ═══════════════════════════════════════════════════ *@
     <div class="cbos-right-panel">
         <div class="cbos-form-card">
 
-            @* Brand header *@
             <div class="cbos-brand">
-                    <img src="/images/cbos-logo.png" class="cbos-brand-icon" alt="CBOS icon" />
-                    
+                <img src="/images/cbos-logo.png" class="cbos-brand-icon" alt="CBOS icon" />
                 <h1 class="cbos-welcome">WELCOME</h1>
                 <p class="cbos-sub">CBOS Batangas</p>
             </div>
@@ -44,8 +31,9 @@
                 </div>
             }
 
-            @* Fields *@
             <div class="cbos-fields">
+
+                @* Email field *@
                 <div class="cbos-input-wrap @(_emailError ? "cbos-input-wrap--error" : "")">
                     <span class="cbos-input-icon" aria-hidden="true">
                         <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24"
@@ -57,8 +45,8 @@
                     </span>
                     <input type="email"
                            placeholder="Email"
-                           @bind="_email"
-                           @bind:event="oninput"
+                           value="@_email"
+                           @oninput="OnEmailInput"
                            @onkeydown="HandleKeyDown"
                            class="cbos-input"
                            autocomplete="email"
@@ -66,6 +54,7 @@
                            aria-label="Email address" />
                 </div>
 
+                @* Password field *@
                 <div class="cbos-input-wrap @(_passwordError ? "cbos-input-wrap--error" : "")">
                     <span class="cbos-input-icon" aria-hidden="true">
                         <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24"
@@ -77,8 +66,8 @@
                     </span>
                     <input type="@(_showPassword ? "text" : "password")"
                            placeholder="Password"
-                           @bind="_password"
-                           @bind:event="oninput"
+                           value="@_password"
+                           @oninput="OnPasswordInput"
                            @onkeydown="HandleKeyDown"
                            class="cbos-input"
                            autocomplete="current-password"
@@ -86,7 +75,7 @@
                            aria-label="Password" />
                     <button type="button"
                             class="cbos-eye-btn"
-                            @onclick="() => _showPassword = !_showPassword"
+                            @onclick="TogglePassword"
                             aria-label="@(_showPassword ? "Hide password" : "Show password")">
                         @if (_showPassword)
                         {
@@ -133,65 +122,114 @@
                     <span>Don't have an account yet? </span>
                     <a href="/register" class="cbos-signup-link">Sign Up</a>
                 </div>
-            </div>
 
+            </div>
         </div>
     </div>
 </div>
 
 @code {
-    private string _email        = "";
-    private string _password     = "";
-    private string _errorMessage = "";
+    private string _email         = "";
+    private string _password      = "";
+    private string _errorMessage  = "";
     private bool   _isLoading;
     private bool   _showPassword;
     private bool   _emailError;
     private bool   _passwordError;
 
+    // ── Lifecycle ─────────────────────────────────────────────────
     protected override void OnInitialized()
     {
+        // Already logged in → skip straight to the feed
         if (AuthService.IsAuthenticated)
-            Navigation.NavigateTo("/dashboard", replace: true);
+            Navigation.NavigateTo("/communityfeed", replace: true);
     }
 
+    // ── Input handlers (clear errors as user types) ───────────────
+    private void OnEmailInput(ChangeEventArgs e)
+    {
+        _email      = e.Value?.ToString() ?? "";
+        _emailError = false;
+        if (_passwordError is false) _errorMessage = "";
+    }
+
+    private void OnPasswordInput(ChangeEventArgs e)
+    {
+        _password      = e.Value?.ToString() ?? "";
+        _passwordError = false;
+        if (_emailError is false) _errorMessage = "";
+    }
+
+    private void TogglePassword() => _showPassword = !_showPassword;
+
+    // ── Enter key submits ─────────────────────────────────────────
     private async Task HandleKeyDown(KeyboardEventArgs e)
     {
         if (e.Key == "Enter")
             await HandleLogin();
     }
 
+    // ── Main login logic ──────────────────────────────────────────
     private async Task HandleLogin()
     {
-        _emailError    = string.IsNullOrWhiteSpace(_email);
-        _passwordError = string.IsNullOrWhiteSpace(_password);
+        // Reset state
         _errorMessage  = "";
+        _emailError    = false;
+        _passwordError = false;
 
-        if (_emailError || _passwordError)
+        // Client-side: empty field checks
+        if (string.IsNullOrWhiteSpace(_email))
         {
-            _errorMessage = "Please enter your email and password.";
+            _emailError   = true;
+            _errorMessage = "Please enter your email address.";
+            return;
+        }
+
+        if (string.IsNullOrWhiteSpace(_password))
+        {
+            _passwordError = true;
+            _errorMessage  = "Please enter your password.";
+            return;
+        }
+
+        // Basic email format check
+        if (!_email.Contains('@') || !_email.Contains('.'))
+        {
+            _emailError   = true;
+            _errorMessage = "Please enter a valid email address.";
             return;
         }
 
         _isLoading = true;
+        StateHasChanged();
 
         try
         {
-            var session = await Supabase.Auth.SignIn(_email.Trim(), _password);
+            // Authenticate against Supabase Auth
+            var session = await Supabase.Auth.SignIn(_email.Trim().ToLower(), _password);
 
             if (session?.User != null)
             {
+                // Store session in AuthService for the circuit lifetime
                 AuthService.SetSession(session);
-                Navigation.NavigateTo("/dashboard", replace: true);
+                Navigation.NavigateTo("/communityfeed", replace: true);
             }
             else
             {
-                _errorMessage  = "Invalid credentials. Please check your email and password.";
+                // Supabase returned no user — credentials are wrong
+                _errorMessage  = "Invalid email or password. Please try again.";
+                _emailError    = true;
                 _passwordError = true;
             }
         }
-        catch (Supabase.Gotrue.Exceptions.GotrueException)
+        catch (Supabase.Gotrue.Exceptions.GotrueException ex)
         {
-            _errorMessage  = "Invalid email or password. Please try again.";
+            // Supabase throws this for wrong credentials or unconfirmed email
+            _errorMessage = ex.Message.Contains("Email not confirmed", StringComparison.OrdinalIgnoreCase)
+                ? "Please confirm your email address before logging in."
+                : "Invalid email or password. Please try again.";
+
+            _emailError    = true;
             _passwordError = true;
         }
         catch (Exception)
@@ -201,6 +239,7 @@
         finally
         {
             _isLoading = false;
+            StateHasChanged();
         }
     }
 }
