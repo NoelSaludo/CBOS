@@ -1,0 +1,94 @@
+@page "/Admin/Login"
+@layout AdminLoginLayout
+
+@using System.ComponentModel.DataAnnotations
+@using Microsoft.AspNetCore.Components.Authorization
+@using System.Net.Http.Headers
+@using Microsoft.AspNetCore.Components.Server.ProtectedBrowserStorage
+
+@inject NavigationManager Navigation
+@inject ILogger<AdminLogin> Logger
+@inject AdminSupabase AdminSupabase
+@inject ProtectedSessionStorage ProtectedSessionStorage
+
+@rendermode InteractiveServer
+
+<div class="login-card align-content-center">
+    <div class="login-card-header">
+        <h3>Administrator Login</h3>
+        <h6>Authorized Personnel Only. System activity is being monitored.</h6>
+    </div>
+    <EditForm Model="@Model" OnValidSubmit="OnValidSubmit" FormName="admin-login-form">
+        <DataAnnotationsValidator />
+        @if (!string.IsNullOrEmpty(LoginWarning))
+        {
+            <div class="alert alert-warning" role="alert">
+                @LoginWarning
+            </div>
+        }
+        <div class="mb-3">
+            <InputText class="form-control capsule" id="adminId" placeholder="Administrator ID"
+                        @bind-Value="Model.id" />
+            <ValidationMessage For="@(() => Model.id)" class="text-danger" />
+        </div>
+        <div class="mb-3">
+            <div class="password-field">
+                <InputText class="form-control password-input capsule" type="@(showPassword ? "text" : "password")" id="password"
+                            placeholder="Password" @bind-Value="Model.password" />
+                <InputCheckbox class="form-check-input password-toggle" id="showPassword" @bind-Value="showPassword" />
+                <ValidationMessage For="@(() => Model.password)" class="text-danger" />
+            </div>
+        </div>
+        <button type="submit" class="btn btn-primary submit-btn">Submit</button>
+    </EditForm>
+</div>
+
+@code {
+    private AdminLoginModel? Model;
+    private string? LoginWarning;
+    private bool showPassword;
+ 
+    protected override void OnInitialized()
+    {
+        Model = new();
+    }
+
+    public async Task OnValidSubmit()
+    {
+        Logger.LogInformation("Attempting admin login with ID: {AdminId}", Model?.id);
+
+        var result = await AdminSupabase.Login(Model?.id ?? string.Empty, Model?.password ?? string.Empty);
+        switch (result.Code)
+        {
+            case AdminSupabaseCode.Success:
+                // store session key in local storage or cookie
+                var sessionKey = result.sessionToken;
+
+                await ProtectedSessionStorage.SetAsync("adminSessionKey", sessionKey);
+
+                Navigation.NavigateTo("/admin/app");
+                break;
+
+            case AdminSupabaseCode.InvalidCredentials:
+                LoginWarning = "Invalid ID or password. Please try again.";
+                break;
+
+            case AdminSupabaseCode.AdminNotFound:
+                LoginWarning = "No admin found with the provided ID.";
+                break;
+
+            default:
+                LoginWarning = "An unexpected error occurred. Please try again later.";
+                break;
+        }
+    }
+
+
+    public class AdminLoginModel
+    {
+        [Required]
+        public string? id { get; set; }
+        [Required]
+        public string? password { get; set; }
+    }
+}

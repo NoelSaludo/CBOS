@@ -1,0 +1,49 @@
+.login-card {
+    min-width: 200px;
+    width: 600px;
+    margin: 0 auto;
+    margin-top: 3rem;
+    padding: 20px 5rem;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    border-radius: 8px;
+    background: linear-gradient(145deg, #ffffff, #cacaca);
+    align-content: center;
+    border-color:black;
+    border-width: 2px;
+}
+
+.login-card-header h3, h6 {
+    color: #0a53be;
+    font-weight: bolder;
+}
+
+.login-card-header {
+    margin-top: 20px;
+    margin-bottom: 2rem;
+}
+
+.password-field {
+    position: relative;
+}
+
+.password-input {
+    padding-right: 2.5rem;
+}
+
+.password-toggle {
+    position: absolute;
+    top: 50%;
+    right: 0.75rem;
+    transform: translateY(-50%);
+    margin: 0;
+    z-index: 2;
+    cursor: pointer;
+}
+
+.capsule {
+    border-radius: 9999px;
+}
+
+.submit-btn {
+    position: relative;
+}
