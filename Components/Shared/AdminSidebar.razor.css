@@ -116,18 +116,79 @@
 }
 
 .nav-icon {
-    font-size: 1.15rem;
     display: flex;
     align-items: center;
     justify-content: center;
     width: 20px;
+    height: 20px;
     opacity: 0.7;
-    transition: opacity 0.2s ease;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
-.nav-item:hover .nav-icon,
+.nav-icon svg {
+    width: 100%;
+    height: 100%;
+    stroke-width: 2.2px;
+}
+
+.nav-item:hover .nav-icon {
+    opacity: 1;
+    transform: scale(1.1) rotate(-5deg);
+    color: #4f46e5;
+}
+
 .nav-item.active .nav-icon {
     opacity: 1;
+    transform: scale(1.1);
+    color: #4f46e5;
+}
+
+/* Specific animations for different icons on hover */
+.nav-item:hover .nav-icon svg {
+    filter: drop-shadow(0 0 4px rgba(79, 70, 229, 0.4));
+}
+
+/* Dashboard Home icon pulse */
+.nav-item[data-nav="dashboard"]:hover .nav-icon svg {
+    animation: icon-pulse 1.5s infinite ease-in-out;
+}
+
+/* Incidents triangle shake */
+.nav-item[data-nav="incidents"]:hover .nav-icon svg {
+    animation: icon-shake 0.5s ease-in-out;
+}
+
+/* Settings gear rotate */
+.nav-item[data-nav="settings"]:hover .nav-icon svg {
+    animation: icon-rotate 2s linear infinite;
+}
+
+/* Logout icon slide */
+.logout-btn:hover .nav-icon svg {
+    animation: icon-slide-right 0.4s ease-in-out;
+}
+
+@keyframes icon-pulse {
+    0% { transform: scale(1); }
+    50% { transform: scale(1.15); }
+    100% { transform: scale(1); }
+}
+
+@keyframes icon-shake {
+    0%, 100% { transform: rotate(0); }
+    25% { transform: rotate(-10deg); }
+    75% { transform: rotate(10deg); }
+}
+
+@keyframes icon-rotate {
+    from { transform: rotate(0deg); }
+    to { transform: rotate(360deg); }
+}
+
+@keyframes icon-slide-right {
+    0% { transform: translateX(0); }
+    50% { transform: translateX(3px); }
+    100% { transform: translateX(0); }
 }
 
 .badge {
