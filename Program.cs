@@ -40,17 +40,38 @@ builder.Services.AddRazorComponents()
 builder.Services.AddSingleton(supabase);
 builder.Services.AddScoped<AuthService>();
 builder.Services.AddScoped<AdminSupabase>();
+
+// ── MISSING: Cookie authentication config ──────────────────────────────────
+builder.Services.AddAuthentication(CookieAuthenticationDefaults.AuthenticationScheme)
+    .AddCookie(opt =>
+    {
+        opt.LoginPath         = "/login";
+        opt.LogoutPath        = "/logout";
+        opt.AccessDeniedPath  = "/login";
+        opt.ExpireTimeSpan    = TimeSpan.FromHours(8);
+        opt.SlidingExpiration = true;
+    });
+
+// ── MISSING: Authorization + Blazor auth state + HttpContext ───────────────
+builder.Services.AddAuthorization();
+builder.Services.AddCascadingAuthenticationState();
+builder.Services.AddHttpContextAccessor();
+
 var app = builder.Build();
 
 // Configure the HTTP request pipeline.
 if (!app.Environment.IsDevelopment())
 {
     app.UseExceptionHandler("/Error", createScopeForErrors: true);
-    // The default HSTS value is 30 days. You may want to change this for production scenarios, see https://aka.ms/aspnetcore-hsts.
     app.UseHsts();
 }
+
 app.UseStatusCodePagesWithReExecute("/not-found", createScopeForStatusCodePages: true);
 app.UseHttpsRedirection();
+
+// ── MISSING: Authentication & Authorization middleware ─────────────────────
+app.UseAuthentication();
+app.UseAuthorization();
 
 app.UseAntiforgery();
 
