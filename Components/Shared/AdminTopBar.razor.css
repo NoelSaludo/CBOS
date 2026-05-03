@@ -33,26 +33,26 @@
 }
 
 .topbar-brand:hover {
-    color: #4f46e5;
-    text-shadow: 0 0 8px rgba(79, 70, 229, 0.2);
+    color: var(--accent);
+    text-shadow: 0 0 8px var(--accent-subtle);
     transform: translateY(-1px);
 }
 
 .search-container {
     display: flex;
     align-items: center;
-    background: #f1f5f9;
+    background: var(--surface-hover);
     border-radius: 12px;
     padding: 0.6rem 1rem;
     width: 380px;
-    border: 1px solid rgba(0, 0, 0, 0.05);
+    border: 1px solid var(--outline-light);
     transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 .search-container:focus-within {
-    background: #ffffff;
-    border-color: #4f46e5;
-    box-shadow: 0 4px 12px rgba(79, 70, 229, 0.08), 0 0 0 4px rgba(79, 70, 229, 0.1);
+    background: var(--surface-card);
+    border-color: var(--accent);
+    box-shadow: 0 4px 12px rgba(59, 130, 246, 0.08), 0 0 0 4px rgba(59, 130, 246, 0.1);
     width: 420px;
 }
 
@@ -92,11 +92,11 @@
 .notification-bell {
     position: relative;
     cursor: pointer;
-    color: var(--secondary, #48626e);
+    color: var(--secondary);
     padding: 0.6rem;
     border-radius: 10px;
-    background: #f1f5f9;
-    border: 1px solid rgba(0, 0, 0, 0.05);
+    background: var(--surface-hover);
+    border: 1px solid var(--outline-light);
     transition: all 0.2s ease;
     display: flex;
     align-items: center;
@@ -104,9 +104,9 @@
 }
 
 .notification-bell:hover {
-    background: #ffffff;
-    border-color: rgba(79, 70, 229, 0.2);
-    color: #4f46e5;
+    background: var(--surface-card);
+    border-color: var(--accent-subtle);
+    color: var(--accent);
     transform: translateY(-2px);
     box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
 }
@@ -135,14 +135,14 @@
     padding: 0.4rem 0.6rem;
     padding-right: 0.4rem;
     border-radius: 12px;
-    background: #f1f5f9;
-    border: 1px solid rgba(0, 0, 0, 0.05);
+    background: var(--surface-hover);
+    border: 1px solid var(--outline-light);
     transition: all 0.2s ease;
 }
 
 .admin-profile:hover {
-    background: #ffffff;
-    border-color: rgba(79, 70, 229, 0.2);
+    background: var(--surface-card);
+    border-color: var(--accent-subtle);
     box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
     transform: translateY(-1px);
 }
@@ -156,7 +156,7 @@
 .profile-name {
     font-size: 0.85rem;
     font-weight: 700;
-    color: var(--primary, #001d44);
+    color: var(--primary, #0d0a2d);
     line-height: 1.2;
 }
 
@@ -196,7 +196,7 @@
 }
 
 .admin-profile:hover .profile-avatar {
-    border-color: #4f46e5;
+    border-color: var(--accent);
     transform: scale(1.05);
 }
 

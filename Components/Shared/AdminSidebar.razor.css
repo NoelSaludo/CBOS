@@ -4,7 +4,7 @@
     min-width: 270px;
     display: flex;
     flex-direction: column;
-    background: linear-gradient(180deg, #0d0a2d 0%, #1a164d 100%);
+    background: linear-gradient(180deg, var(--primary) 0%, var(--primary-hover) 100%);
     padding: 2rem 1rem;
     border-right: 1px solid rgba(255, 255, 255, 0.05);
     font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
@@ -124,7 +124,7 @@
     right: -10px;
     top: 50%;
     transform: translateY(-50%);
-    background: #0d0a2d;
+    background: var(--primary);
     border-radius: 50%;
     width: 24px;
     height: 24px;

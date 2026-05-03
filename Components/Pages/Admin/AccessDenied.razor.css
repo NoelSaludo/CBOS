@@ -3,13 +3,13 @@
     align-items: center;
     justify-content: center;
     min-height: 100vh;
-    background: #0f172a;
+    background: #0d0a2d;
     font-family: 'Inter', sans-serif;
     padding: 2rem;
 }
 
 .denied-card {
-    background: #1e293b;
+    background: #1a164d;
     border: 1px solid rgba(239, 68, 68, 0.2);
     border-radius: 16px;
     padding: 3rem 2.5rem;
