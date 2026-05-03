@@ -1,0 +1,90 @@
+@using CBOS.Components.Services
+@using Microsoft.AspNetCore.Components.Server.ProtectedBrowserStorage
+@rendermode InteractiveServer
+<aside class="sidebar">
+    <div class="sidebar-header">
+        <div class="brand-text">
+            <span class="brand-title">CBOS</span>
+            <span class="brand-sub">ADMIN WORKSPACE</span>
+        </div>
+    </div>
+
+    <nav class="sidebar-nav">
+        <NavLink class="nav-item"
+                 href="/admin/app"
+                 Match="NavLinkMatch.All"
+                 ActiveClass="active">
+            <span class="nav-icon"><i class="bi bi-grid-1x2-fill">⛶</i></span>
+            <span>DASHBOARD</span>
+        </NavLink>
+
+        <NavLink class="nav-item"
+                 href="/admin/incidents"
+                 ActiveClass="active">
+            <span class="nav-icon">⚠️</span>
+            <span>INCIDENT REPORTS</span>
+        </NavLink>
+
+        <NavLink class="nav-item"
+                 href="/admin/appointments"
+                 ActiveClass="active">
+            <span class="nav-icon">📅</span>
+            <span>APPOINTMENTS</span>
+        </NavLink>
+
+        <NavLink class="nav-item"
+                 href="/admin/feed"
+                 ActiveClass="active">
+            <span class="nav-icon">💬</span>
+            <span>COMMUNITY FEED</span>
+        </NavLink>
+
+        <NavLink class="nav-item"
+                 href="/admin/verification"
+                 ActiveClass="active">
+            <span class="nav-icon">✅</span>
+            <span>VERIFICATION</span>
+        </NavLink>
+
+        <NavLink class="nav-item"
+                 href="/admin/settings"
+                 ActiveClass="active">
+            <span class="nav-icon">⚙️</span>
+            <span>SETTINGS</span>
+        </NavLink>
+    </nav>
+
+    <div class="sidebar-footer">
+        <button class="logout-btn" @onclick="Logout">
+            <span class="nav-icon">🚪</span>
+            <span>LOGOUT</span>
+        </button>
+    </div>
+</aside>
+
+@code {
+    [Inject] private NavigationManager Navigation { get; set; }
+    [Inject] private AdminSupabase AdminSupabase { get; set; }
+    [Inject] private ProtectedSessionStorage ProtectedSessionStorage { get; set; }
+
+    private async Task Logout()
+    {
+        try
+        {
+            var result = await ProtectedSessionStorage.GetAsync<string>("adminSessionKey");
+            if (result.Success && !string.IsNullOrWhiteSpace(result.Value))
+            {
+                await AdminSupabase.DeleteSession(result.Value);
+            }
+        }
+        catch (Exception ex)
+        {
+            Console.Error.WriteLine($"Error during logout: {ex.Message}");
+        }
+        finally
+        {
+            await ProtectedSessionStorage.DeleteAsync("adminSessionKey");
+            Navigation.NavigateTo("/Admin/Login");
+        }
+    }
+}

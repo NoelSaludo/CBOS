@@ -1,0 +1,185 @@
+/* Design Tokens & Shell*/
+.dashboard-wrapper {
+    /* Color Palette */
+    --primary: #001d44;
+    --primary-hover: #00326b;
+    --accent: #006bb7;
+    --accent-subtle: #edf3fb;
+    --secondary: #48626e;
+    --surface: #f7f8fa;
+    --surface-card: #ffffff;
+    --surface-hover: #f1f5f9;
+    --on-surface: #191c1d;
+    --outline: rgba(195, 198, 209, 0.25);
+    --outline-light: rgba(195, 198, 209, 0.12);
+
+    /* Elevation System */
+    --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.04);
+    --shadow-md: 0 4px 16px rgba(0, 0, 0, 0.06);
+    --shadow-lg: 0 8px 32px rgba(0, 0, 0, 0.08);
+    --shadow-hover: 0 8px 24px rgba(0, 29, 68, 0.10);
+
+    /* Shape System */
+    --radius-sm: 0.5rem;
+    --radius-md: 0.75rem;
+    --radius-lg: 1rem;
+    --radius-xl: 1.25rem;
+    --radius-full: 9999px;
+
+    /* Motion System */
+    --ease-out: cubic-bezier(0.16, 1, 0.3, 1);
+    --transition-fast: 0.15s var(--ease-out);
+    --transition-base: 0.25s var(--ease-out);
+    --transition-slow: 0.35s var(--ease-out);
+
+    /* Layout */
+    display: flex;
+    height: 100vh;
+    background-color: var(--surface);
+    font-family: 'Inter', system-ui, -apple-system, sans-serif;
+    color: var(--on-surface);
+    overflow: hidden;
+}
+.sidebar {
+    width: 264px;
+    min-width: 264px;
+    display: flex;
+    flex-direction: column;
+    background: var(--surface-card);
+    padding: 1.75rem 1.25rem;
+    border-right: 1px solid var(--outline-light);
+}
+
+.sidebar-header {
+    margin-bottom: 2.25rem;
+    padding: 0 0.75rem;
+}
+
+.brand-text {
+    display: flex;
+    flex-direction: column;
+}
+
+.brand-title {
+    font-size: 1.5rem;
+    font-weight: 800;
+    color: var(--primary);
+    letter-spacing: -0.03em;
+    line-height: 1;
+    margin-bottom: 0.25rem;
+}
+
+.brand-sub {
+    font-size: 0.6rem;
+    font-weight: 700;
+    color: var(--secondary);
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+}
+
+.sidebar-nav {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 0.25rem;
+}
+
+.nav-item {
+    display: flex;
+    align-items: center;
+    gap: 0.85rem;
+    padding: 0.75rem 1rem;
+    font-size: 0.78rem;
+    font-weight: 600;
+    color: var(--secondary);
+    background: transparent;
+    border: none;
+    border-radius: var(--radius-md);
+    cursor: pointer;
+    transition: all var(--transition-base);
+    text-align: left;
+    position: relative;
+}
+
+.nav-item:hover {
+    background: var(--surface-hover);
+    color: var(--primary);
+}
+
+.nav-item:hover .nav-icon {
+    transform: translateX(2px);
+}
+
+.nav-item.active {
+    background: var(--accent-subtle);
+    color: var(--accent);
+    font-weight: 700;
+}
+
+.nav-item.active::before {
+    content: '';
+    position: absolute;
+    left: 0;
+    top: 50%;
+    transform: translateY(-50%);
+    width: 3px;
+    height: 60%;
+    background: var(--accent);
+    border-radius: var(--radius-full);
+}
+
+.nav-icon {
+    font-size: 1.05rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: transform var(--transition-fast);
+}
+
+.active .nav-icon {
+    color: var(--accent);
+}
+
+.badge {
+    margin-left: auto;
+    background: #dc2626;
+    color: white;
+    font-size: 0.6rem;
+    font-weight: 700;
+    padding: 0.15rem 0.5rem;
+    border-radius: var(--radius-full);
+    min-width: 1.25rem;
+    text-align: center;
+}
+
+.sidebar-footer {
+    margin-top: auto;
+    padding-top: 0.75rem;
+    border-top: 1px solid var(--outline-light);
+}
+
+.logout-btn {
+    display: flex;
+    align-items: center;
+    gap: 0.85rem;
+    padding: 0.75rem 1rem;
+    font-size: 0.78rem;
+    font-weight: 600;
+    color: var(--secondary);
+    background: transparent;
+    border: none;
+    border-radius: var(--radius-md);
+    cursor: pointer;
+    width: 100%;
+    text-align: left;
+    transition: all var(--transition-base);
+}
+
+.logout-btn:hover {
+    background: #fef2f2;
+    color: #dc2626;
+}
+
+.logout-btn:hover .nav-icon {
+    transform: translateX(2px);
+}
