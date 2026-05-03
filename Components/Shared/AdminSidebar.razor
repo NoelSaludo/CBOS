@@ -1,12 +1,20 @@
 @using CBOS.Components.Services
 @using Microsoft.AspNetCore.Components.Server.ProtectedBrowserStorage
 @rendermode InteractiveServer
-<aside class="sidebar">
+<aside class="sidebar @(isCollapsed ? "collapsed" : "")">
     <div class="sidebar-header">
-        <div class="brand-text">
-            <span class="brand-title">CBOS</span>
-            <span class="brand-sub">ADMIN WORKSPACE</span>
+        <div class="brand-container">
+            <img src="images/cbos-logo.png" alt="CBOS Logo" class="brand-logo" />
+            <div class="brand-text">
+                <span class="brand-title">CBOS</span>
+                <span class="brand-sub">ADMIN WORKSPACE</span>
+            </div>
         </div>
+        <button class="toggle-btn" @onclick="ToggleSidebar">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <polyline points="15 18 9 12 15 6"></polyline>
+            </svg>
+        </button>
     </div>
 
     <nav class="sidebar-nav">
@@ -24,6 +32,21 @@
                     </svg>
                 </span>
                 <span>Dashboard</span>
+            </NavLink>
+        </div>
+
+        <div class="nav-group">
+            <span class="nav-group-label">COMMUNITY</span>
+            <NavLink class="nav-item"
+                     href="/admin/feed"
+                     ActiveClass="active"
+                     data-nav="feed">
+                <span class="nav-icon">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"></path>
+                    </svg>
+                </span>
+                <span>Community Feed</span>
             </NavLink>
         </div>
 
@@ -74,21 +97,6 @@
         </div>
 
         <div class="nav-group">
-            <span class="nav-group-label">COMMUNITY</span>
-            <NavLink class="nav-item"
-                     href="/admin/feed"
-                     ActiveClass="active"
-                     data-nav="feed">
-                <span class="nav-icon">
-                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                        <path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"></path>
-                    </svg>
-                </span>
-                <span>Community Feed</span>
-            </NavLink>
-        </div>
-
-        <div class="nav-group">
             <span class="nav-group-label">SYSTEM</span>
             <NavLink class="nav-item"
                      href="/admin/settings"
@@ -123,6 +131,13 @@
     [Inject] private NavigationManager Navigation { get; set; }
     [Inject] private AdminSupabase AdminSupabase { get; set; }
     [Inject] private ProtectedSessionStorage ProtectedSessionStorage { get; set; }
+
+    private bool isCollapsed = false;
+
+    private void ToggleSidebar()
+    {
+        isCollapsed = !isCollapsed;
+    }
 
     private async Task Logout()
     {

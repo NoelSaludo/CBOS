@@ -43,10 +43,10 @@
     font-size: 1.1rem;
 }
 
-.stat-icon-wrapper.green  { background: #ecfdf5; color: #059669; }
+.stat-icon-wrapper.green  { background: #f0fdf4; color: #15803d; }
 .stat-icon-wrapper.red    { background: #fef2f2; color: #dc2626; }
-.stat-icon-wrapper.blue   { background: #eef2ff; color: #4f46e5; }
-.stat-icon-wrapper.purple { background: #f5f3ff; color: #7c3aed; }
+.stat-icon-wrapper.blue   { background: #eff6ff; color: #0284c7; }
+.stat-icon-wrapper.purple { background: #faf5ff; color: #7e22ce; }
 .stat-icon-wrapper.orange { background: #fff7ed; color: #ea580c; }
 
 .stat-badge {
@@ -59,8 +59,8 @@
 }
 
 .stat-badge.urgent { background: #fef2f2; color: #dc2626; }
-.stat-badge.today  { background: #eef2ff; color: #4f46e5; }
-.stat-badge.live   { background: #eef2ff; color: #4f46e5; }
+.stat-badge.today  { background: #eff6ff; color: #0284c7; }
+.stat-badge.live   { background: #eff6ff; color: #0284c7; }
 
 .stat-info {
     margin-top: 0.75rem;
