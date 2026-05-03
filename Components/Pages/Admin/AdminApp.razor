@@ -1,5 +1,5 @@
 ﻿@page "/admin/app"
-@layout BlankLayout
+@layout AdminDashboardLayout
 
 @using Microsoft.AspNetCore.Components.Server.ProtectedBrowserStorage
 @using CBOS.Components.Shared
@@ -20,86 +20,7 @@
 }
 else
 {
-    <div class="dashboard-wrapper">
-        <!-- Sidebar -->
-        <aside class="sidebar">
-            <div class="sidebar-header">
-                <div class="brand-text">
-                    <span class="brand-title">CBOS</span>
-                    <span class="brand-sub">ADMIN WORKSPACE</span>
-                </div>
-            </div>
-
-            <nav class="sidebar-nav">
-                <button class="nav-item @(ActiveFilter == NotifFilter.Home ? "active" : "")"
-                        @onclick="() => SetFilter(NotifFilter.Home)">
-                    <span class="nav-icon"><i class="bi bi-grid-1x2-fill">⛶</i></span>
-                    <span>DASHBOARD</span>
-                </button>
-                <button class="nav-item @(ActiveFilter == NotifFilter.Incident ? "active" : "")"
-                        @onclick="() => SetFilter(NotifFilter.Incident)">
-                    <span class="nav-icon">⚠️</span>
-                    <span>INCIDENT REPORTS</span>
-                </button>
-                <button class="nav-item @(ActiveFilter == NotifFilter.Appointment ? "active" : "")"
-                        @onclick="() => SetFilter(NotifFilter.Appointment)">
-                    <span class="nav-icon">📅</span>
-                    <span>APPOINTMENTS</span>
-                </button>
-                <button class="nav-item @(ActiveFilter == NotifFilter.All ? "active" : "")"
-                        @onclick="() => SetFilter(NotifFilter.All)">
-                    <span class="nav-icon">💬</span>
-                    <span>COMMUNITY FEED</span>
-                    @if (UnreadCount > 0)
-                    {
-                        <span class="badge">@UnreadCount</span>
-                    }
-                </button>
-                <button class="nav-item @(ActiveFilter == NotifFilter.Verification ? "active" : "")"
-                        @onclick="() => SetFilter(NotifFilter.Verification)">
-                    <span class="nav-icon">✅</span>
-                    <span>VERIFICATION</span>
-                </button>
-                <button class="nav-item">
-                    <span class="nav-icon">⚙️</span>
-                    <span>SETTINGS</span>
-                </button>
-            </nav>
-
-            <div class="sidebar-footer">
-                <button class="logout-btn" @onclick="Logout">
-                    <span class="nav-icon">🚪</span>
-                    <span>LOGOUT</span>
-                </button>
-            </div>
-        </aside>
-
-        <!-- Main content -->
-        <main class="main-content">
-            <header class="topbar">
-                <div class="topbar-left">
-                    <span class="topbar-brand">CBOS Admin Workspace</span>
-                    <div class="search-container">
-                        <span class="search-icon">🔍</span>
-                        <input type="text" class="search-input" placeholder="Search records, residents, or reports..." />
-                    </div>
-                </div>
-                <div class="topbar-actions">
-                    <div class="notification-bell">
-                        <span class="bell-icon">🔔</span>
-                        <span class="bell-dot"></span>
-                    </div>
-                    <div class="admin-profile">
-                        <div class="profile-text">
-                            <span class="profile-name">Official Name</span>
-                            <span class="profile-role">BARANGAY ADMIN</span>
-                        </div>
-                        <img src="https://i.pravatar.cc/150?u=admin" alt="Admin Profile" class="profile-avatar" />
-                    </div>
-                </div>
-            </header>
-
-            <section class="content-area">
+    <section class="content-area">
                 @if (ActiveFilter == NotifFilter.Home)
                 {
                     <div class="welcome-section">
@@ -397,9 +318,7 @@ else
                 {
                     <p class="placeholder-text">@FilterLabel View - Coming Soon</p>
                 }
-            </section>
-        </main>
-    </div>
+    </section>
 }
 
 @code {
@@ -488,26 +407,5 @@ else
     private void SetFilter(NotifFilter filter)
     {
         ActiveFilter = filter;
-    }
-
-    private async Task Logout()
-    {
-        try
-        {
-            var result = await ProtectedSessionStorage.GetAsync<string>("adminSessionKey");
-            if (result.Success && !string.IsNullOrWhiteSpace(result.Value))
-            {
-                await AdminSupabase.DeleteSession(result.Value);
-            }
-        }
-        catch (Exception ex)
-        {
-            Logger.LogError(ex, "Error during logout.");
-        }
-        finally
-        {
-            await ProtectedSessionStorage.DeleteAsync("adminSessionKey");
-            Navigation.NavigateTo("/Admin/Login");
-        }
     }
 }
