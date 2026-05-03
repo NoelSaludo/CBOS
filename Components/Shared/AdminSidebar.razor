@@ -10,54 +10,67 @@
     </div>
 
     <nav class="sidebar-nav">
-        <NavLink class="nav-item"
-                 href="/admin/app"
-                 Match="NavLinkMatch.All"
-                 ActiveClass="active">
-            <span class="nav-icon"><i class="bi bi-grid-1x2-fill">⛶</i></span>
-            <span>DASHBOARD</span>
-        </NavLink>
+        <div class="nav-group">
+            <span class="nav-group-label">OVERVIEW</span>
+            <NavLink class="nav-item"
+                     href="/admin/app"
+                     Match="NavLinkMatch.All"
+                     ActiveClass="active">
+                <span class="nav-icon"><i class="bi bi-speedometer2"></i></span>
+                <span>Dashboard</span>
+            </NavLink>
+        </div>
 
-        <NavLink class="nav-item"
-                 href="/admin/incidents"
-                 ActiveClass="active">
-            <span class="nav-icon">⚠️</span>
-            <span>INCIDENT REPORTS</span>
-        </NavLink>
+        <div class="nav-group">
+            <span class="nav-group-label">MANAGEMENT</span>
+            <NavLink class="nav-item"
+                     href="/admin/incidents"
+                     ActiveClass="active">
+                <span class="nav-icon"><i class="bi bi-exclamation-triangle-fill"></i></span>
+                <span>Incidents</span>
+            </NavLink>
 
-        <NavLink class="nav-item"
-                 href="/admin/appointments"
-                 ActiveClass="active">
-            <span class="nav-icon">📅</span>
-            <span>APPOINTMENTS</span>
-        </NavLink>
+            <NavLink class="nav-item"
+                     href="/admin/appointments"
+                     ActiveClass="active">
+                <span class="nav-icon"><i class="bi bi-calendar3"></i></span>
+                <span>Appointments</span>
+            </NavLink>
 
-        <NavLink class="nav-item"
-                 href="/admin/feed"
-                 ActiveClass="active">
-            <span class="nav-icon">💬</span>
-            <span>COMMUNITY FEED</span>
-        </NavLink>
+            <NavLink class="nav-item"
+                     href="/admin/verification"
+                     ActiveClass="active">
+                <span class="nav-icon"><i class="bi bi-patch-check-fill"></i></span>
+                <span>Verification</span>
+                <span class="badge">3</span>
+            </NavLink>
+        </div>
 
-        <NavLink class="nav-item"
-                 href="/admin/verification"
-                 ActiveClass="active">
-            <span class="nav-icon">✅</span>
-            <span>VERIFICATION</span>
-        </NavLink>
+        <div class="nav-group">
+            <span class="nav-group-label">COMMUNITY</span>
+            <NavLink class="nav-item"
+                     href="/admin/feed"
+                     ActiveClass="active">
+                <span class="nav-icon"><i class="bi bi-chat-dots-fill"></i></span>
+                <span>Community Feed</span>
+            </NavLink>
+        </div>
 
-        <NavLink class="nav-item"
-                 href="/admin/settings"
-                 ActiveClass="active">
-            <span class="nav-icon">⚙️</span>
-            <span>SETTINGS</span>
-        </NavLink>
+        <div class="nav-group">
+            <span class="nav-group-label">SYSTEM</span>
+            <NavLink class="nav-item"
+                     href="/admin/settings"
+                     ActiveClass="active">
+                <span class="nav-icon"><i class="bi bi-gear-fill"></i></span>
+                <span>Settings</span>
+            </NavLink>
+        </div>
     </nav>
 
     <div class="sidebar-footer">
         <button class="logout-btn" @onclick="Logout">
-            <span class="nav-icon">🚪</span>
-            <span>LOGOUT</span>
+            <span class="nav-icon"><i class="bi bi-box-arrow-right"></i></span>
+            <span>Sign Out</span>
         </button>
     </div>
 </aside>

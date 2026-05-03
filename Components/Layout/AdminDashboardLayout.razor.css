@@ -1,29 +1,29 @@
 ﻿/* Design Tokens & Shell*/
 .dashboard-wrapper {
     /* Color Palette */
-    --primary: #001d44;
-    --primary-hover: #00326b;
-    --accent: #006bb7;
-    --accent-subtle: #edf3fb;
-    --secondary: #48626e;
-    --surface: #f7f8fa;
+    --primary: #0d0a2d; /* Updated to match sidebar */
+    --primary-hover: #1a164d;
+    --accent: #4f46e5; /* Indigo accent */
+    --accent-subtle: #f5f3ff;
+    --secondary: #64748b;
+    --surface: #f8fafc;
     --surface-card: #ffffff;
     --surface-hover: #f1f5f9;
-    --on-surface: #191c1d;
-    --outline: rgba(195, 198, 209, 0.25);
-    --outline-light: rgba(195, 198, 209, 0.12);
+    --on-surface: #0f172a;
+    --outline: rgba(148, 163, 184, 0.2);
+    --outline-light: rgba(148, 163, 184, 0.1);
 
     /* Elevation System */
-    --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.04);
-    --shadow-md: 0 4px 16px rgba(0, 0, 0, 0.06);
-    --shadow-lg: 0 8px 32px rgba(0, 0, 0, 0.08);
-    --shadow-hover: 0 8px 24px rgba(0, 29, 68, 0.10);
+    --shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 0.05);
+    --shadow-md: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
+    --shadow-lg: 0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1);
+    --shadow-hover: 0 20px 25px -5px rgb(0 0 0 / 0.1), 0 8px 10px -6px rgb(0 0 0 / 0.1);
 
     /* Shape System */
-    --radius-sm: 0.5rem;
-    --radius-md: 0.75rem;
-    --radius-lg: 1rem;
-    --radius-xl: 1.25rem;
+    --radius-sm: 0.375rem;
+    --radius-md: 0.5rem;
+    --radius-lg: 0.75rem;
+    --radius-xl: 1rem;
     --radius-full: 9999px;
 
     /* Motion System */
@@ -36,7 +36,7 @@
     display: flex;
     height: 100vh;
     background-color: var(--surface);
-    font-family: 'Inter', system-ui, -apple-system, sans-serif;
+    font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
     color: var(--on-surface);
     overflow: hidden;
 }
