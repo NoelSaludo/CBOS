@@ -4,6 +4,7 @@
 @inject Supabase.Client Supabase
 @inject CBOS.Components.Services.AuthService AuthService
 @inject NavigationManager Navigation
+@using CBOS.Components.Model
 
 <PageTitle>Login – CBOS Batangas</PageTitle>
 
@@ -201,7 +202,37 @@
 
             if (session?.User != null)
             {
-                // Read first name directly from Supabase user metadata — no DB query needed
+                // ── Check public.users row exists ───────────────────────
+                bool profileExists = false;
+                try
+                {
+                    var existing = await Supabase
+                        .From<UserProfile>()
+                        .Select("id")
+                        .Match(new Dictionary<string, string>
+                        {
+                            { "emailaddress", _email.Trim().ToLower() }
+                        })
+                        .Single();
+
+                    profileExists = existing != null;
+                }
+                catch
+                {
+                    profileExists = false;
+                }
+
+                if (!profileExists)
+                {
+                    // ── Block login — no public.users row ───────────────
+                    await Supabase.Auth.SignOut();
+                    _errorMessage  = "Your account is not registered in the system. Please register first.";
+                    _emailError    = true;
+                    _passwordError = false;
+                    return;
+                }
+
+                // ── Profile confirmed — read name from metadata ─────────
                 var firstName = session.User.UserMetadata
                     ?.GetValueOrDefault("first_name")
                     ?.ToString() ?? "";
