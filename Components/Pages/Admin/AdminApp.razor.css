@@ -453,14 +453,38 @@
 }
 
 /* ═══════════════════════════════════════════════════════
-   DASHBOARD SPLIT LAYOUT
+   DASHBOARD GRID LAYOUTS
    ═══════════════════════════════════════════════════════ */
+.dashboard-grid-3 {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 1.5rem;
+    align-items: start;
+    animation: stagger-in 0.6s var(--ease-out) 0.4s both;
+    margin-bottom: 1.5rem;
+}
+
+.dashboard-grid-2 {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 1.5rem;
+    align-items: start;
+    animation: stagger-in 0.6s var(--ease-out) 0.5s both;
+    margin-bottom: 1.5rem;
+}
+
+.dashboard-col {
+    display: flex;
+    flex-direction: column;
+    gap: 1.5rem;
+}
+
+/* Fallback for split (deprecated) */
 .dashboard-split {
     display: grid;
     grid-template-columns: 1.8fr 1fr;
     gap: 1.5rem;
     align-items: start;
-    animation: stagger-in 0.6s var(--ease-out) 0.4s both;
 }
 
 .dashboard-col-left,
@@ -641,6 +665,19 @@
     font-size: 0.68rem;
     color: var(--secondary);
     font-weight: 500;
+}
+
+/* ═══════════════════════════════════════════════════════
+   PIE CHART
+   ═══════════════════════════════════════════════════════ */
+.pie-chart-container {
+    position: relative;
+    margin-top: 1rem;
+    padding: 1.5rem 0 1rem 0;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 250px;
 }
 
 /* ═══════════════════════════════════════════════════════
