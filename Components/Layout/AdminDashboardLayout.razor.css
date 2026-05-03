@@ -1,17 +1,17 @@
 ﻿/* Design Tokens & Shell*/
 .dashboard-wrapper {
     /* Color Palette */
-    --primary: #001d44;
-    --primary-hover: #00326b;
-    --accent: #006bb7;
-    --accent-subtle: #edf3fb;
-    --secondary: #48626e;
-    --surface: #f7f8fa;
+    --primary: #0d0a2d;
+    --primary-hover: #1a164d;
+    --accent: #3b82f6;
+    --accent-subtle: #eff6ff;
+    --secondary: #64748b;
+    --surface: #f8fafc;
     --surface-card: #ffffff;
     --surface-hover: #f1f5f9;
-    --on-surface: #191c1d;
-    --outline: rgba(195, 198, 209, 0.25);
-    --outline-light: rgba(195, 198, 209, 0.12);
+    --on-surface: #0d0a2d;
+    --outline: #e2e8f0;
+    --outline-light: #f1f5f9;
 
     /* Elevation System */
     --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.04);

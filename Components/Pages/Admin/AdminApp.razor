@@ -25,14 +25,19 @@ else
                 {
                     <div class="welcome-section">
                         <h1>Welcome back, Official Name.</h1>
-                        <p>Here is a comprehensive overview of your Barangay's activities today.</p>
+                        <p>Here's what's happening in your Barangay today.</p>
                     </div>
 
                     <div class="analytics-grid">
                         <div class="stat-card">
                             <div class="stat-card-top">
                                 <div class="stat-icon-wrapper green">
-                                    <span class="stat-icon">✅</span>
+                                    <span class="stat-icon">
+                                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                            <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path>
+                                            <polyline points="22 4 12 14.01 9 11.01"></polyline>
+                                        </svg>
+                                    </span>
                                 </div>
                             </div>
                             <div class="stat-info">
@@ -43,7 +48,12 @@ else
                         <div class="stat-card">
                             <div class="stat-card-top">
                                 <div class="stat-icon-wrapper orange">
-                                    <span class="stat-icon">⏳</span>
+                                    <span class="stat-icon">
+                                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                            <circle cx="12" cy="12" r="10"></circle>
+                                            <polyline points="12 6 12 12 16 14"></polyline>
+                                        </svg>
+                                    </span>
                                 </div>
                             </div>
                             <div class="stat-info">
@@ -54,7 +64,13 @@ else
                         <div class="stat-card">
                             <div class="stat-card-top">
                                 <div class="stat-icon-wrapper red">
-                                    <span class="stat-icon">🚨</span>
+                                    <span class="stat-icon">
+                                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                            <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"></path>
+                                            <line x1="12" y1="9" x2="12" y2="13"></line>
+                                            <line x1="12" y1="17" x2="12.01" y2="17"></line>
+                                        </svg>
+                                    </span>
                                 </div>
                             </div>
                             <div class="stat-info">
@@ -65,7 +81,14 @@ else
                         <div class="stat-card">
                             <div class="stat-card-top">
                                 <div class="stat-icon-wrapper blue">
-                                    <span class="stat-icon">📅</span>
+                                    <span class="stat-icon">
+                                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                            <rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect>
+                                            <line x1="16" y1="2" x2="16" y2="6"></line>
+                                            <line x1="8" y1="2" x2="8" y2="6"></line>
+                                            <line x1="3" y1="10" x2="21" y2="10"></line>
+                                        </svg>
+                                    </span>
                                 </div>
                             </div>
                             <div class="stat-info">
@@ -80,21 +103,48 @@ else
                             <div class="card-header-split">
                                 <div class="chart-title-left">
                                     <h2 class="card-title">User Growth Analytics</h2>
-                                    <p class="card-subtitle">Resident registration trends over the last 6 months</p>
+                                    <p class="card-subtitle">@(ActiveTimeRange == "6M" ? "Resident registration trends over the last 6 months" : ActiveTimeRange == "1Y" ? "Resident registration trends over the last year" : "Overall resident registration trends")</p>
                                 </div>
-                                <span class="stat-badge live">LIVE</span>
+                                <div class="chart-actions">
+                                    <div class="time-filter">
+                                        <button class="filter-btn @(ActiveTimeRange == "6M" ? "active" : "")" @onclick='() => SetTimeRange("6M")'>6M</button>
+                                        <button class="filter-btn @(ActiveTimeRange == "1Y" ? "active" : "")" @onclick='() => SetTimeRange("1Y")'>1Y</button>
+                                        <button class="filter-btn @(ActiveTimeRange == "ALL" ? "active" : "")" @onclick='() => SetTimeRange("ALL")'>ALL</button>
+                                    </div>
+                                    <span class="stat-badge live">LIVE</span>
+                                </div>
                             </div>
                             <div class="chart-placeholder">
-                                <ApexChart TItem="RegistrationData"
-                                           Height="@("250")"
-                                           Options="chartOptions">
-                                    <ApexPointSeries TItem="RegistrationData"
-                                                     Items="trendData"
-                                                     Name="Registrations"
-                                                     SeriesType="SeriesType.Area"
-                                                     XValue="@(e => e.Month)"
-                                                     YValue="@(e => e.Count)" />
-                                </ApexChart>
+                                @if (_isLoading)
+                                {
+                                    <div class="skeleton skeleton-chart"></div>
+                                }
+                                else if (trendData == null || !trendData.Any())
+                                {
+                                    <div class="empty-state">
+                                        <div class="empty-state-icon">
+                                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                                <line x1="18" y1="20" x2="18" y2="10"></line>
+                                                <line x1="12" y1="20" x2="12" y2="4"></line>
+                                                <line x1="6" y1="20" x2="6" y2="14"></line>
+                                            </svg>
+                                        </div>
+                                        <p class="empty-state-text">No registration data available for this period.</p>
+                                    </div>
+                                }
+                                else
+                                {
+                                    <ApexChart TItem="RegistrationData"
+                                               Height="@("250")"
+                                               Options="chartOptions">
+                                        <ApexPointSeries TItem="RegistrationData"
+                                                         Items="trendData"
+                                                         Name="Registrations"
+                                                         SeriesType="SeriesType.Area"
+                                                         XValue="@(e => e.Month)"
+                                                         YValue="@(e => e.Count)" />
+                                    </ApexChart>
+                                }
                             </div>
                         </div>
                     </div>
@@ -118,30 +168,46 @@ else
                                             </tr>
                                         </thead>
                                         <tbody>
-                                            <tr>
-                                                <td class="id-cell">#USR-3001</td>
-                                                <td class="bold-cell">Ana Patricia Reyes</td>
-                                                <td class="light-cell">Oct 22, 2023</td>
-                                                <td><span class="data-chip approved">FULLY VERIFIED</span></td>
-                                            </tr>
-                                            <tr>
-                                                <td class="id-cell">#USR-3002</td>
-                                                <td class="bold-cell">Carlos Miguel Torres</td>
-                                                <td class="light-cell">Oct 23, 2023</td>
-                                                <td><span class="data-chip yellow">PARTIALLY VERIFIED</span></td>
-                                            </tr>
-                                            <tr>
-                                                <td class="id-cell">#USR-3003</td>
-                                                <td class="bold-cell">Diana Rose Lim</td>
-                                                <td class="light-cell">Oct 24, 2023</td>
-                                                <td><span class="data-chip approved">FULLY VERIFIED</span></td>
-                                            </tr>
-                                            <tr>
-                                                <td class="id-cell">#USR-3004</td>
-                                                <td class="bold-cell">Roberto Santos Jr.</td>
-                                                <td class="light-cell">Oct 24, 2023</td>
-                                                <td><span class="data-chip yellow">PARTIALLY VERIFIED</span></td>
-                                            </tr>
+                                            @if (_isLoading)
+                                            {
+                                                @for (int i = 0; i < 4; i++)
+                                                {
+                                                    <tr>
+                                                        <td><div class="skeleton skeleton-text" style="width: 70px;"></div></td>
+                                                        <td><div class="skeleton skeleton-text"></div></td>
+                                                        <td><div class="skeleton skeleton-text" style="width: 80px;"></div></td>
+                                                        <td><div class="skeleton skeleton-text" style="width: 90px;"></div></td>
+                                                    </tr>
+                                                }
+                                            }
+                                            else if (verificationUsers == null || !verificationUsers.Any())
+                                            {
+                                                <tr>
+                                                    <td colspan="4">
+                                                        <div class="empty-state">
+                                                            <div class="empty-state-icon">
+                                                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                                                    <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
+                                                                    <circle cx="12" cy="7" r="4"></circle>
+                                                                </svg>
+                                                            </div>
+                                                            <p class="empty-state-text">No pending verifications found.</p>
+                                                        </div>
+                                                    </td>
+                                                </tr>
+                                            }
+                                            else
+                                            {
+                                                @foreach (var user in verificationUsers)
+                                                {
+                                                    <tr>
+                                                        <td class="id-cell">@user.Id</td>
+                                                        <td class="bold-cell">@user.Name</td>
+                                                        <td class="light-cell">@user.DateRegistered</td>
+                                                        <td><span class="data-chip @user.StatusClass">@user.Status</span></td>
+                                                    </tr>
+                                                }
+                                            }
                                         </tbody>
                                     </table>
                                 </div>
@@ -166,38 +232,51 @@ else
                                             </tr>
                                         </thead>
                                         <tbody>
-                                            <tr>
-                                                <td class="id-cell">#INC-4021</td>
-                                                <td class="bold-cell">Maria Santos</td>
-                                                <td class="light-cell">Stray Animal Complaint</td>
-                                                <td><span class="data-chip yellow">Complaint</span></td>
-                                                <td class="light-cell">Oct 24, 2023</td>
-                                                <td><span class="data-chip yellow">PENDING</span></td>
-                                            </tr>
-                                            <tr>
-                                                <td class="id-cell">#INC-4020</td>
-                                                <td class="bold-cell">Juan Dela Cruz</td>
-                                                <td class="light-cell">Noise Disturbance</td>
-                                                <td><span class="data-chip gray">Other</span></td>
-                                                <td class="light-cell">Oct 24, 2023</td>
-                                                <td><span class="data-chip rejected">REJECTED</span></td>
-                                            </tr>
-                                            <tr>
-                                                <td class="id-cell">#INC-4019</td>
-                                                <td class="bold-cell">Elena Rodriguez</td>
-                                                <td class="light-cell">Clogged Drainage</td>
-                                                <td><span class="data-chip rejected">Emergency</span></td>
-                                                <td class="light-cell">Oct 23, 2023</td>
-                                                <td><span class="data-chip resolved">RESOLVED</span></td>
-                                            </tr>
-                                            <tr>
-                                                <td class="id-cell">#INC-4018</td>
-                                                <td class="bold-cell">Mark Jayson Sy</td>
-                                                <td class="light-cell">More Streetlights</td>
-                                                <td><span class="data-chip resolved">Suggestion</span></td>
-                                                <td class="light-cell">Oct 23, 2023</td>
-                                                <td><span class="data-chip resolved">RESOLVED</span></td>
-                                            </tr>
+                                            @if (_isLoading)
+                                            {
+                                                @for (int i = 0; i < 4; i++)
+                                                {
+                                                    <tr>
+                                                        <td><div class="skeleton skeleton-text" style="width: 70px;"></div></td>
+                                                        <td><div class="skeleton skeleton-text"></div></td>
+                                                        <td><div class="skeleton skeleton-text"></div></td>
+                                                        <td><div class="skeleton skeleton-text" style="width: 60px;"></div></td>
+                                                        <td><div class="skeleton skeleton-text" style="width: 80px;"></div></td>
+                                                        <td><div class="skeleton skeleton-text" style="width: 70px;"></div></td>
+                                                    </tr>
+                                                }
+                                            }
+                                            else if (incidentReports == null || !incidentReports.Any())
+                                            {
+                                                <tr>
+                                                    <td colspan="6">
+                                                        <div class="empty-state">
+                                                            <div class="empty-state-icon">
+                                                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                                                    <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"></path>
+                                                                    <line x1="12" y1="9" x2="12" y2="13"></line>
+                                                                    <line x1="12" y1="17" x2="12.01" y2="17"></line>
+                                                                </svg>
+                                                            </div>
+                                                            <p class="empty-state-text">No incident reports recorded.</p>
+                                                        </div>
+                                                    </td>
+                                                </tr>
+                                            }
+                                            else
+                                            {
+                                                @foreach (var report in incidentReports)
+                                                {
+                                                    <tr>
+                                                        <td class="id-cell">@report.Id</td>
+                                                        <td class="bold-cell">@report.Complainant</td>
+                                                        <td class="light-cell">@report.Title</td>
+                                                        <td><span class="data-chip @report.CategoryClass">@report.Category</span></td>
+                                                        <td class="light-cell">@report.Date</td>
+                                                        <td><span class="data-chip @report.StatusClass">@report.Status</span></td>
+                                                    </tr>
+                                                }
+                                            }
                                         </tbody>
                                     </table>
                                 </div>
@@ -221,27 +300,48 @@ else
                                             </tr>
                                         </thead>
                                         <tbody>
-                                            <tr>
-                                                <td class="id-cell">#PST-1052</td>
-                                                <td class="bold-cell">Juan Dela Cruz</td>
-                                                <td class="light-cell">Barangay Fiesta</td>
-                                                <td class="light-cell">Oct 24, 2023</td>
-                                                <td><span class="data-chip yellow">PENDING</span></td>
-                                            </tr>
-                                            <tr>
-                                                <td class="id-cell">#PST-1051</td>
-                                                <td class="bold-cell">Maria Santos</td>
-                                                <td class="light-cell">Clean &amp; Green Drive</td>
-                                                <td class="light-cell">Oct 24, 2023</td>
-                                                <td><span class="data-chip approved">APPROVED</span></td>
-                                            </tr>
-                                            <tr>
-                                                <td class="id-cell">#PST-1050</td>
-                                                <td class="bold-cell">Pedro Penduko</td>
-                                                <td class="light-cell">Lost Pet</td>
-                                                <td class="light-cell">Oct 23, 2023</td>
-                                                <td><span class="data-chip rejected">REJECTED</span></td>
-                                            </tr>
+                                            @if (_isLoading)
+                                            {
+                                                @for (int i = 0; i < 3; i++)
+                                                {
+                                                    <tr>
+                                                        <td><div class="skeleton skeleton-text" style="width: 70px;"></div></td>
+                                                        <td><div class="skeleton skeleton-text"></div></td>
+                                                        <td><div class="skeleton skeleton-text"></div></td>
+                                                        <td><div class="skeleton skeleton-text" style="width: 80px;"></div></td>
+                                                        <td><div class="skeleton skeleton-text" style="width: 70px;"></div></td>
+                                                    </tr>
+                                                }
+                                            }
+                                            else if (communityPosts == null || !communityPosts.Any())
+                                            {
+                                                <tr>
+                                                    <td colspan="5">
+                                                        <div class="empty-state">
+                                                            <div class="empty-state-icon">
+                                                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                                                    <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path>
+                                                                    <path d="M18.5 2.5a2.121 2.121 0 1 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path>
+                                                                </svg>
+                                                            </div>
+                                                            <p class="empty-state-text">No community posts found.</p>
+                                                        </div>
+                                                    </td>
+                                                </tr>
+                                            }
+                                            else
+                                            {
+                                                @foreach (var post in communityPosts)
+                                                {
+                                                    <tr>
+                                                        <td class="id-cell">@post.Id</td>
+                                                        <td class="bold-cell">@post.Author</td>
+                                                        <td class="light-cell">@post.Topic</td>
+                                                        <td class="light-cell">@post.Date</td>
+                                                        <td><span class="data-chip @post.StatusClass">@post.Status</span></td>
+                                                    </tr>
+                                                }
+                                            }
                                         </tbody>
                                     </table>
                                 </div>
@@ -257,58 +357,55 @@ else
                                     <a href="#" class="card-link">VIEW ALL</a>
                                 </div>
                                 <div class="appointments-list">
-                                    <div class="appointment-item">
-                                        <div class="app-header-row">
-                                            <span class="app-id">#APP-5001</span>
-                                            <span class="data-chip yellow">PENDING</span>
-                                        </div>
-                                        <div class="app-body">
-                                            <div class="app-name">Elena Rodriguez</div>
-                                            <div class="app-meta">
-                                                <span class="app-category">DOCUMENT REQUEST</span>
-                                                <span class="app-service">Barangay Clearance</span>
+                                    @if (_isLoading)
+                                    {
+                                        @for (int i = 0; i < 4; i++)
+                                        {
+                                            <div class="appointment-item">
+                                                <div class="app-header-row">
+                                                    <div class="skeleton skeleton-text" style="width: 70px;"></div>
+                                                    <div class="skeleton skeleton-text" style="width: 60px;"></div>
+                                                </div>
+                                                <div class="app-body">
+                                                    <div class="skeleton skeleton-text" style="margin-bottom: 0.5rem;"></div>
+                                                    <div class="skeleton skeleton-text" style="width: 80%;"></div>
+                                                </div>
                                             </div>
-                                        </div>
-                                    </div>
-                                    <div class="appointment-item">
-                                        <div class="app-header-row">
-                                            <span class="app-id">#APP-5002</span>
-                                            <span class="data-chip approved">APPROVED</span>
-                                        </div>
-                                        <div class="app-body">
-                                            <div class="app-name">Mark Jayson Sy</div>
-                                            <div class="app-meta">
-                                                <span class="app-category">PERMITS &amp; CLEARANCES</span>
-                                                <span class="app-service">Barangay Business Permit</span>
+                                        }
+                                    }
+                                    else if (appointments == null || !appointments.Any())
+                                    {
+                                        <div class="empty-state">
+                                            <div class="empty-state-icon">
+                                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                                    <rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect>
+                                                    <line x1="16" y1="2" x2="16" y2="6"></line>
+                                                    <line x1="8" y1="2" x2="8" y2="6"></line>
+                                                    <line x1="3" y1="10" x2="21" y2="10"></line>
+                                                </svg>
                                             </div>
+                                            <p class="empty-state-text">No scheduled appointments today.</p>
                                         </div>
-                                    </div>
-                                    <div class="appointment-item">
-                                        <div class="app-header-row">
-                                            <span class="app-id">#APP-5003</span>
-                                            <span class="data-chip rescheduled">RESCHEDULED</span>
-                                        </div>
-                                        <div class="app-body">
-                                            <div class="app-name">Maria Clara Santos</div>
-                                            <div class="app-meta">
-                                                <span class="app-category">DOCUMENT REQUEST</span>
-                                                <span class="app-service">Certificate of Residency</span>
+                                    }
+                                    else
+                                    {
+                                        @foreach (var app in appointments)
+                                        {
+                                            <div class="appointment-item">
+                                                <div class="app-header-row">
+                                                    <span class="app-id">@app.Id</span>
+                                                    <span class="data-chip @app.StatusClass">@app.Status</span>
+                                                </div>
+                                                <div class="app-body">
+                                                    <div class="app-name">@app.Name</div>
+                                                    <div class="app-meta">
+                                                        <span class="app-category">@app.Category</span>
+                                                        <span class="app-service">@app.Service</span>
+                                                    </div>
+                                                </div>
                                             </div>
-                                        </div>
-                                    </div>
-                                    <div class="appointment-item">
-                                        <div class="app-header-row">
-                                            <span class="app-id">#APP-5004</span>
-                                            <span class="data-chip rejected">REJECTED</span>
-                                        </div>
-                                        <div class="app-body">
-                                            <div class="app-name">Juan Dela Cruz</div>
-                                            <div class="app-meta">
-                                                <span class="app-category">COMPLAINT AND MEDIATION</span>
-                                                <span class="app-service">Mediation Session</span>
-                                            </div>
-                                        </div>
-                                    </div>
+                                        }
+                                    }
                                 </div>
                             </div>
                         </div>
@@ -323,8 +420,14 @@ else
 
 @code {
     private bool _isAuthorized = false;
+    private bool _isLoading = true;
 
     private List<RegistrationData> trendData = new();
+    private List<VerificationUser> verificationUsers = new();
+    private List<IncidentReport> incidentReports = new();
+    private List<CommunityPost> communityPosts = new();
+    private List<Appointment> appointments = new();
+
     private ApexChartOptions<RegistrationData> chartOptions = new();
 
     public class RegistrationData
@@ -332,9 +435,52 @@ else
         public string Month { get; set; } = "";
         public int Count { get; set; }
     }
+
+    public class VerificationUser
+    {
+        public string Id { get; set; } = "";
+        public string Name { get; set; } = "";
+        public string DateRegistered { get; set; } = "";
+        public string Status { get; set; } = "";
+        public string StatusClass { get; set; } = "";
+    }
+
+    public class IncidentReport
+    {
+        public string Id { get; set; } = "";
+        public string Complainant { get; set; } = "";
+        public string Title { get; set; } = "";
+        public string Category { get; set; } = "";
+        public string CategoryClass { get; set; } = "";
+        public string Date { get; set; } = "";
+        public string Status { get; set; } = "";
+        public string StatusClass { get; set; } = "";
+    }
+
+    public class CommunityPost
+    {
+        public string Id { get; set; } = "";
+        public string Author { get; set; } = "";
+        public string Topic { get; set; } = "";
+        public string Date { get; set; } = "";
+        public string Status { get; set; } = "";
+        public string StatusClass { get; set; } = "";
+    }
+
+    public class Appointment
+    {
+        public string Id { get; set; } = "";
+        public string Name { get; set; } = "";
+        public string Category { get; set; } = "";
+        public string Service { get; set; } = "";
+        public string Status { get; set; } = "";
+        public string StatusClass { get; set; } = "";
+    }
+
     public enum NotifFilter { Home, All, Appointment, Incident, Verification }
     private NotifFilter ActiveFilter = NotifFilter.Home;
     private int UnreadCount = 0;
+    private string ActiveTimeRange = "6M";
 
     private string FilterLabel => ActiveFilter switch
     {
@@ -348,6 +494,66 @@ else
 
     protected override void OnInitialized()
     {
+        chartOptions = new ApexChartOptions<RegistrationData>
+        {
+            Chart = new Chart 
+            { 
+                Toolbar = new Toolbar { Show = false },
+                Animations = new Animations { Enabled = true, Easing = Easing.Easeinout, Speed = 800 }
+            },
+            DataLabels = new DataLabels { Enabled = false },
+            Stroke = new Stroke { Curve = Curve.Smooth, Width = 3, Colors = new List<string> { "#3b82f6" } },
+            Fill = new Fill 
+            { 
+                Type = new List<FillType> { FillType.Gradient },
+                Gradient = new FillGradient
+                {
+                    ShadeIntensity = 1,
+                    OpacityFrom = 0.45,
+                    OpacityTo = 0.05,
+                    Stops = new List<double> { 0, 100 }
+                }
+            },
+            Colors = new List<string> { "#3b82f6" },
+            Markers = new Markers { Size = 5, Colors = new List<string> { "#3b82f6" }, StrokeColors = new List<string> { "#ffffff" }, StrokeWidth = 2, Hover = new MarkersHover { Size = 7 } },
+            Xaxis = new XAxis 
+            { 
+                Labels = new XAxisLabels { Style = new AxisLabelStyle { FontSize = "11px", FontWeight = "600", Colors = "#64748b" } },
+                AxisBorder = new AxisBorder { Show = false },
+                AxisTicks = new AxisTicks { Show = false }
+            },
+            Yaxis = new List<YAxis> 
+            { 
+                new YAxis 
+                { 
+                    Labels = new YAxisLabels { Style = new AxisLabelStyle { FontSize = "11px", FontWeight = "600", Colors = "#64748b" } },
+                } 
+            },
+            Grid = new Grid 
+            { 
+                Show = true, 
+                BorderColor = "#f1f5f9", 
+                StrokeDashArray = 4,
+                Xaxis = new GridXAxis { Lines = new Lines { Show = false } },
+                Yaxis = new GridYAxis { Lines = new Lines { Show = true } }
+            },
+            Tooltip = new Tooltip
+            {
+                Theme = Mode.Light,
+                X = new TooltipX { Show = true },
+                Y = new TooltipY { Title = new TooltipYTitle { Formatter = @"function(seriesName) { return 'Registrations'; }" } }
+            }
+        };
+    }
+
+    private async Task LoadDashboardData()
+    {
+        _isLoading = true;
+        StateHasChanged();
+
+        // Simulate API delay
+        await Task.Delay(1500);
+
         trendData = new List<RegistrationData>
         {
             new RegistrationData { Month = "JAN", Count = 120 },
@@ -358,16 +564,39 @@ else
             new RegistrationData { Month = "JUN", Count = 820 }
         };
 
-        chartOptions = new ApexChartOptions<RegistrationData>
+        verificationUsers = new List<VerificationUser>
         {
-            Chart = new Chart { Toolbar = new Toolbar { Show = false } },
-            DataLabels = new DataLabels { Enabled = false },
-            Stroke = new Stroke { Curve = Curve.Smooth, Width = 4, Colors = new List<string> { "#001d44" } },
-            Fill = new Fill { Type = new List<FillType> { FillType.Solid }, Colors = new List<string> { "#f3f4f5" }, Opacity = 1 },
-            Xaxis = new XAxis { Labels = new XAxisLabels { Style = new AxisLabelStyle { FontSize = "10px", FontWeight = "700" } } },
-            Yaxis = new List<YAxis> { new YAxis { Show = false } },
-            Grid = new Grid { Show = false }
+            new VerificationUser { Id = "#USR-3001", Name = "Ana Patricia Reyes", DateRegistered = "Oct 22, 2023", Status = "FULLY VERIFIED", StatusClass = "approved" },
+            new VerificationUser { Id = "#USR-3002", Name = "Carlos Miguel Torres", DateRegistered = "Oct 23, 2023", Status = "PARTIALLY VERIFIED", StatusClass = "yellow" },
+            new VerificationUser { Id = "#USR-3003", Name = "Diana Rose Lim", DateRegistered = "Oct 24, 2023", Status = "FULLY VERIFIED", StatusClass = "approved" },
+            new VerificationUser { Id = "#USR-3004", Name = "Roberto Santos Jr.", DateRegistered = "Oct 24, 2023", Status = "PARTIALLY VERIFIED", StatusClass = "yellow" }
         };
+
+        incidentReports = new List<IncidentReport>
+        {
+            new IncidentReport { Id = "#INC-4021", Complainant = "Maria Santos", Title = "Stray Animal Complaint", Category = "Complaint", CategoryClass = "yellow", Date = "Oct 24, 2023", Status = "PENDING", StatusClass = "yellow" },
+            new IncidentReport { Id = "#INC-4020", Complainant = "Juan Dela Cruz", Title = "Noise Disturbance", Category = "Other", CategoryClass = "gray", Date = "Oct 24, 2023", Status = "REJECTED", StatusClass = "rejected" },
+            new IncidentReport { Id = "#INC-4019", Complainant = "Elena Rodriguez", Title = "Clogged Drainage", Category = "Emergency", CategoryClass = "rejected", Date = "Oct 23, 2023", Status = "RESOLVED", StatusClass = "resolved" },
+            new IncidentReport { Id = "#INC-4018", Complainant = "Mark Jayson Sy", Title = "More Streetlights", Category = "Suggestion", CategoryClass = "resolved", Date = "Oct 23, 2023", Status = "RESOLVED", StatusClass = "resolved" }
+        };
+
+        communityPosts = new List<CommunityPost>
+        {
+            new CommunityPost { Id = "#PST-1052", Author = "Juan Dela Cruz", Topic = "Barangay Fiesta", Date = "Oct 24, 2023", Status = "PENDING", StatusClass = "yellow" },
+            new CommunityPost { Id = "#PST-1051", Author = "Maria Santos", Topic = "Clean & Green Drive", Date = "Oct 24, 2023", Status = "APPROVED", StatusClass = "approved" },
+            new CommunityPost { Id = "#PST-1050", Author = "Pedro Penduko", Topic = "Lost Pet", Date = "Oct 23, 2023", Status = "REJECTED", StatusClass = "rejected" }
+        };
+
+        appointments = new List<Appointment>
+        {
+            new Appointment { Id = "#APP-5001", Name = "Elena Rodriguez", Category = "DOCUMENT REQUEST", Service = "Barangay Clearance", Status = "PENDING", StatusClass = "yellow" },
+            new Appointment { Id = "#APP-5002", Name = "Mark Jayson Sy", Category = "PERMITS & CLEARANCES", Service = "Barangay Business Permit", Status = "APPROVED", StatusClass = "approved" },
+            new Appointment { Id = "#APP-5003", Name = "Maria Clara Santos", Category = "DOCUMENT REQUEST", Service = "Certificate of Residency", Status = "RESCHEDULED", StatusClass = "rescheduled" },
+            new Appointment { Id = "#APP-5004", Name = "Juan Dela Cruz", Category = "COMPLAINT AND MEDIATION", Service = "Mediation Session", Status = "REJECTED", StatusClass = "rejected" }
+        };
+
+        _isLoading = false;
+        StateHasChanged();
     }
 
     protected override async Task OnAfterRenderAsync(bool firstRender)
@@ -395,7 +624,7 @@ else
             }
 
             _isAuthorized = true;
-            StateHasChanged();
+            await LoadDashboardData();
         }
         catch (Exception ex)
         {
@@ -407,5 +636,58 @@ else
     private void SetFilter(NotifFilter filter)
     {
         ActiveFilter = filter;
+    }
+
+    private async Task SetTimeRange(string range)
+    {
+        ActiveTimeRange = range;
+        _isLoading = true;
+        StateHasChanged();
+        
+        await Task.Delay(800); // Simulate data fetch for different range
+
+        if (range == "1Y")
+        {
+            trendData = new List<RegistrationData>
+            {
+                new RegistrationData { Month = "JUL", Count = 100 },
+                new RegistrationData { Month = "AUG", Count = 150 },
+                new RegistrationData { Month = "SEP", Count = 180 },
+                new RegistrationData { Month = "OCT", Count = 220 },
+                new RegistrationData { Month = "NOV", Count = 280 },
+                new RegistrationData { Month = "DEC", Count = 350 },
+                new RegistrationData { Month = "JAN", Count = 380 },
+                new RegistrationData { Month = "FEB", Count = 420 },
+                new RegistrationData { Month = "MAR", Count = 500 },
+                new RegistrationData { Month = "APR", Count = 580 },
+                new RegistrationData { Month = "MAY", Count = 650 },
+                new RegistrationData { Month = "JUN", Count = 820 }
+            };
+        }
+        else if (range == "ALL")
+        {
+             trendData = new List<RegistrationData>
+            {
+                new RegistrationData { Month = "2023", Count = 1200 },
+                new RegistrationData { Month = "2024", Count = 2800 },
+                new RegistrationData { Month = "2025", Count = 4500 },
+                new RegistrationData { Month = "2026", Count = 5800 }
+            };
+        }
+        else
+        {
+            trendData = new List<RegistrationData>
+            {
+                new RegistrationData { Month = "JAN", Count = 120 },
+                new RegistrationData { Month = "FEB", Count = 230 },
+                new RegistrationData { Month = "MAR", Count = 310 },
+                new RegistrationData { Month = "APR", Count = 480 },
+                new RegistrationData { Month = "MAY", Count = 550 },
+                new RegistrationData { Month = "JUN", Count = 820 }
+            };
+        }
+
+        _isLoading = false;
+        StateHasChanged();
     }
 }
