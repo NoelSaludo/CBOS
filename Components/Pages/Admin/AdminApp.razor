@@ -24,8 +24,14 @@ else
                 @if (ActiveFilter == NotifFilter.Home)
                 {
                     <div class="welcome-section">
-                        <h1>Welcome back, Official Name.</h1>
-                        <p>Here's what's happening in your Barangay today.</p>
+                        <div class="welcome-text-group">
+                            <h1>Welcome back, Official Name.</h1>
+                            <p>Here's what's happening in your Barangay today.</p>
+                        </div>
+                        <div class="welcome-actions">
+                            <button class="quick-action-btn">Download Report</button>
+                            <button class="quick-action-btn">System Settings</button>
+                        </div>
                     </div>
 
                     <div class="analytics-grid">
@@ -39,9 +45,15 @@ else
                                         </svg>
                                     </span>
                                 </div>
+                                <div class="stat-trend up">
+                                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="23 6 13.5 15.5 8.5 10.5 1 18"></polyline><polyline points="17 6 23 6 23 12"></polyline></svg>
+                                    <span>+12%</span>
+                                </div>
                             </div>
                             <div class="stat-info">
-                                <p class="stat-number">1,024</p>
+                                <div class="stat-number-wrapper">
+                                    <p class="stat-number">1,024</p>
+                                </div>
                                 <h3>FULLY VERIFIED USERS</h3>
                             </div>
                         </div>
@@ -55,9 +67,15 @@ else
                                         </svg>
                                     </span>
                                 </div>
+                                <div class="stat-trend down">
+                                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="23 18 13.5 8.5 8.5 13.5 1 6"></polyline><polyline points="17 18 23 18 23 12"></polyline></svg>
+                                    <span>-5%</span>
+                                </div>
                             </div>
                             <div class="stat-info">
-                                <p class="stat-number">45</p>
+                                <div class="stat-number-wrapper">
+                                    <p class="stat-number">45</p>
+                                </div>
                                 <h3>PARTIALLY UNVERIFIED</h3>
                             </div>
                         </div>
@@ -72,9 +90,15 @@ else
                                         </svg>
                                     </span>
                                 </div>
+                                <div class="stat-trend up">
+                                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="23 6 13.5 15.5 8.5 10.5 1 18"></polyline><polyline points="17 6 23 6 23 12"></polyline></svg>
+                                    <span>+2 today</span>
+                                </div>
                             </div>
                             <div class="stat-info">
-                                <p class="stat-number">12</p>
+                                <div class="stat-number-wrapper">
+                                    <p class="stat-number">12</p>
+                                </div>
                                 <h3>INCIDENT REPORTS</h3>
                             </div>
                         </div>
@@ -90,9 +114,15 @@ else
                                         </svg>
                                     </span>
                                 </div>
+                                <div class="stat-trend up">
+                                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="23 6 13.5 15.5 8.5 10.5 1 18"></polyline><polyline points="17 6 23 6 23 12"></polyline></svg>
+                                    <span>+8 today</span>
+                                </div>
                             </div>
                             <div class="stat-info">
-                                <p class="stat-number">08</p>
+                                <div class="stat-number-wrapper">
+                                    <p class="stat-number">08</p>
+                                </div>
                                 <h3>APPOINTMENTS</h3>
                             </div>
                         </div>
@@ -202,7 +232,15 @@ else
                                                 {
                                                     <tr>
                                                         <td class="id-cell">@user.Id</td>
-                                                        <td class="bold-cell">@user.Name</td>
+                                                        <td class="bold-cell">
+                                                            <div class="user-avatar-group">
+                                                                <div class="avatar-circle">@user.Name[0]</div>
+                                                                <div class="name-details">
+                                                                    <span>@user.Name</span>
+                                                                    <span class="sub-text">Resident</span>
+                                                                </div>
+                                                            </div>
+                                                        </td>
                                                         <td class="light-cell">@user.DateRegistered</td>
                                                         <td><span class="data-chip @user.StatusClass">@user.Status</span></td>
                                                     </tr>
@@ -391,7 +429,7 @@ else
                                     {
                                         @foreach (var app in appointments)
                                         {
-                                            <div class="appointment-item">
+                                            <div class="appointment-item @app.StatusClass">
                                                 <div class="app-header-row">
                                                     <span class="app-id">@app.Id</span>
                                                     <span class="data-chip @app.StatusClass">@app.Status</span>
