@@ -1,9 +1,0 @@
-litellm_settings:
-  drop_params: true
-
-model_list:
-  - model_name: gemini-2.5-flash
-    litellm_params:
-      model: gemini/gemini-2.5-flash
-      api_key: AIzaSyYOUR-GEMINI-API
-      drop_params: true
