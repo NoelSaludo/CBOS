@@ -321,7 +321,15 @@ else
                                                 {
                                                     <tr>
                                                         <td class="id-cell">@report.Id</td>
-                                                        <td class="bold-cell">@report.Complainant</td>
+                                                        <td class="bold-cell">
+                                                            <div class="user-avatar-group">
+                                                                <div class="avatar-circle">@report.Complainant[0]</div>
+                                                                <div class="name-details">
+                                                                    <span>@report.Complainant</span>
+                                                                    <span class="sub-text">Complainant</span>
+                                                                </div>
+                                                            </div>
+                                                        </td>
                                                         <td class="light-cell">@report.Title</td>
                                                         <td><span class="data-chip @report.CategoryClass">@report.Category</span></td>
                                                         <td class="light-cell">@report.Date</td>
@@ -387,7 +395,15 @@ else
                                                 {
                                                     <tr>
                                                         <td class="id-cell">@post.Id</td>
-                                                        <td class="bold-cell">@post.Author</td>
+                                                        <td class="bold-cell">
+                                                            <div class="user-avatar-group">
+                                                                <div class="avatar-circle">@post.Author[0]</div>
+                                                                <div class="name-details">
+                                                                    <span>@post.Author</span>
+                                                                    <span class="sub-text">Resident</span>
+                                                                </div>
+                                                            </div>
+                                                        </td>
                                                         <td class="light-cell">@post.Topic</td>
                                                         <td class="light-cell">@post.Date</td>
                                                         <td><span class="data-chip @post.StatusClass">@post.Status</span></td>
@@ -449,7 +465,10 @@ else
                                                     <span class="data-chip @app.StatusClass">@app.Status</span>
                                                 </div>
                                                 <div class="app-body">
-                                                    <div class="app-name">@app.Name</div>
+                                                    <div class="app-name-group">
+                                                        <div class="avatar-circle">@app.Name[0]</div>
+                                                        <div class="app-name">@app.Name</div>
+                                                    </div>
                                                     <div class="app-meta">
                                                         <span class="app-category">@app.Category</span>
                                                         <span class="app-service">@app.Service</span>
