@@ -661,80 +661,102 @@
     }
 
     private async Task HandleSubmit()
+{
+    _errorMessage  = "";
+    _submitSuccess = false;
+
+    if (string.IsNullOrEmpty(_selectedType))
     {
-        _errorMessage  = "";
-        _submitSuccess = false;
+        _errorMessage = "Please select an appointment type.";
+        return;
+    }
+    if (string.IsNullOrEmpty(_selectedSubType))
+    {
+        _errorMessage = "Please select a specific appointment reason.";
+        return;
+    }
+    if (!SelectedDate.HasValue)
+    {
+        _errorMessage = "Please select a date for your appointment.";
+        return;
+    }
+    if (SelectedDate.Value < DateTime.Today)
+    {
+        _errorMessage = "Please select a future date.";
+        return;
+    }
 
-        if (string.IsNullOrEmpty(_selectedType))
+    var email = Supabase.Auth.CurrentSession?.User?.Email;
+    if (string.IsNullOrEmpty(email))
+    {
+        Navigation.NavigateTo("/login", replace: true);
+        return;
+    }
+
+    _isSubmitting = true;
+    StateHasChanged();
+
+    try
+    {
+        // ── Get public.users.id ─────────────────────────────────────────
+        var userResult = await Supabase
+            .From<UserProfile>()
+            .Select("id")
+            .Match(new Dictionary<string, string> { { "emailaddress", email.ToLower() } })
+            .Single();
+
+        if (userResult == null)
         {
-            _errorMessage = "Please select an appointment type.";
+            _errorMessage = "Your account was not found in the system. Please contact the barangay office.";
             return;
         }
-        if (string.IsNullOrEmpty(_selectedSubType))
-        {
-            _errorMessage = "Please select a specific appointment reason.";
-            return;
-        }
-        if (!SelectedDate.HasValue)
-        {
-            _errorMessage = "Please select a date for your appointment.";
-            return;
-        }
-        if (SelectedDate.Value < DateTime.Today)
-        {
-            _errorMessage = "Please select a future date.";
-            return;
-        }
 
-        var email = Supabase.Auth.CurrentSession?.User?.Email;
-        if (string.IsNullOrEmpty(email))
-        {
-            Navigation.NavigateTo("/login", replace: true);
-            return;
-        }
-
-        _isSubmitting = true;
-        StateHasChanged();
-
-        try
-        {
-            var userResult = await Supabase
-                .From<UserProfile>()
-                .Select("id")
-                .Match(new Dictionary<string, string> { { "emailaddress", email.ToLower() } })
-                .Single();
-
-            if (userResult == null)
-            {
-                _errorMessage = "Your account was not found in the system. Please contact the barangay office.";
-                return;
-            }
-
-            var appointment = new Appointment
+        // ── Insert appointment ──────────────────────────────────────────
+        var appointmentResponse = await Supabase
+            .From<Appointment>()
+            .Insert(new Appointment
             {
                 UserId          = userResult.Id,
                 AppointmentType = $"{_selectedType} – {_selectedSubType}",
                 ScheduledDate   = SelectedDate.Value,
                 Description     = string.IsNullOrWhiteSpace(_description) ? null : _description.Trim(),
                 Status          = "Pending"
-            };
+            });
 
-            await Supabase.From<Appointment>().Insert(appointment);
+        var insertedAppointment = appointmentResponse.Models.FirstOrDefault();
 
-            _submitSuccess    = true;
-            _selectedType    = "";
-            _selectedSubType = "";
-            _description     = "";
-            SelectedDate     = null;
-        }
-        catch (Exception ex)
+        if (insertedAppointment == null)
         {
-            _errorMessage = $"Failed to submit appointment: {ex.Message}";
+            _errorMessage = "Appointment was created but could not be confirmed. Please check your appointments.";
+            return;
         }
-        finally
-        {
-            _isSubmitting = false;
-            StateHasChanged();
-        }
+
+        // ── Insert ticket linked to the appointment ─────────────────────
+        await Supabase
+            .From<Ticket>()
+            .Insert(new Ticket
+            {
+                Type        = "appointment",   // ← ticket type
+                SourceId    = insertedAppointment.Id,  // ← appointment.id
+                SubmittedBy = userResult.Id,   // ← public.users.id
+                Status      = "Pending",       // ← mirrors appointment status
+                ApprovedBy  = null             // ← no admin yet
+            });
+
+        _submitSuccess    = true;
+        _selectedType    = "";
+        _selectedSubType = "";
+        _description     = "";
+        SelectedDate     = null;
     }
+    catch (Exception ex)
+    {
+        _errorMessage = $"Failed to submit appointment: {ex.Message}";
+    }
+    finally
+    {
+        _isSubmitting = false;
+        StateHasChanged();
+    }
+}
 }
