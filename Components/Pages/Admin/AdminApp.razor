@@ -684,6 +684,59 @@ else
     private List<CategoryData> postStatusData = new();
     private List<IncidentTrendData> incidentTrendData = new();
 
+    private string _fontFamily = "'Inter', system-ui, -apple-system, sans-serif";
+    private string _primaryColor = "#3b82f6";
+    private string _secondaryTextColor = "#64748b";
+    private string _gridColor = "#f1f5f9";
+
+    private ApexChartOptions<T> GetDefaultOptions<T>() where T : class
+    {
+        return new ApexChartOptions<T>
+        {
+            Chart = new Chart
+            {
+                Toolbar = new Toolbar { Show = false },
+                Animations = new Animations { Enabled = true, Easing = Easing.Easeinout, Speed = 800 },
+                FontFamily = _fontFamily
+            },
+            DataLabels = new DataLabels { Enabled = false },
+            Xaxis = new XAxis
+            {
+                Labels = new XAxisLabels { Style = new AxisLabelStyle { FontSize = "11px", FontWeight = "600", Colors = _secondaryTextColor } },
+                AxisBorder = new AxisBorder { Show = false },
+                AxisTicks = new AxisTicks { Show = false }
+            },
+            Yaxis = new List<YAxis>
+            {
+                new YAxis
+                {
+                    Labels = new YAxisLabels { Style = new AxisLabelStyle { FontSize = "11px", FontWeight = "600", Colors = _secondaryTextColor } },
+                }
+            },
+            Grid = new Grid
+            {
+                Show = true,
+                BorderColor = _gridColor,
+                StrokeDashArray = 4,
+                Xaxis = new GridXAxis { Lines = new Lines { Show = false } },
+                Yaxis = new GridYAxis { Lines = new Lines { Show = true } }
+            },
+            Tooltip = new Tooltip
+            {
+                Theme = Mode.Light,
+                X = new TooltipX { Show = true }
+            },
+            Legend = new Legend
+            {
+                Position = LegendPosition.Top,
+                HorizontalAlign = Align.Right,
+                FontSize = "12px",
+                FontWeight = "600",
+                Labels = new LegendLabels { Colors = _secondaryTextColor }
+            }
+        };
+    }
+
     private ApexChartOptions<RegistrationData> chartOptions = new();
     private ApexChartOptions<CategoryData> pieChartOptions = new();
     private ApexChartOptions<AppointmentTrendData> appLineChartOptions = new();
@@ -783,281 +836,85 @@ else
 
     protected override void OnInitialized()
     {
-        chartOptions = new ApexChartOptions<RegistrationData>
+        chartOptions = GetDefaultOptions<RegistrationData>();
+        chartOptions.Stroke = new Stroke { Curve = Curve.Smooth, Width = 3, Colors = new List<string> { _primaryColor } };
+        chartOptions.Fill = new Fill
         {
-            Chart = new Chart 
-            { 
-                Toolbar = new Toolbar { Show = false },
-                Animations = new Animations { Enabled = true, Easing = Easing.Easeinout, Speed = 800 }
-            },
-            DataLabels = new DataLabels { Enabled = false },
-            Stroke = new Stroke { Curve = Curve.Smooth, Width = 3, Colors = new List<string> { "#3b82f6" } },
-            Fill = new Fill 
-            { 
-                Type = new List<FillType> { FillType.Gradient },
-                Gradient = new FillGradient
-                {
-                    ShadeIntensity = 1,
-                    OpacityFrom = 0.45,
-                    OpacityTo = 0.05,
-                    Stops = new List<double> { 0, 100 }
-                }
-            },
-            Colors = new List<string> { "#3b82f6" },
-            Markers = new Markers { Size = 5, Colors = new List<string> { "#3b82f6" }, StrokeColors = new List<string> { "#ffffff" }, StrokeWidth = 2, Hover = new MarkersHover { Size = 7 } },
-            Xaxis = new XAxis 
-            { 
-                Labels = new XAxisLabels { Style = new AxisLabelStyle { FontSize = "11px", FontWeight = "600", Colors = "#64748b" } },
-                AxisBorder = new AxisBorder { Show = false },
-                AxisTicks = new AxisTicks { Show = false }
-            },
-            Yaxis = new List<YAxis> 
-            { 
-                new YAxis 
-                { 
-                    Labels = new YAxisLabels { Style = new AxisLabelStyle { FontSize = "11px", FontWeight = "600", Colors = "#64748b" } },
-                } 
-            },
-            Grid = new Grid 
-            { 
-                Show = true, 
-                BorderColor = "#f1f5f9", 
-                StrokeDashArray = 4,
-                Xaxis = new GridXAxis { Lines = new Lines { Show = false } },
-                Yaxis = new GridYAxis { Lines = new Lines { Show = true } }
-            },
-            Tooltip = new Tooltip
+            Type = new List<FillType> { FillType.Gradient },
+            Gradient = new FillGradient
             {
-                Theme = Mode.Light,
-                X = new TooltipX { Show = true },
-                Y = new TooltipY { Title = new TooltipYTitle { Formatter = @"function(seriesName) { return 'Registrations'; }" } }
+                ShadeIntensity = 1,
+                OpacityFrom = 0.45,
+                OpacityTo = 0.05,
+                Stops = new List<double> { 0, 100 }
             }
         };
+        chartOptions.Colors = new List<string> { _primaryColor };
+        chartOptions.Markers = new Markers { Size = 5, Colors = new List<string> { _primaryColor }, StrokeColors = new List<string> { "#ffffff" }, StrokeWidth = 2, Hover = new MarkersHover { Size = 7 } };
+        chartOptions.Tooltip.Y = new TooltipY { Title = new TooltipYTitle { Formatter = @"function(seriesName) { return 'Registrations'; }" } };
 
-        pieChartOptions = new ApexChartOptions<CategoryData>
+        pieChartOptions = GetDefaultOptions<CategoryData>();
+        pieChartOptions.Colors = new List<string> { "#3b82f6", "#10b981", "#f59e0b", "#ef4444", "#6366f1" };
+        pieChartOptions.Stroke = new Stroke { Show = true, Width = 2, Colors = new List<string> { "#ffffff" } };
+        pieChartOptions.Legend.Position = LegendPosition.Bottom;
+        pieChartOptions.Legend.HorizontalAlign = Align.Center;
+        pieChartOptions.PlotOptions = new PlotOptions
         {
-            Chart = new Chart
+            Pie = new PlotOptionsPie
             {
-                Toolbar = new Toolbar { Show = false },
-                Animations = new Animations { Enabled = true, Easing = Easing.Easeinout, Speed = 800 }
-            },
-            Colors = new List<string> { "#3b82f6", "#10b981", "#f59e0b", "#ef4444", "#6366f1" },
-            DataLabels = new DataLabels { Enabled = false },
-            Stroke = new Stroke { Show = true, Width = 2, Colors = new List<string> { "#ffffff" } },
-            Legend = new Legend 
-            { 
-                Position = LegendPosition.Bottom, 
-                HorizontalAlign = Align.Center,
-                FontSize = "12px",
-                FontWeight = "600",
-                Labels = new LegendLabels { Colors = "#64748b" }
-            },
-            PlotOptions = new PlotOptions
-            {
-                Pie = new PlotOptionsPie
+                Donut = new PlotOptionsDonut
                 {
-                    Donut = new PlotOptionsDonut
+                    Size = "75%",
+                    Labels = new DonutLabels
                     {
-                        Size = "75%",
-                        Labels = new DonutLabels
-                        {
-                            Show = true,
-                            Name = new DonutLabelName { FontSize = "14px", Color = "#64748b", FontWeight = "600" },
-                            Value = new DonutLabelValue { FontSize = "24px", Color = "#0d0a2d", FontWeight = "800" },
-                            Total = new DonutLabelTotal { Show = true, Label = "Total", Color = "#64748b", FontSize = "14px", FontWeight = "600" }
-                        }
+                        Show = true,
+                        Name = new DonutLabelName { FontSize = "14px", Color = _secondaryTextColor, FontWeight = "600" },
+                        Value = new DonutLabelValue { FontSize = "24px", Color = "#0d0a2d", FontWeight = "800" },
+                        Total = new DonutLabelTotal { Show = true, Label = "Total", Color = _secondaryTextColor, FontSize = "14px", FontWeight = "600" }
                     }
                 }
-            },
-            Tooltip = new Tooltip
-            {
-                Theme = Mode.Light,
-                Y = new TooltipY { Title = new TooltipYTitle { Formatter = @"function(seriesName) { return ''; }" } }
             }
         };
+        pieChartOptions.Tooltip.Y = new TooltipY { Title = new TooltipYTitle { Formatter = @"function(seriesName) { return ''; }" } };
 
-        appLineChartOptions = new ApexChartOptions<AppointmentTrendData>
-        {
-            Chart = new Chart 
-            { 
-                Toolbar = new Toolbar { Show = false },
-                Animations = new Animations { Enabled = true, Easing = Easing.Easeinout, Speed = 800 }
-            },
-            DataLabels = new DataLabels { Enabled = false },
-            Stroke = new Stroke { Curve = Curve.Smooth, Width = 3 },
-            Colors = new List<string> { "#3b82f6", "#10b981", "#f59e0b" },
-            Markers = new Markers { Size = 4, StrokeColors = new List<string> { "#ffffff" }, StrokeWidth = 2, Hover = new MarkersHover { Size = 6 } },
-            Xaxis = new XAxis 
-            { 
-                Labels = new XAxisLabels { Style = new AxisLabelStyle { FontSize = "11px", FontWeight = "600", Colors = "#64748b" } },
-                AxisBorder = new AxisBorder { Show = false },
-                AxisTicks = new AxisTicks { Show = false }
-            },
-            Yaxis = new List<YAxis> 
-            { 
-                new YAxis 
-                { 
-                    Labels = new YAxisLabels { Style = new AxisLabelStyle { FontSize = "11px", FontWeight = "600", Colors = "#64748b" } },
-                } 
-            },
-            Grid = new Grid 
-            { 
-                Show = true, 
-                BorderColor = "#f1f5f9", 
-                StrokeDashArray = 4,
-                Xaxis = new GridXAxis { Lines = new Lines { Show = false } },
-                Yaxis = new GridYAxis { Lines = new Lines { Show = true } }
-            },
-            Legend = new Legend 
-            { 
-                Position = LegendPosition.Top, 
-                HorizontalAlign = Align.Right,
-                FontSize = "12px",
-                FontWeight = "600",
-                Labels = new LegendLabels { Colors = "#64748b" }
-            },
-            Tooltip = new Tooltip
-            {
-                Theme = Mode.Light,
-                X = new TooltipX { Show = true }
-            }
-        };
+        appLineChartOptions = GetDefaultOptions<AppointmentTrendData>();
+        appLineChartOptions.Stroke = new Stroke { Curve = Curve.Smooth, Width = 3 };
+        appLineChartOptions.Colors = new List<string> { "#3b82f6", "#10b981", "#f59e0b" };
+        appLineChartOptions.Markers = new Markers { Size = 4, StrokeColors = new List<string> { "#ffffff" }, StrokeWidth = 2, Hover = new MarkersHover { Size = 6 } };
 
-        verificationChartOptions = new ApexChartOptions<UserVerificationTrendData>
-        {
-            Chart = new Chart 
-            { 
-                Toolbar = new Toolbar { Show = false },
-                Animations = new Animations { Enabled = true, Easing = Easing.Easeinout, Speed = 800 }
-            },
-            DataLabels = new DataLabels { Enabled = false },
-            Stroke = new Stroke { Curve = Curve.Smooth, Width = 3 },
-            Colors = new List<string> { "#10b981", "#f59e0b" },
-            Markers = new Markers { Size = 4, StrokeColors = new List<string> { "#ffffff" }, StrokeWidth = 2, Hover = new MarkersHover { Size = 6 } },
-            Xaxis = new XAxis 
-            { 
-                Labels = new XAxisLabels { Style = new AxisLabelStyle { FontSize = "11px", FontWeight = "600", Colors = "#64748b" } },
-                AxisBorder = new AxisBorder { Show = false },
-                AxisTicks = new AxisTicks { Show = false }
-            },
-            Yaxis = new List<YAxis> 
-            { 
-                new YAxis 
-                { 
-                    Labels = new YAxisLabels { Style = new AxisLabelStyle { FontSize = "11px", FontWeight = "600", Colors = "#64748b" } },
-                } 
-            },
-            Grid = new Grid 
-            { 
-                Show = true, 
-                BorderColor = "#f1f5f9", 
-                StrokeDashArray = 4,
-                Xaxis = new GridXAxis { Lines = new Lines { Show = false } },
-                Yaxis = new GridYAxis { Lines = new Lines { Show = true } }
-            },
-            Legend = new Legend 
-            { 
-                Position = LegendPosition.Top, 
-                HorizontalAlign = Align.Right,
-                FontSize = "12px",
-                FontWeight = "600",
-                Labels = new LegendLabels { Colors = "#64748b" }
-            },
-            Tooltip = new Tooltip
-            {
-                Theme = Mode.Light,
-                X = new TooltipX { Show = true }
-            }
-        };
+        verificationChartOptions = GetDefaultOptions<UserVerificationTrendData>();
+        verificationChartOptions.Stroke = new Stroke { Curve = Curve.Smooth, Width = 3 };
+        verificationChartOptions.Colors = new List<string> { "#10b981", "#f59e0b" };
+        verificationChartOptions.Markers = new Markers { Size = 4, StrokeColors = new List<string> { "#ffffff" }, StrokeWidth = 2, Hover = new MarkersHover { Size = 6 } };
 
-        postStatusPieOptions = new ApexChartOptions<CategoryData>
+        postStatusPieOptions = GetDefaultOptions<CategoryData>();
+        postStatusPieOptions.Colors = new List<string> { "#10b981", "#f59e0b", "#ef4444" };
+        postStatusPieOptions.Stroke = new Stroke { Show = true, Width = 2, Colors = new List<string> { "#ffffff" } };
+        postStatusPieOptions.Legend.Position = LegendPosition.Bottom;
+        postStatusPieOptions.Legend.HorizontalAlign = Align.Center;
+        postStatusPieOptions.PlotOptions = new PlotOptions
         {
-            Chart = new Chart
+            Pie = new PlotOptionsPie
             {
-                Toolbar = new Toolbar { Show = false },
-                Animations = new Animations { Enabled = true, Easing = Easing.Easeinout, Speed = 800 }
-            },
-            Colors = new List<string> { "#10b981", "#f59e0b", "#ef4444" },
-            DataLabels = new DataLabels { Enabled = false },
-            Stroke = new Stroke { Show = true, Width = 2, Colors = new List<string> { "#ffffff" } },
-            Legend = new Legend 
-            { 
-                Position = LegendPosition.Bottom, 
-                HorizontalAlign = Align.Center,
-                FontSize = "12px",
-                FontWeight = "600",
-                Labels = new LegendLabels { Colors = "#64748b" }
-            },
-            PlotOptions = new PlotOptions
-            {
-                Pie = new PlotOptionsPie
+                Donut = new PlotOptionsDonut
                 {
-                    Donut = new PlotOptionsDonut
+                    Size = "75%",
+                    Labels = new DonutLabels
                     {
-                        Size = "75%",
-                        Labels = new DonutLabels
-                        {
-                            Show = true,
-                            Name = new DonutLabelName { FontSize = "14px", Color = "#64748b", FontWeight = "600" },
-                            Value = new DonutLabelValue { FontSize = "24px", Color = "#0d0a2d", FontWeight = "800" },
-                            Total = new DonutLabelTotal { Show = true, Label = "Total", Color = "#64748b", FontSize = "14px", FontWeight = "600" }
-                        }
+                        Show = true,
+                        Name = new DonutLabelName { FontSize = "14px", Color = _secondaryTextColor, FontWeight = "600" },
+                        Value = new DonutLabelValue { FontSize = "24px", Color = "#0d0a2d", FontWeight = "800" },
+                        Total = new DonutLabelTotal { Show = true, Label = "Total", Color = _secondaryTextColor, FontSize = "14px", FontWeight = "600" }
                     }
                 }
-            },
-            Tooltip = new Tooltip
-            {
-                Theme = Mode.Light,
-                Y = new TooltipY { Title = new TooltipYTitle { Formatter = @"function(seriesName) { return ''; }" } }
             }
         };
+        postStatusPieOptions.Tooltip.Y = new TooltipY { Title = new TooltipYTitle { Formatter = @"function(seriesName) { return ''; }" } };
 
-        incidentLineChartOptions = new ApexChartOptions<IncidentTrendData>
-        {
-            Chart = new Chart 
-            { 
-                Toolbar = new Toolbar { Show = false },
-                Animations = new Animations { Enabled = true, Easing = Easing.Easeinout, Speed = 800 }
-            },
-            DataLabels = new DataLabels { Enabled = false },
-            Stroke = new Stroke { Curve = Curve.Smooth, Width = 3 },
-            Colors = new List<string> { "#10b981", "#f59e0b", "#ef4444" },
-            Markers = new Markers { Size = 4, StrokeColors = new List<string> { "#ffffff" }, StrokeWidth = 2, Hover = new MarkersHover { Size = 6 } },
-            Xaxis = new XAxis 
-            { 
-                Labels = new XAxisLabels { Style = new AxisLabelStyle { FontSize = "11px", FontWeight = "600", Colors = "#64748b" } },
-                AxisBorder = new AxisBorder { Show = false },
-                AxisTicks = new AxisTicks { Show = false }
-            },
-            Yaxis = new List<YAxis> 
-            { 
-                new YAxis 
-                { 
-                    Labels = new YAxisLabels { Style = new AxisLabelStyle { FontSize = "11px", FontWeight = "600", Colors = "#64748b" } },
-                } 
-            },
-            Grid = new Grid 
-            { 
-                Show = true, 
-                BorderColor = "#f1f5f9", 
-                StrokeDashArray = 4,
-                Xaxis = new GridXAxis { Lines = new Lines { Show = false } },
-                Yaxis = new GridYAxis { Lines = new Lines { Show = true } }
-            },
-            Legend = new Legend 
-            { 
-                Position = LegendPosition.Top, 
-                HorizontalAlign = Align.Right,
-                FontSize = "12px",
-                FontWeight = "600",
-                Labels = new LegendLabels { Colors = "#64748b" }
-            },
-            Tooltip = new Tooltip
-            {
-                Theme = Mode.Light,
-                X = new TooltipX { Show = true }
-            }
-        };
+        incidentLineChartOptions = GetDefaultOptions<IncidentTrendData>();
+        incidentLineChartOptions.Stroke = new Stroke { Curve = Curve.Smooth, Width = 3 };
+        incidentLineChartOptions.Colors = new List<string> { "#10b981", "#f59e0b", "#ef4444" };
+        incidentLineChartOptions.Markers = new Markers { Size = 4, StrokeColors = new List<string> { "#ffffff" }, StrokeWidth = 2, Hover = new MarkersHover { Size = 6 } };
     }
 
     private async Task LoadDashboardData()
