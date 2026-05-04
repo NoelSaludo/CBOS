@@ -95,11 +95,6 @@ public class TicketSupabase : ISupabase
             .Where(t => t.Id == ticket.TicketId)
             .Set(t => t.Status, status)
             .Update();
-
-        await supabase.From<Appointment>()
-            .Where(a => a.Id == ticket.AppointmentId)
-            .Set(a => a.Status, status)
-            .Update();
     }
 
     
