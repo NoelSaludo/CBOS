@@ -27,7 +27,6 @@ else
                         <div class="welcome-orb orb-1"></div>
                         <div class="welcome-orb orb-2"></div>
                         <div class="welcome-text-group">
-                            <p class="welcome-date">@DateTime.Now.ToString("dddd, MMMM dd, yyyy")</p>
                             <h1>Welcome back, Official Name.</h1>
                             <p>Here's what's happening in your Barangay today.</p>
                         </div>
@@ -780,6 +779,7 @@ else
         NotifFilter.Verification => "Verification Requests",
         _                        => string.Empty
     };
+
 
     protected override void OnInitialized()
     {
