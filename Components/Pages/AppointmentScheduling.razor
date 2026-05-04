@@ -720,7 +720,6 @@
                 AppointmentType = $"{_selectedType} – {_selectedSubType}",
                 ScheduledDate   = SelectedDate.Value,
                 Description     = string.IsNullOrWhiteSpace(_description) ? null : _description.Trim(),
-                Status          = "Pending"
             });
 
         var insertedAppointment = appointmentResponse.Models.FirstOrDefault();

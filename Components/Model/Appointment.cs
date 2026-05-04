@@ -23,7 +23,5 @@ public class Appointment : BaseModel
 
     [Column("description")]
     public string? Description { get; set; }
-
-    [Column("status")]
-    public string Status { get; set; } = "Pending";
+    
 }
