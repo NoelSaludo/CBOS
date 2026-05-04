@@ -32,4 +32,8 @@ public class UserProfile : BaseModel
 
     [Column("physicaladdress")]
     public string? PhysicalAddress { get; set; }
+    
+    [Column("barangay_id")]
+    public long? BarangayId { get; set; }
+    
 }
