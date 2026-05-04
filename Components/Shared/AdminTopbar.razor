@@ -1,4 +1,5 @@
 @rendermode InteractiveServer
+@implements IDisposable
 
 <header class="topbar">
     <div class="topbar-left">
@@ -14,6 +15,7 @@
         </div>
     </div>
     <div class="topbar-actions">
+        <div class="topbar-datetime">@TopbarDateTimeText</div>
         <div class="notification-bell">
             <span class="bell-icon">
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
@@ -35,3 +37,33 @@
         </div>
     </div>
 </header>
+
+@code {
+    private DateTime _currentDateTime = DateTime.Now;
+    private System.Timers.Timer? _clockTimer;
+
+    private string TopbarDateTimeText => _currentDateTime.ToString("dddd, MMMM dd, yyyy | hh:mm:ss tt");
+
+    protected override void OnInitialized()
+    {
+        _clockTimer = new System.Timers.Timer(1000);
+        _clockTimer.AutoReset = true;
+        _clockTimer.Elapsed += OnClockTick;
+        _clockTimer.Start();
+    }
+
+    private void OnClockTick(object? sender, System.Timers.ElapsedEventArgs e)
+    {
+        _currentDateTime = DateTime.Now;
+        _ = InvokeAsync(StateHasChanged);
+    }
+
+    public void Dispose()
+    {
+        if (_clockTimer is null) return;
+
+        _clockTimer.Elapsed -= OnClockTick;
+        _clockTimer.Stop();
+        _clockTimer.Dispose();
+    }
+}
