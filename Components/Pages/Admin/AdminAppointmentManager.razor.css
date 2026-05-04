@@ -1,0 +1,213 @@
+.appointments-board {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 1.25rem;
+    align-items: start;
+}
+
+@media (max-width: 900px) {
+    .appointments-board {
+        grid-template-columns: 1fr;
+    }
+}
+
+.status-column {
+    min-height: 240px;
+}
+
+/* Card base (mirrors admin dashboard card style) */
+.architectural-card {
+    background: var(--surface-card);
+    border-radius: var(--radius-xl);
+    border: 1px solid var(--outline-light);
+    box-shadow: var(--shadow-sm);
+    padding: 1.5rem;
+    transition: box-shadow var(--transition-base);
+}
+
+.architectural-card:hover {
+    box-shadow: var(--shadow-md);
+}
+
+.card-header-split {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 1.25rem;
+}
+
+.card-title {
+    font-size: 1rem;
+    font-weight: 700;
+    color: var(--primary);
+    margin: 0;
+    letter-spacing: -0.01em;
+}
+
+/* Status chips */
+.data-chip {
+    display: inline-flex;
+    align-items: center;
+    font-size: 0.6rem;
+    font-weight: 800;
+    padding: 0.25rem 0.6rem;
+    border-radius: var(--radius-full);
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+    white-space: nowrap;
+}
+
+.data-chip.pending  { background: #fff7ed; color: #c2410c; }
+.data-chip.approved { background: #f0fdf4; color: #15803d; }
+.data-chip.rejected { background: #fef2f2; color: #b91c1c; }
+
+.appointments-list {
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+}
+
+.appointment-item {
+    background: var(--surface);
+    border-radius: var(--radius-lg);
+    padding: 1rem 1.1rem;
+    border: 1px solid var(--outline-light);
+    display: flex;
+    flex-direction: column;
+    gap: 0.65rem;
+    transition: transform var(--transition-base), box-shadow var(--transition-base), background var(--transition-base);
+    cursor: default;
+}
+
+.appointment-item:hover {
+    transform: translateY(-2px);
+    box-shadow: var(--shadow-md);
+    border-color: transparent;
+    background: var(--surface-card);
+}
+
+.app-header-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 0.75rem;
+}
+
+.app-id {
+    color: var(--accent);
+    font-weight: 800;
+    font-size: 0.72rem;
+    font-family: 'SFMono-Regular', 'Consolas', 'Liberation Mono', monospace;
+}
+
+.app-meta {
+    display: flex;
+    flex-direction: column;
+    gap: 0.2rem;
+}
+
+.app-category {
+    font-size: 0.6rem;
+    font-weight: 800;
+    color: var(--secondary);
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+}
+
+.app-service {
+    font-size: 0.82rem;
+    color: var(--primary);
+    font-weight: 700;
+}
+
+.ticket-submeta {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    flex-wrap: wrap;
+    color: var(--secondary);
+    font-size: 0.75rem;
+}
+
+.dot {
+    opacity: 0.75;
+}
+
+.action-row {
+    display: flex;
+    gap: 0.6rem;
+    margin-top: 0.25rem;
+}
+
+.action-btn {
+    border: 1px solid var(--outline-light);
+    background: var(--surface-card);
+    color: var(--primary);
+    font-size: 0.75rem;
+    font-weight: 800;
+    padding: 0.5rem 0.85rem;
+    border-radius: var(--radius-full);
+    cursor: pointer;
+    transition: transform var(--transition-fast), box-shadow var(--transition-fast), background var(--transition-fast);
+}
+
+.action-btn:hover {
+    transform: translateY(-1px);
+    box-shadow: var(--shadow-sm);
+}
+
+.action-btn:disabled {
+    opacity: 0.55;
+    cursor: not-allowed;
+    transform: none;
+    box-shadow: none;
+}
+
+.action-btn.accept {
+    border-color: rgba(21, 128, 61, 0.25);
+    background: #f0fdf4;
+    color: #15803d;
+}
+
+.action-btn.decline {
+    border-color: rgba(185, 28, 28, 0.25);
+    background: #fef2f2;
+    color: #b91c1c;
+}
+
+.action-btn.secondary {
+    border-color: var(--outline-light);
+    background: var(--surface);
+    color: var(--secondary);
+}
+
+.empty-state {
+    color: var(--secondary);
+    font-size: 0.82rem;
+    font-weight: 700;
+    text-align: center;
+    padding: 2.25rem 0;
+}
+
+.placeholder-text {
+    font-size: 0.95rem;
+    font-weight: 700;
+    color: var(--secondary);
+    text-align: center;
+    padding: 2.5rem 0;
+}
+
+.card-footer-center {
+    display: flex;
+    justify-content: center;
+    margin-top: 1rem;
+}
+
+.error-banner {
+    border-radius: var(--radius-lg);
+    background: #fef2f2;
+    border: 1px solid #f5a0a0;
+    color: #b91c1c;
+    font-weight: 700;
+    padding: 0.85rem 1rem;
+}
