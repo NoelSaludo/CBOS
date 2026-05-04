@@ -243,6 +243,10 @@
     transform: translateX(4px);
 }
 
+::deep .nav-item:hover .nav-icon svg {
+    animation: var(--icon-rotate);
+}
+
 ::deep .nav-item.active {
     background: rgba(255, 255, 255, 0.1);
     color: #ffffff !important;

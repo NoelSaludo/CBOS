@@ -6,9 +6,9 @@
     --accent: #153871;
     --accent-subtle: #eff6ff;
     --secondary: #64748b;
-    --surface: #f8fafc;
+    --surface: #f1f5f9;
     --surface-card: #ffffff;
-    --surface-hover: #f1f5f9;
+    --surface-hover: #e2e8f0;
     --on-surface: #0d0a2d;
     --outline: #e2e8f0;
     --outline-light: #f1f5f9;
@@ -31,6 +31,11 @@
     --transition-fast: 0.15s var(--ease-out);
     --transition-base: 0.25s var(--ease-out);
     --transition-slow: 0.35s var(--ease-out);
+
+    /* Icon Animations */
+    --icon-bounce: icon-bounce 0.5s var(--ease-out);
+    --icon-rotate: icon-rotate 0.4s var(--ease-out);
+    --icon-pulse: icon-pulse 2s infinite ease-in-out;
 
     /* Layout */
     display: flex;
@@ -88,4 +93,21 @@
     color: var(--secondary);
     margin: 0;
     line-height: 1.5;
+}
+
+/* ─── Shared Animations ─── */
+@keyframes icon-bounce {
+    0%, 100% { transform: translateY(0); }
+    50% { transform: translateY(-4px); }
+}
+
+@keyframes icon-rotate {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(15deg); }
+}
+
+@keyframes icon-pulse {
+    0% { transform: scale(1); opacity: 1; }
+    50% { transform: scale(1.1); opacity: 0.8; }
+    100% { transform: scale(1); opacity: 1; }
 }
