@@ -40,15 +40,14 @@ else
             <div class="filter-groups">
                 <select @bind="selectedCategory" class="filter-select">
                     <option value="All">All Categories</option>
-                    <option value="Animal Control">Animal Control</option>
-                    <option value="Noise Disturbance">Noise Disturbance</option>
-                    <option value="Public Works">Public Works</option>
-                    <option value="Security">Security</option>
+                    <option value="SUGGESTION">Suggestion</option>
+                    <option value="COMPLAINT">Complaint</option>
+                    <option value="EMERGENCY">Emergency</option>
+                    <option value="OTHER">Other</option>
                 </select>
                 <select @bind="selectedStatus" class="filter-select">
                     <option value="All">All Status</option>
                     <option value="PENDING">Pending</option>
-                    <option value="IN REVIEW">In Review</option>
                     <option value="RESOLVED">Resolved</option>
                     <option value="REJECTED">Rejected</option>
                 </select>
@@ -66,7 +65,7 @@ else
                             <th>CATEGORY</th>
                             <th>DATE</th>
                             <th>STATUS</th>
-                            <th class="actions-header">ACTIONS</th>
+                            <th class="actions-header" style="text-align: center;">ACTIONS</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -81,7 +80,7 @@ else
                                     <td><div class="skeleton skeleton-text" style="width: 60px;"></div></td>
                                     <td><div class="skeleton skeleton-text" style="width: 80px;"></div></td>
                                     <td><div class="skeleton skeleton-text" style="width: 70px;"></div></td>
-                                    <td><div class="skeleton skeleton-text" style="width: 50px;"></div></td>
+                                    <td><div class="skeleton skeleton-text" style="width: 100px;"></div></td>
                                 </tr>
                             }
                         }
@@ -123,12 +122,9 @@ else
                                     <td class="light-cell">@report.Date</td>
                                     <td><span class="data-chip @report.StatusClass">@report.Status</span></td>
                                     <td>
-                                        <div class="row-actions">
-                                            <button class="icon-action" title="View Details">
-                                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path><circle cx="12" cy="12" r="3"></circle></svg>
-                                            </button>
-                                            <button class="icon-action" title="Edit Status">
-                                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9"></path><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"></path></svg>
+                                        <div class="row-actions" style="justify-content: center;">
+                                            <button class="update-status-btn" @onclick="() => OpenUpdateStatusModal(report)">
+                                                Update Status
                                             </button>
                                         </div>
                                     </td>
@@ -154,6 +150,49 @@ else
     </div>
 }
 
+@if (_showUpdateModal && _selectedReport != null)
+{
+    <div class="modal-overlay">
+        <div class="modal-content architectural-card">
+            <div class="modal-header">
+                <h3>Update Incident Status</h3>
+                <button class="close-btn" @onclick="CloseModal">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+                </button>
+            </div>
+            <div class="modal-body">
+                <div class="incident-info">
+                    <p><strong>Incident ID:</strong> @_selectedReport.Id</p>
+                    <p><strong>Complainant:</strong> @_selectedReport.Complainant</p>
+                    <p><strong>Current Status:</strong> <span class="data-chip @_selectedReport.StatusClass">@_selectedReport.Status</span></p>
+                </div>
+                
+                <div class="status-selection">
+                    <label>Select New Status:</label>
+                    <div class="status-options">
+                        <label class="status-option">
+                            <input type="radio" name="status" value="PENDING" checked="@(_newStatus == "PENDING")" @onclick='() => _newStatus = "PENDING"' />
+                            <span class="status-label yellow">PENDING</span>
+                        </label>
+                        <label class="status-option">
+                            <input type="radio" name="status" value="RESOLVED" checked="@(_newStatus == "RESOLVED")" @onclick='() => _newStatus = "RESOLVED"' />
+                            <span class="status-label green">RESOLVED</span>
+                        </label>
+                        <label class="status-option">
+                            <input type="radio" name="status" value="REJECTED" checked="@(_newStatus == "REJECTED")" @onclick='() => _newStatus = "REJECTED"' />
+                            <span class="status-label red">REJECTED</span>
+                        </label>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="action-btn secondary" @onclick="CloseModal">Cancel</button>
+                <button class="action-btn primary" @onclick="ConfirmStatusUpdate">Update Status</button>
+            </div>
+        </div>
+    </div>
+}
+
 @code {
     private bool _isLoading = true;
     private bool _isAuthorized = false;
@@ -161,6 +200,11 @@ else
     private string selectedCategory = "All";
     private string selectedStatus = "All";
     private List<IncidentReport> incidentReports = new();
+
+    // Modal State
+    private bool _showUpdateModal = false;
+    private IncidentReport? _selectedReport;
+    private string _newStatus = "";
 
     private List<IncidentReport> FilteredReports => incidentReports
         .Where(r => (selectedCategory == "All" || r.Category == selectedCategory) &&
@@ -219,17 +263,47 @@ else
 
         incidentReports = new List<IncidentReport>
         {
-            new IncidentReport { Id = "#INC-4021", Complainant = "Maria Santos", Title = "Stray Animal Complaint", Category = "Animal Control", Date = "Oct 24, 2023", Status = "PENDING", CategoryClass = "yellow", StatusClass = "pending" },
-            new IncidentReport { Id = "#INC-4020", Complainant = "Juan Dela Cruz", Title = "Noise Disturbance", Category = "Noise Disturbance", Date = "Oct 23, 2023", Status = "RESOLVED", CategoryClass = "blue", StatusClass = "resolved" },
-            new IncidentReport { Id = "#INC-4019", Complainant = "Elena Rodriguez", Title = "Clogged Drainage", Category = "Public Works", Date = "Oct 22, 2023", Status = "IN REVIEW", CategoryClass = "green", StatusClass = "review" },
-            new IncidentReport { Id = "#INC-4018", Complainant = "Mark Jayson Sy", Title = "More Streetlights", Category = "Public Works", Date = "Oct 22, 2023", Status = "PENDING", CategoryClass = "green", StatusClass = "pending" },
-            new IncidentReport { Id = "#INC-4017", Complainant = "Liza Soberano", Title = "Illegal Parking", Category = "Security", Date = "Oct 21, 2023", Status = "REJECTED", CategoryClass = "red", StatusClass = "rejected" },
-            new IncidentReport { Id = "#INC-4016", Complainant = "Ricardo Dalisay", Title = "Suspicious Activity", Category = "Security", Date = "Oct 20, 2023", Status = "RESOLVED", CategoryClass = "red", StatusClass = "resolved" },
-            new IncidentReport { Id = "#INC-4015", Complainant = "Berna Mea", Title = "Broken Water Pipe", Category = "Public Works", Date = "Oct 19, 2023", Status = "RESOLVED", CategoryClass = "green", StatusClass = "resolved" },
-            new IncidentReport { Id = "#INC-4014", Complainant = "Jose Mari Chan", Title = "Early Christmas Noise", Category = "Noise Disturbance", Date = "Sep 01, 2023", Status = "PENDING", CategoryClass = "blue", StatusClass = "pending" }
+            new IncidentReport { Id = "#INC-4021", Complainant = "Maria Santos", Title = "Stray Animal Complaint", Category = "COMPLAINT", Date = "Oct 24, 2023", Status = "PENDING" },
+            new IncidentReport { Id = "#INC-4020", Complainant = "Juan Dela Cruz", Title = "Noise Disturbance", Category = "COMPLAINT", Date = "Oct 23, 2023", Status = "RESOLVED" },
+            new IncidentReport { Id = "#INC-4019", Complainant = "Elena Rodriguez", Title = "Clogged Drainage", Category = "OTHER", Date = "Oct 22, 2023", Status = "PENDING" },
+            new IncidentReport { Id = "#INC-4018", Complainant = "Mark Jayson Sy", Title = "New Park Benches", Category = "SUGGESTION", Date = "Oct 22, 2023", Status = "PENDING" },
+            new IncidentReport { Id = "#INC-4017", Complainant = "Liza Soberano", Title = "Illegal Parking", Category = "COMPLAINT", Date = "Oct 21, 2023", Status = "REJECTED" },
+            new IncidentReport { Id = "#INC-4016", Complainant = "Ricardo Dalisay", Title = "Gas Leak", Category = "EMERGENCY", Date = "Oct 20, 2023", Status = "RESOLVED" },
+            new IncidentReport { Id = "#INC-4015", Complainant = "Berna Mea", Title = "Broken Water Pipe", Category = "OTHER", Date = "Oct 19, 2023", Status = "RESOLVED" },
+            new IncidentReport { Id = "#INC-4014", Complainant = "Jose Mari Chan", Title = "Holiday Decor Suggestion", Category = "SUGGESTION", Date = "Sep 01, 2023", Status = "PENDING" }
         };
 
         _isLoading = false;
+    }
+
+    private void OpenUpdateStatusModal(IncidentReport report)
+    {
+        _selectedReport = report;
+        _newStatus = report.Status;
+        _showUpdateModal = true;
+    }
+
+    private void CloseModal()
+    {
+        _showUpdateModal = false;
+        _selectedReport = null;
+    }
+
+    private async Task ConfirmStatusUpdate()
+    {
+        if (_selectedReport != null)
+        {
+            // In a real app, you would call your service here
+            // await AdminSupabase.UpdateIncidentStatus(_selectedReport.Id, _newStatus);
+            
+            _selectedReport.Status = _newStatus;
+            
+            // Mocking a short delay for UX
+            await Task.Delay(300);
+            
+            CloseModal();
+            StateHasChanged();
+        }
     }
 
     private void ResetFilters()
@@ -247,7 +321,22 @@ else
         public string Category { get; set; } = string.Empty;
         public string Date { get; set; } = string.Empty;
         public string Status { get; set; } = string.Empty;
-        public string CategoryClass { get; set; } = string.Empty;
-        public string StatusClass { get; set; } = string.Empty;
+
+        public string CategoryClass => Category.ToUpper() switch
+        {
+            "SUGGESTION" => "green",
+            "COMPLAINT" => "yellow",
+            "EMERGENCY" => "red",
+            "OTHER" => "gray",
+            _ => "gray"
+        };
+
+        public string StatusClass => Status.ToUpper() switch
+        {
+            "PENDING" => "yellow",
+            "RESOLVED" => "green",
+            "REJECTED" => "red",
+            _ => "gray"
+        };
     }
 }

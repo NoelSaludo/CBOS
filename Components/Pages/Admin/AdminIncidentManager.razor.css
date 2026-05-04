@@ -217,12 +217,10 @@
     white-space: nowrap;
 }
 
-.data-chip.pending { background: #fffbeb; color: #b45309; border: 1px solid #fde68a; }
-.data-chip.yellow { background: #fffbeb; color: #92400e; border: 1px solid #fde68a; }
-.data-chip.review { background: #eff6ff; color: #1d4ed8; border: 1px solid #bfdbfe; }
-.data-chip.blue { background: #eff6ff; color: #1d4ed8; border: 1px solid #bfdbfe; }
-.data-chip.resolved, .data-chip.green { background: #ecfdf5; color: #047857; border: 1px solid #a7f3d0; }
-.data-chip.rejected, .data-chip.red { background: #fef2f2; color: #b91c1c; border: 1px solid #fecaca; }
+.data-chip.yellow { background: #fffbeb; color: #b45309; border: 1px solid #fde68a; }
+.data-chip.green { background: #ecfdf5; color: #047857; border: 1px solid #a7f3d0; }
+.data-chip.red { background: #fef2f2; color: #b91c1c; border: 1px solid #fecaca; }
+.data-chip.gray { background: #f8fafc; color: #64748b; border: 1px solid #e2e8f0; }
 
 /* ─── User Avatars ─── */
 .user-avatar-group {
@@ -292,6 +290,159 @@
     color: var(--accent);
     border-color: var(--accent);
     transform: translateY(-1px);
+}
+
+.update-status-btn {
+    padding: 0.4rem 0.8rem;
+    background-color: var(--primary);
+    color: white;
+    border: none;
+    border-radius: var(--radius-md);
+    font-size: 0.75rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s var(--ease-out);
+    white-space: nowrap;
+}
+
+.update-status-btn:hover {
+    background-color: var(--primary-hover);
+    transform: translateY(-1px);
+    box-shadow: var(--shadow-sm);
+}
+
+/* ─── Modal ─── */
+.modal-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(15, 23, 42, 0.6);
+    backdrop-filter: blur(4px);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 1000;
+    padding: 1.5rem;
+}
+
+.modal-content {
+    width: 100%;
+    max-width: 500px;
+    background: white;
+    animation: modal-slide-up 0.3s var(--ease-out);
+}
+
+@keyframes modal-slide-up {
+    from { opacity: 0; transform: translateY(20px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+.modal-header {
+    padding: 1.25rem 1.5rem;
+    border-bottom: 1px solid var(--outline);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.modal-header h3 {
+    margin: 0;
+    font-size: 1.15rem;
+    font-weight: 700;
+    color: var(--primary);
+}
+
+.close-btn {
+    background: transparent;
+    border: none;
+    color: var(--secondary);
+    cursor: pointer;
+    padding: 0.25rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 4px;
+    transition: all 0.2s;
+}
+
+.close-btn:hover {
+    background: var(--surface-hover);
+    color: var(--on-surface);
+}
+
+.close-btn svg {
+    width: 20px;
+    height: 20px;
+}
+
+.modal-body {
+    padding: 1.5rem;
+}
+
+.incident-info {
+    background: var(--surface);
+    padding: 1rem;
+    border-radius: var(--radius-md);
+    margin-bottom: 1.5rem;
+    border: 1px solid var(--outline);
+}
+
+.incident-info p {
+    margin: 0.5rem 0;
+    font-size: 0.85rem;
+}
+
+.status-selection label {
+    display: block;
+    font-weight: 600;
+    font-size: 0.9rem;
+    margin-bottom: 0.75rem;
+    color: var(--primary);
+}
+
+.status-options {
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+}
+
+.status-option {
+    display: flex !important;
+    flex-direction: row !important;
+    align-items: center !important;
+    gap: 0.75rem;
+    cursor: pointer;
+    margin-bottom: 0 !important;
+}
+
+.status-option input[type="radio"] {
+    width: 1.15rem;
+    height: 1.15rem;
+    cursor: pointer;
+    accent-color: var(--primary);
+}
+
+.status-label {
+    padding: 0.4rem 0.75rem;
+    border-radius: var(--radius-full);
+    font-size: 0.75rem;
+    font-weight: 700;
+    text-transform: uppercase;
+}
+
+.status-label.yellow { background: #fffbeb; color: #b45309; border: 1px solid #fde68a; }
+.status-label.green { background: #ecfdf5; color: #047857; border: 1px solid #a7f3d0; }
+.status-label.red { background: #fef2f2; color: #b91c1c; border: 1px solid #fecaca; }
+
+.modal-footer {
+    padding: 1.25rem 1.5rem;
+    border-top: 1px solid var(--outline);
+    display: flex;
+    justify-content: flex-end;
+    gap: 0.75rem;
+    background: #f8fafc;
 }
 
 /* ─── Table Footer & Pagination ─── */
