@@ -1,7 +1,7 @@
 using Supabase.Postgrest.Attributes;
 using Supabase.Postgrest.Models;
 
-namespace CBOS.Components.Pages.Admin;
+namespace CBOS.Components.Shared;
 
 public enum AdminSupabaseCode
 {
@@ -24,12 +24,10 @@ public struct AdminLoginResult
     }
 }
 // handles all supabase related operations for admin login and authentication
-public class AdminSupabase {
+public class AdminSupabase : ISupabase {
     
     private readonly ILogger<AdminSupabase> logger;
-    private readonly Supabase.Client supabase;
-    public AdminSupabase(Supabase.Client supabase,ILogger<AdminSupabase> logger) {
-        this.supabase = supabase;
+    public AdminSupabase(Supabase.Client supabase,ILogger<AdminSupabase> logger) : base(supabase) {
         this.logger = logger;
      }
 

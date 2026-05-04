@@ -1,0 +1,69 @@
+@rendermode InteractiveServer
+@implements IDisposable
+
+<header class="topbar">
+    <div class="topbar-left">
+        <span class="topbar-brand">CBOS Admin Workspace</span>
+        <div class="search-container">
+            <span class="search-icon">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <circle cx="11" cy="11" r="8"></circle>
+                    <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+                </svg>
+            </span>
+            <input type="text" class="search-input" placeholder="Search records, residents, or reports..." />
+        </div>
+    </div>
+    <div class="topbar-actions">
+        <div class="topbar-datetime">@TopbarDateTimeText</div>
+        <div class="notification-bell">
+            <span class="bell-icon">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"></path>
+                    <path d="M13.73 21a2 2 0 0 1-3.46 0"></path>
+                </svg>
+            </span>
+            <span class="bell-dot"></span>
+        </div>
+        <div class="admin-profile">
+            <div class="profile-text">
+                <span class="profile-name">Official Name</span>
+                <span class="profile-role">BARANGAY ADMIN</span>
+            </div>
+            <div class="profile-avatar-container">
+                <img src="https://i.pravatar.cc/150?u=admin" alt="Admin Profile" class="profile-avatar" />
+                <div class="status-indicator"></div>
+            </div>
+        </div>
+    </div>
+</header>
+
+@code {
+    private DateTime _currentDateTime = DateTime.Now;
+    private System.Timers.Timer? _clockTimer;
+
+    private string TopbarDateTimeText => _currentDateTime.ToString("dddd, MMMM dd, yyyy | hh:mm:ss tt");
+
+    protected override void OnInitialized()
+    {
+        _clockTimer = new System.Timers.Timer(1000);
+        _clockTimer.AutoReset = true;
+        _clockTimer.Elapsed += OnClockTick;
+        _clockTimer.Start();
+    }
+
+    private void OnClockTick(object? sender, System.Timers.ElapsedEventArgs e)
+    {
+        _currentDateTime = DateTime.Now;
+        _ = InvokeAsync(StateHasChanged);
+    }
+
+    public void Dispose()
+    {
+        if (_clockTimer is null) return;
+
+        _clockTimer.Elapsed -= OnClockTick;
+        _clockTimer.Stop();
+        _clockTimer.Dispose();
+    }
+}

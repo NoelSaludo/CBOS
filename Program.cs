@@ -2,6 +2,7 @@ using CBOS.Components;
 using CBOS.Components.Pages.Admin;
 using DotNetEnv;
 using CBOS.Components.Services;
+using CBOS.Components.Shared;
 using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Components.Authorization;
 
@@ -40,6 +41,7 @@ builder.Services.AddRazorComponents()
 builder.Services.AddSingleton(supabase);
 builder.Services.AddScoped<AuthService>();
 builder.Services.AddScoped<AdminSupabase>();
+builder.Services.AddScoped<LayoutService>();
 
 // ── MISSING: Cookie authentication config ──────────────────────────────────
 builder.Services.AddAuthentication(CookieAuthenticationDefaults.AuthenticationScheme)

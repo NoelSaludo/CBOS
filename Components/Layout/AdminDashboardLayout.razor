@@ -1,5 +1,13 @@
 ﻿@inherits  LayoutComponentBase
 
-<body>
-@Body
-</body>
+@using CBOS.Components.Shared
+
+<div class="dashboard-wrapper">
+    <AdminSidebar />
+    <div class="main-content">
+        <AdminTopbar />
+        <div class="content-area">
+            @Body
+        </div>
+    </div>
+</div>

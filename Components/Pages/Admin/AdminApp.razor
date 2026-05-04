@@ -1,12 +1,17 @@
-﻿@page "/admin/app"
+@page "/admin/app"
 @layout AdminDashboardLayout
+@implements IDisposable
 
 @using Microsoft.AspNetCore.Components.Server.ProtectedBrowserStorage
+@using CBOS.Components.Shared
+@using CBOS.Components.Services
 
 @inject NavigationManager Navigation
 @inject ILogger<AdminApp> Logger
 @inject AdminSupabase AdminSupabase
 @inject ProtectedSessionStorage ProtectedSessionStorage
+@inject LayoutService LayoutService
+@inject IJSRuntime JS
 
 @rendermode InteractiveServer
 
@@ -19,135 +24,117 @@
 }
 else
 {
-    <div class="dashboard-wrapper">
-        <!-- Sidebar -->
-        <aside class="sidebar">
-            <div class="sidebar-header">
-                <div class="brand-text">
-                    <span class="brand-title">CBOS</span>
-                    <span class="brand-sub">ADMIN WORKSPACE</span>
-                </div>
-            </div>
-
-            <nav class="sidebar-nav">
-                <button class="nav-item @(ActiveFilter == NotifFilter.Home ? "active" : "")"
-                        @onclick="() => SetFilter(NotifFilter.Home)">
-                    <span class="nav-icon"><i class="bi bi-grid-1x2-fill">⛶</i></span>
-                    <span>DASHBOARD</span>
-                </button>
-                <button class="nav-item @(ActiveFilter == NotifFilter.Incident ? "active" : "")"
-                        @onclick="() => SetFilter(NotifFilter.Incident)">
-                    <span class="nav-icon">⚠️</span>
-                    <span>INCIDENT REPORTS</span>
-                </button>
-                <button class="nav-item @(ActiveFilter == NotifFilter.Appointment ? "active" : "")"
-                        @onclick="() => SetFilter(NotifFilter.Appointment)">
-                    <span class="nav-icon">📅</span>
-                    <span>APPOINTMENTS</span>
-                </button>
-                <button class="nav-item @(ActiveFilter == NotifFilter.All ? "active" : "")"
-                        @onclick="() => SetFilter(NotifFilter.All)">
-                    <span class="nav-icon">💬</span>
-                    <span>COMMUNITY FEED</span>
-                    @if (UnreadCount > 0)
-                    {
-                        <span class="badge">@UnreadCount</span>
-                    }
-                </button>
-                <button class="nav-item @(ActiveFilter == NotifFilter.Verification ? "active" : "")"
-                        @onclick="() => SetFilter(NotifFilter.Verification)">
-                    <span class="nav-icon">✅</span>
-                    <span>VERIFICATION</span>
-                </button>
-                <button class="nav-item">
-                    <span class="nav-icon">⚙️</span>
-                    <span>SETTINGS</span>
-                </button>
-            </nav>
-
-            <div class="sidebar-footer">
-                <button class="logout-btn" @onclick="Logout">
-                    <span class="nav-icon">🚪</span>
-                    <span>LOGOUT</span>
-                </button>
-            </div>
-        </aside>
-
-        <!-- Main content -->
-        <main class="main-content">
-            <header class="topbar">
-                <div class="topbar-left">
-                    <span class="topbar-brand">CBOS Admin Workspace</span>
-                    <div class="search-container">
-                        <span class="search-icon">🔍</span>
-                        <input type="text" class="search-input" placeholder="Search records, residents, or reports..." />
-                    </div>
-                </div>
-                <div class="topbar-actions">
-                    <div class="notification-bell">
-                        <span class="bell-icon">🔔</span>
-                        <span class="bell-dot"></span>
-                    </div>
-                    <div class="admin-profile">
-                        <div class="profile-text">
-                            <span class="profile-name">Official Name</span>
-                            <span class="profile-role">BARANGAY ADMIN</span>
-                        </div>
-                        <img src="https://i.pravatar.cc/150?u=admin" alt="Admin Profile" class="profile-avatar" />
-                    </div>
-                </div>
-            </header>
-
-            <section class="content-area">
+    <div class="content-wrapper">
                 @if (ActiveFilter == NotifFilter.Home)
                 {
                     <div class="welcome-section">
-                        <h1>Welcome back, Official Name.</h1>
-                        <p>Here is a comprehensive overview of your Barangay's activities today.</p>
+                        <div class="welcome-orb orb-1"></div>
+                        <div class="welcome-orb orb-2"></div>
+                        <div class="welcome-text-group">
+                            <h1>Welcome back, Official Name.</h1>
+                            <p>Here's what's happening in your Barangay today.</p>
+                        </div>
+                        <div class="welcome-actions">
+                            <button class="quick-action-btn">
+                                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+                                Download Report
+                            </button>
+                            <button class="quick-action-btn">
+                                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
+                                System Settings
+                            </button>
+                        </div>
                     </div>
 
                     <div class="analytics-grid">
                         <div class="stat-card">
                             <div class="stat-card-top">
                                 <div class="stat-icon-wrapper green">
-                                    <span class="stat-icon">✅</span>
+                                    <span class="stat-icon">
+                                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                            <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path>
+                                            <polyline points="22 4 12 14.01 9 11.01"></polyline>
+                                        </svg>
+                                    </span>
+                                </div>
+                                <div class="stat-trend up">
+                                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="23 6 13.5 15.5 8.5 10.5 1 18"></polyline><polyline points="17 6 23 6 23 12"></polyline></svg>
+                                    <span>+12%</span>
                                 </div>
                             </div>
                             <div class="stat-info">
-                                <p class="stat-number">1,024</p>
+                                <div class="stat-number-wrapper">
+                                    <p class="stat-number">1,024</p>
+                                </div>
                                 <h3>FULLY VERIFIED USERS</h3>
                             </div>
                         </div>
                         <div class="stat-card">
                             <div class="stat-card-top">
                                 <div class="stat-icon-wrapper orange">
-                                    <span class="stat-icon">⏳</span>
+                                    <span class="stat-icon">
+                                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                            <circle cx="12" cy="12" r="10"></circle>
+                                            <polyline points="12 6 12 12 16 14"></polyline>
+                                        </svg>
+                                    </span>
+                                </div>
+                                <div class="stat-trend down">
+                                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="23 18 13.5 8.5 8.5 13.5 1 6"></polyline><polyline points="17 18 23 18 23 12"></polyline></svg>
+                                    <span>-5%</span>
                                 </div>
                             </div>
                             <div class="stat-info">
-                                <p class="stat-number">45</p>
+                                <div class="stat-number-wrapper">
+                                    <p class="stat-number">45</p>
+                                </div>
                                 <h3>PARTIALLY UNVERIFIED</h3>
                             </div>
                         </div>
                         <div class="stat-card">
                             <div class="stat-card-top">
                                 <div class="stat-icon-wrapper red">
-                                    <span class="stat-icon">🚨</span>
+                                    <span class="stat-icon">
+                                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                            <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"></path>
+                                            <line x1="12" y1="9" x2="12" y2="13"></line>
+                                            <line x1="12" y1="17" x2="12.01" y2="17"></line>
+                                        </svg>
+                                    </span>
+                                </div>
+                                <div class="stat-trend up">
+                                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="23 6 13.5 15.5 8.5 10.5 1 18"></polyline><polyline points="17 6 23 6 23 12"></polyline></svg>
+                                    <span>+2 today</span>
                                 </div>
                             </div>
                             <div class="stat-info">
-                                <p class="stat-number">12</p>
+                                <div class="stat-number-wrapper">
+                                    <p class="stat-number">12</p>
+                                </div>
                                 <h3>INCIDENT REPORTS</h3>
                             </div>
                         </div>
                         <div class="stat-card">
                             <div class="stat-card-top">
                                 <div class="stat-icon-wrapper blue">
-                                    <span class="stat-icon">📅</span>
+                                    <span class="stat-icon">
+                                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                            <rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect>
+                                            <line x1="16" y1="2" x2="16" y2="6"></line>
+                                            <line x1="8" y1="2" x2="8" y2="6"></line>
+                                            <line x1="3" y1="10" x2="21" y2="10"></line>
+                                        </svg>
+                                    </span>
+                                </div>
+                                <div class="stat-trend up">
+                                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="23 6 13.5 15.5 8.5 10.5 1 18"></polyline><polyline points="17 6 23 6 23 12"></polyline></svg>
+                                    <span>+8 today</span>
                                 </div>
                             </div>
                             <div class="stat-info">
-                                <p class="stat-number">08</p>
+                                <div class="stat-number-wrapper">
+                                    <p class="stat-number">08</p>
+                                </div>
                                 <h3>APPOINTMENTS</h3>
                             </div>
                         </div>
@@ -158,29 +145,264 @@ else
                             <div class="card-header-split">
                                 <div class="chart-title-left">
                                     <h2 class="card-title">User Growth Analytics</h2>
-                                    <p class="card-subtitle">Resident registration trends over the last 6 months</p>
+                                    <p class="card-subtitle">@(ActiveTimeRange == "6M" ? "Resident registration trends over the last 6 months" : ActiveTimeRange == "1Y" ? "Resident registration trends over the last year" : "Overall resident registration trends")</p>
                                 </div>
-                                <span class="stat-badge live">LIVE</span>
+                                <div class="chart-actions">
+                                    <div class="time-filter">
+                                        <button class="filter-btn @(ActiveTimeRange == "6M" ? "active" : "")" @onclick='() => SetTimeRange("6M")'>6M</button>
+                                        <button class="filter-btn @(ActiveTimeRange == "1Y" ? "active" : "")" @onclick='() => SetTimeRange("1Y")'>1Y</button>
+                                        <button class="filter-btn @(ActiveTimeRange == "ALL" ? "active" : "")" @onclick='() => SetTimeRange("ALL")'>ALL</button>
+                                    </div>
+                                    <span class="stat-badge live">LIVE</span>
+                                </div>
                             </div>
                             <div class="chart-placeholder">
-                                <ApexChart TItem="RegistrationData"
-                                           Height="@("250")"
-                                           Options="chartOptions">
-                                    <ApexPointSeries TItem="RegistrationData"
-                                                     Items="trendData"
-                                                     Name="Registrations"
-                                                     SeriesType="SeriesType.Area"
-                                                     XValue="@(e => e.Month)"
-                                                     YValue="@(e => e.Count)" />
-                                </ApexChart>
+                                @if (_isLoading)
+                                {
+                                    <div class="skeleton skeleton-chart"></div>
+                                }
+                                else if (trendData == null || !trendData.Any())
+                                {
+                                    <div class="empty-state">
+                                        <div class="empty-state-icon">
+                                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                                <line x1="18" y1="20" x2="18" y2="10"></line>
+                                                <line x1="12" y1="20" x2="12" y2="4"></line>
+                                                <line x1="6" y1="20" x2="6" y2="14"></line>
+                                            </svg>
+                                        </div>
+                                        <p class="empty-state-text">No registration data available for this period.</p>
+                                    </div>
+                                }
+                                else
+                                {
+                                    <ApexChart TItem="RegistrationData"
+                                               @ref="registrationChart"
+                                               Height="@("250")"
+                                               Options="chartOptions">
+                                        <ApexPointSeries TItem="RegistrationData"
+                                                         Items="trendData"
+                                                         Name="Registrations"
+                                                         SeriesType="SeriesType.Area"
+                                                         XValue="@(e => e.Month)"
+                                                         YValue="@(e => e.Count)" />
+                                    </ApexChart>
+                                }
                             </div>
                         </div>
                     </div>
 
-                    <div class="dashboard-split">
-                        <!-- Left Column (Incident Reports) -->
-                        <div class="dashboard-col-left">
-                            <div class="architectural-card list-card">
+                    <div class="section-divider">
+                        <h2 class="section-label">Overview</h2>
+                        <span class="section-line"></span>
+                    </div>
+
+                                        <div class="dashboard-grid-3">
+<div class="architectural-card line-chart-card">
+                                <div class="card-header-split">
+                                    <h2 class="card-title">User Verification Trends</h2>
+                                </div>
+                                <div class="chart-placeholder">
+                                    @if (_isLoading)
+                                    {
+                                        <div class="skeleton skeleton-chart"></div>
+                                    }
+                                    else if (verificationTrendData == null || !verificationTrendData.Any())
+                                    {
+                                        <div class="empty-state">
+                                            <p class="empty-state-text">No verification trend data available.</p>
+                                        </div>
+                                    }
+                                    else
+                                    {
+                                        <ApexChart TItem="UserVerificationTrendData"
+                                                   @ref="verificationChart"
+                                                   Height="@("250")"
+                                                   Options="verificationChartOptions">
+                                            <ApexPointSeries TItem="UserVerificationTrendData"
+                                                             Items='verificationTrendData.Where(x => x.Status == "Verified").ToList()'
+                                                             Name="Fully Verified"
+                                                             SeriesType="SeriesType.Line"
+                                                             XValue="@(e => e.Month)"
+                                                             YValue="@(e => e.Count)" />
+                                            <ApexPointSeries TItem="UserVerificationTrendData"
+                                                             Items='verificationTrendData.Where(x => x.Status == "Partial").ToList()'
+                                                             Name="Partially Verified"
+                                                             SeriesType="SeriesType.Line"
+                                                             XValue="@(e => e.Month)"
+                                                             YValue="@(e => e.Count)" />
+                                        </ApexChart>
+                                    }
+                                </div>
+                            </div>
+<div class="architectural-card line-chart-card">
+                                <div class="card-header-split">
+                                    <h2 class="card-title">Incident Report Trends</h2>
+                                </div>
+                                <div class="chart-placeholder">
+                                    @if (_isLoading)
+                                    {
+                                        <div class="skeleton skeleton-chart"></div>
+                                    }
+                                    else if (incidentTrendData == null || !incidentTrendData.Any())
+                                    {
+                                        <div class="empty-state">
+                                            <p class="empty-state-text">No incident trend data available.</p>
+                                        </div>
+                                    }
+                                    else
+                                    {
+                                        <ApexChart TItem="IncidentTrendData"
+                                                   @ref="incidentChart"
+                                                   Height="@("250")"
+                                                   Options="incidentLineChartOptions">
+                                            <ApexPointSeries TItem="IncidentTrendData"
+                                                             Items='incidentTrendData.Where(x => x.Status == "Resolved").ToList()'
+                                                             Name="Resolved"
+                                                             SeriesType="SeriesType.Line"
+                                                             XValue="@(e => e.Month)"
+                                                             YValue="@(e => e.Count)" />
+                                            <ApexPointSeries TItem="IncidentTrendData"
+                                                             Items='incidentTrendData.Where(x => x.Status == "Pending").ToList()'
+                                                             Name="Pending"
+                                                             SeriesType="SeriesType.Line"
+                                                             XValue="@(e => e.Month)"
+                                                             YValue="@(e => e.Count)" />
+                                            <ApexPointSeries TItem="IncidentTrendData"
+                                                             Items='incidentTrendData.Where(x => x.Status == "Rejected").ToList()'
+                                                             Name="Rejected"
+                                                             SeriesType="SeriesType.Line"
+                                                             XValue="@(e => e.Month)"
+                                                             YValue="@(e => e.Count)" />
+                                        </ApexChart>
+                                    }
+                                </div>
+                            </div>
+<div class="architectural-card line-chart-card">
+                                <div class="card-header-split">
+                                    <h2 class="card-title">Appointment Trends</h2>
+                                </div>
+                                <div class="chart-placeholder">
+                                    @if (_isLoading)
+                                    {
+                                        <div class="skeleton skeleton-chart"></div>
+                                    }
+                                    else if (appTrendData == null || !appTrendData.Any())
+                                    {
+                                        <div class="empty-state">
+                                            <p class="empty-state-text">No appointment trend data available.</p>
+                                        </div>
+                                    }
+                                    else
+                                    {
+                                        <ApexChart TItem="AppointmentTrendData"
+                                                   @ref="appointmentChart"
+                                                   Height="@("250")"
+                                                   Options="appLineChartOptions">
+                                            <ApexPointSeries TItem="AppointmentTrendData"
+                                                             Items='appTrendData.Where(x => x.Category == "DOCUMENT REQUEST").ToList()'
+                                                             Name="Documents"
+                                                             SeriesType="SeriesType.Line"
+                                                             XValue="@(e => e.Month)"
+                                                             YValue="@(e => e.Count)" />
+                                            <ApexPointSeries TItem="AppointmentTrendData"
+                                                             Items='appTrendData.Where(x => x.Category == "COMPLAINT AND MEDIATION").ToList()'
+                                                             Name="Mediation"
+                                                             SeriesType="SeriesType.Line"
+                                                             XValue="@(e => e.Month)"
+                                                             YValue="@(e => e.Count)" />
+                                            <ApexPointSeries TItem="AppointmentTrendData"
+                                                             Items='appTrendData.Where(x => x.Category == "PERMITS & CLEARANCES").ToList()'
+                                                             Name="Permits"
+                                                             SeriesType="SeriesType.Line"
+                                                             XValue="@(e => e.Month)"
+                                                             YValue="@(e => e.Count)" />
+                                            <ApexPointSeries TItem="AppointmentTrendData"
+                                                             Items='appTrendData.Where(x => x.Category == "COMMUNITY PROGRAMS").ToList()'
+                                                             Name="Programs"
+                                                             SeriesType="SeriesType.Line"
+                                                             XValue="@(e => e.Month)"
+                                                             YValue="@(e => e.Count)" />
+                                            <ApexPointSeries TItem="AppointmentTrendData"
+                                                             Items='appTrendData.Where(x => x.Category == "ASSISTANCE SERVICES").ToList()'
+                                                             Name="Assistance"
+                                                             SeriesType="SeriesType.Line"
+                                                             XValue="@(e => e.Month)"
+                                                             YValue="@(e => e.Count)" />
+                                        </ApexChart>
+                                    }
+                                </div>
+                            </div>
+                    </div>
+
+                    <div class="dashboard-grid-2">
+<div class="architectural-card pie-chart-card">
+                                <div class="card-header-split">
+                                    <h2 class="card-title">Community Post Statuses</h2>
+                                </div>
+                                <div class="pie-chart-container">
+                                    @if (_isLoading)
+                                    {
+                                        <div class="skeleton skeleton-chart" style="border-radius: 50%; width: 200px; height: 200px; margin: 0 auto;"></div>
+                                    }
+                                    else if (postStatusData == null || !postStatusData.Any())
+                                    {
+                                        <div class="empty-state">
+                                            <p class="empty-state-text">No post status data available.</p>
+                                        </div>
+                                    }
+                                    else
+                                    {
+                                        <ApexChart TItem="CategoryData"
+                                                   @ref="postStatusChart"
+                                                   Height="@("300")"
+                                                   Options="postStatusPieOptions">
+                                            <ApexPointSeries TItem="CategoryData"
+                                                             Items="postStatusData"
+                                                             Name="Posts"
+                                                             SeriesType="SeriesType.Donut"
+                                                             XValue="@(e => e.Name)"
+                                                             YValue="@(e => e.Value)" />
+                                        </ApexChart>
+                                    }
+                                </div>
+                            </div>
+<div class="architectural-card pie-chart-card">
+                                <div class="card-header-split">
+                                    <h2 class="card-title">Incident Categories</h2>
+                                </div>
+                                <div class="pie-chart-container">
+                                    @if (_isLoading)
+                                    {
+                                        <div class="skeleton skeleton-chart" style="border-radius: 50%; width: 200px; height: 200px; margin: 0 auto;"></div>
+                                    }
+                                    else if (incidentCategories == null || !incidentCategories.Any())
+                                    {
+                                        <div class="empty-state">
+                                            <p class="empty-state-text">No category data available.</p>
+                                        </div>
+                                    }
+                                    else
+                                    {
+                                        <ApexChart TItem="CategoryData"
+                                                   @ref="incidentCategoryChart"
+                                                   Height="@("300")"
+                                                   Options="pieChartOptions">
+                                            <ApexPointSeries TItem="CategoryData"
+                                                             Items="incidentCategories"
+                                                             Name="Incidents"
+                                                             SeriesType="SeriesType.Donut"
+                                                             XValue="@(e => e.Name)"
+                                                             YValue="@(e => e.Value)" />
+                                        </ApexChart>
+                                    }
+                                </div>
+                            </div>
+                    </div>
+
+                    <div class="dashboard-grid-2">
+                        <div class="dashboard-col">
+<div class="architectural-card list-card">
                                 <div class="card-header-split">
                                     <h2 class="card-title">User Verification</h2>
                                     <a href="#" class="card-link">VIEW ALL</a>
@@ -196,37 +418,60 @@ else
                                             </tr>
                                         </thead>
                                         <tbody>
-                                            <tr>
-                                                <td class="id-cell">#USR-3001</td>
-                                                <td class="bold-cell">Ana Patricia Reyes</td>
-                                                <td class="light-cell">Oct 22, 2023</td>
-                                                <td><span class="data-chip approved">FULLY VERIFIED</span></td>
-                                            </tr>
-                                            <tr>
-                                                <td class="id-cell">#USR-3002</td>
-                                                <td class="bold-cell">Carlos Miguel Torres</td>
-                                                <td class="light-cell">Oct 23, 2023</td>
-                                                <td><span class="data-chip yellow">PARTIALLY VERIFIED</span></td>
-                                            </tr>
-                                            <tr>
-                                                <td class="id-cell">#USR-3003</td>
-                                                <td class="bold-cell">Diana Rose Lim</td>
-                                                <td class="light-cell">Oct 24, 2023</td>
-                                                <td><span class="data-chip approved">FULLY VERIFIED</span></td>
-                                            </tr>
-                                            <tr>
-                                                <td class="id-cell">#USR-3004</td>
-                                                <td class="bold-cell">Roberto Santos Jr.</td>
-                                                <td class="light-cell">Oct 24, 2023</td>
-                                                <td><span class="data-chip yellow">PARTIALLY VERIFIED</span></td>
-                                            </tr>
+                                            @if (_isLoading)
+                                            {
+                                                @for (int i = 0; i < 4; i++)
+                                                {
+                                                    <tr>
+                                                        <td><div class="skeleton skeleton-text" style="width: 70px;"></div></td>
+                                                        <td><div class="skeleton skeleton-text"></div></td>
+                                                        <td><div class="skeleton skeleton-text" style="width: 80px;"></div></td>
+                                                        <td><div class="skeleton skeleton-text" style="width: 90px;"></div></td>
+                                                    </tr>
+                                                }
+                                            }
+                                            else if (verificationUsers == null || !verificationUsers.Any())
+                                            {
+                                                <tr>
+                                                    <td colspan="4">
+                                                        <div class="empty-state">
+                                                            <div class="empty-state-icon">
+                                                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                                                    <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
+                                                                    <circle cx="12" cy="7" r="4"></circle>
+                                                                </svg>
+                                                            </div>
+                                                            <p class="empty-state-text">No pending verifications found.</p>
+                                                        </div>
+                                                    </td>
+                                                </tr>
+                                            }
+                                            else
+                                            {
+                                                @foreach (var user in verificationUsers)
+                                                {
+                                                    <tr>
+                                                        <td class="id-cell">@user.Id</td>
+                                                        <td class="bold-cell">
+                                                            <div class="user-avatar-group">
+                                                                <div class="avatar-circle">@user.Name[0]</div>
+                                                                <div class="name-details">
+                                                                    <span>@user.Name</span>
+                                                                    <span class="sub-text">Resident</span>
+                                                                </div>
+                                                            </div>
+                                                        </td>
+                                                        <td class="light-cell">@user.DateRegistered</td>
+                                                        <td><span class="data-chip @user.StatusClass">@user.Status</span></td>
+                                                    </tr>
+                                                }
+                                            }
                                         </tbody>
                                     </table>
                                 </div>
 
                             </div>
-
-                            <div class="architectural-card list-card">
+<div class="architectural-card list-card">
                                 <div class="card-header-split">
                                     <h2 class="card-title">Recent Incident Reports</h2>
                                     <a href="#" class="card-link">VIEW ALL</a>
@@ -244,45 +489,67 @@ else
                                             </tr>
                                         </thead>
                                         <tbody>
-                                            <tr>
-                                                <td class="id-cell">#INC-4021</td>
-                                                <td class="bold-cell">Maria Santos</td>
-                                                <td class="light-cell">Stray Animal Complaint</td>
-                                                <td><span class="data-chip yellow">Complaint</span></td>
-                                                <td class="light-cell">Oct 24, 2023</td>
-                                                <td><span class="data-chip yellow">PENDING</span></td>
-                                            </tr>
-                                            <tr>
-                                                <td class="id-cell">#INC-4020</td>
-                                                <td class="bold-cell">Juan Dela Cruz</td>
-                                                <td class="light-cell">Noise Disturbance</td>
-                                                <td><span class="data-chip gray">Other</span></td>
-                                                <td class="light-cell">Oct 24, 2023</td>
-                                                <td><span class="data-chip rejected">REJECTED</span></td>
-                                            </tr>
-                                            <tr>
-                                                <td class="id-cell">#INC-4019</td>
-                                                <td class="bold-cell">Elena Rodriguez</td>
-                                                <td class="light-cell">Clogged Drainage</td>
-                                                <td><span class="data-chip rejected">Emergency</span></td>
-                                                <td class="light-cell">Oct 23, 2023</td>
-                                                <td><span class="data-chip resolved">RESOLVED</span></td>
-                                            </tr>
-                                            <tr>
-                                                <td class="id-cell">#INC-4018</td>
-                                                <td class="bold-cell">Mark Jayson Sy</td>
-                                                <td class="light-cell">More Streetlights</td>
-                                                <td><span class="data-chip resolved">Suggestion</span></td>
-                                                <td class="light-cell">Oct 23, 2023</td>
-                                                <td><span class="data-chip resolved">RESOLVED</span></td>
-                                            </tr>
+                                            @if (_isLoading)
+                                            {
+                                                @for (int i = 0; i < 4; i++)
+                                                {
+                                                    <tr>
+                                                        <td><div class="skeleton skeleton-text" style="width: 70px;"></div></td>
+                                                        <td><div class="skeleton skeleton-text"></div></td>
+                                                        <td><div class="skeleton skeleton-text"></div></td>
+                                                        <td><div class="skeleton skeleton-text" style="width: 60px;"></div></td>
+                                                        <td><div class="skeleton skeleton-text" style="width: 80px;"></div></td>
+                                                        <td><div class="skeleton skeleton-text" style="width: 70px;"></div></td>
+                                                    </tr>
+                                                }
+                                            }
+                                            else if (incidentReports == null || !incidentReports.Any())
+                                            {
+                                                <tr>
+                                                    <td colspan="6">
+                                                        <div class="empty-state">
+                                                            <div class="empty-state-icon">
+                                                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                                                    <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"></path>
+                                                                    <line x1="12" y1="9" x2="12" y2="13"></line>
+                                                                    <line x1="12" y1="17" x2="12.01" y2="17"></line>
+                                                                </svg>
+                                                            </div>
+                                                            <p class="empty-state-text">No incident reports recorded.</p>
+                                                        </div>
+                                                    </td>
+                                                </tr>
+                                            }
+                                            else
+                                            {
+                                                @foreach (var report in incidentReports)
+                                                {
+                                                    <tr>
+                                                        <td class="id-cell">@report.Id</td>
+                                                        <td class="bold-cell">
+                                                            <div class="user-avatar-group">
+                                                                <div class="avatar-circle">@report.Complainant[0]</div>
+                                                                <div class="name-details">
+                                                                    <span>@report.Complainant</span>
+                                                                    <span class="sub-text">Complainant</span>
+                                                                </div>
+                                                            </div>
+                                                        </td>
+                                                        <td class="light-cell">@report.Title</td>
+                                                        <td><span class="data-chip @report.CategoryClass">@report.Category</span></td>
+                                                        <td class="light-cell">@report.Date</td>
+                                                        <td><span class="data-chip @report.StatusClass">@report.Status</span></td>
+                                                    </tr>
+                                                }
+                                            }
                                         </tbody>
                                     </table>
                                 </div>
 
                             </div>
-                            
-                            <div class="architectural-card list-card">
+                        </div>
+                        <div class="dashboard-col">
+<div class="architectural-card list-card">
                                 <div class="card-header-split">
                                     <h2 class="card-title">Recent Community Posts</h2>
                                     <a href="#" class="card-link">VIEW ALL</a>
@@ -299,94 +566,119 @@ else
                                             </tr>
                                         </thead>
                                         <tbody>
-                                            <tr>
-                                                <td class="id-cell">#PST-1052</td>
-                                                <td class="bold-cell">Juan Dela Cruz</td>
-                                                <td class="light-cell">Barangay Fiesta</td>
-                                                <td class="light-cell">Oct 24, 2023</td>
-                                                <td><span class="data-chip yellow">PENDING</span></td>
-                                            </tr>
-                                            <tr>
-                                                <td class="id-cell">#PST-1051</td>
-                                                <td class="bold-cell">Maria Santos</td>
-                                                <td class="light-cell">Clean &amp; Green Drive</td>
-                                                <td class="light-cell">Oct 24, 2023</td>
-                                                <td><span class="data-chip approved">APPROVED</span></td>
-                                            </tr>
-                                            <tr>
-                                                <td class="id-cell">#PST-1050</td>
-                                                <td class="bold-cell">Pedro Penduko</td>
-                                                <td class="light-cell">Lost Pet</td>
-                                                <td class="light-cell">Oct 23, 2023</td>
-                                                <td><span class="data-chip rejected">REJECTED</span></td>
-                                            </tr>
+                                            @if (_isLoading)
+                                            {
+                                                @for (int i = 0; i < 3; i++)
+                                                {
+                                                    <tr>
+                                                        <td><div class="skeleton skeleton-text" style="width: 70px;"></div></td>
+                                                        <td><div class="skeleton skeleton-text"></div></td>
+                                                        <td><div class="skeleton skeleton-text"></div></td>
+                                                        <td><div class="skeleton skeleton-text" style="width: 80px;"></div></td>
+                                                        <td><div class="skeleton skeleton-text" style="width: 70px;"></div></td>
+                                                    </tr>
+                                                }
+                                            }
+                                            else if (communityPosts == null || !communityPosts.Any())
+                                            {
+                                                <tr>
+                                                    <td colspan="5">
+                                                        <div class="empty-state">
+                                                            <div class="empty-state-icon">
+                                                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                                                    <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path>
+                                                                    <path d="M18.5 2.5a2.121 2.121 0 1 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path>
+                                                                </svg>
+                                                            </div>
+                                                            <p class="empty-state-text">No community posts found.</p>
+                                                        </div>
+                                                    </td>
+                                                </tr>
+                                            }
+                                            else
+                                            {
+                                                @foreach (var post in communityPosts)
+                                                {
+                                                    <tr>
+                                                        <td class="id-cell">@post.Id</td>
+                                                        <td class="bold-cell">
+                                                            <div class="user-avatar-group">
+                                                                <div class="avatar-circle">@post.Author[0]</div>
+                                                                <div class="name-details">
+                                                                    <span>@post.Author</span>
+                                                                    <span class="sub-text">Resident</span>
+                                                                </div>
+                                                            </div>
+                                                        </td>
+                                                        <td class="light-cell">@post.Topic</td>
+                                                        <td class="light-cell">@post.Date</td>
+                                                        <td><span class="data-chip @post.StatusClass">@post.Status</span></td>
+                                                    </tr>
+                                                }
+                                            }
                                         </tbody>
                                     </table>
                                 </div>
 
                             </div>
-                        </div>
-
-                        <!-- Right Column (Appointments & System Update) -->
-                        <div class="dashboard-col-right">
-                            <div class="architectural-card appointments-card">
+<div class="architectural-card appointments-card">
                                 <div class="card-header-split">
                                     <h2 class="card-title">Appointments</h2>
                                     <a href="#" class="card-link">VIEW ALL</a>
                                 </div>
                                 <div class="appointments-list">
-                                    <div class="appointment-item">
-                                        <div class="app-header-row">
-                                            <span class="app-id">#APP-5001</span>
-                                            <span class="data-chip yellow">PENDING</span>
-                                        </div>
-                                        <div class="app-body">
-                                            <div class="app-name">Elena Rodriguez</div>
-                                            <div class="app-meta">
-                                                <span class="app-category">DOCUMENT REQUEST</span>
-                                                <span class="app-service">Barangay Clearance</span>
+                                    @if (_isLoading)
+                                    {
+                                        @for (int i = 0; i < 4; i++)
+                                        {
+                                            <div class="appointment-item">
+                                                <div class="app-header-row">
+                                                    <div class="skeleton skeleton-text" style="width: 70px;"></div>
+                                                    <div class="skeleton skeleton-text" style="width: 60px;"></div>
+                                                </div>
+                                                <div class="app-body">
+                                                    <div class="skeleton skeleton-text" style="margin-bottom: 0.5rem;"></div>
+                                                    <div class="skeleton skeleton-text" style="width: 80%;"></div>
+                                                </div>
                                             </div>
-                                        </div>
-                                    </div>
-                                    <div class="appointment-item">
-                                        <div class="app-header-row">
-                                            <span class="app-id">#APP-5002</span>
-                                            <span class="data-chip approved">APPROVED</span>
-                                        </div>
-                                        <div class="app-body">
-                                            <div class="app-name">Mark Jayson Sy</div>
-                                            <div class="app-meta">
-                                                <span class="app-category">PERMITS &amp; CLEARANCES</span>
-                                                <span class="app-service">Barangay Business Permit</span>
+                                        }
+                                    }
+                                    else if (appointments == null || !appointments.Any())
+                                    {
+                                        <div class="empty-state">
+                                            <div class="empty-state-icon">
+                                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                                    <rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect>
+                                                    <line x1="16" y1="2" x2="16" y2="6"></line>
+                                                    <line x1="8" y1="2" x2="8" y2="6"></line>
+                                                    <line x1="3" y1="10" x2="21" y2="10"></line>
+                                                </svg>
                                             </div>
+                                            <p class="empty-state-text">No scheduled appointments today.</p>
                                         </div>
-                                    </div>
-                                    <div class="appointment-item">
-                                        <div class="app-header-row">
-                                            <span class="app-id">#APP-5003</span>
-                                            <span class="data-chip rescheduled">RESCHEDULED</span>
-                                        </div>
-                                        <div class="app-body">
-                                            <div class="app-name">Maria Clara Santos</div>
-                                            <div class="app-meta">
-                                                <span class="app-category">DOCUMENT REQUEST</span>
-                                                <span class="app-service">Certificate of Residency</span>
+                                    }
+                                    else
+                                    {
+                                        @foreach (var app in appointments)
+                                        {
+                                            <div class="appointment-item @app.StatusClass">
+                                                <div class="app-header-row">
+                                                    <span class="app-id">@app.Id</span>
+                                                    <span class="data-chip @app.StatusClass">@app.Status</span>
+                                                </div>
+                                                <div class="app-body">
+                                                    <div class="app-name-group">
+                                                        <div class="avatar-circle">@app.Name[0]</div>
+                                                        <div class="app-name">@app.Name</div>
+                                                    </div>
+                                                    <div class="app-meta">
+                                                        <span class="app-category">@app.Category</span>
+                                                        <span class="app-service">@app.Service</span>
+                                                    </div>
+                                                </div>
                                             </div>
-                                        </div>
-                                    </div>
-                                    <div class="appointment-item">
-                                        <div class="app-header-row">
-                                            <span class="app-id">#APP-5004</span>
-                                            <span class="data-chip rejected">REJECTED</span>
-                                        </div>
-                                        <div class="app-body">
-                                            <div class="app-name">Juan Dela Cruz</div>
-                                            <div class="app-meta">
-                                                <span class="app-category">COMPLAINT AND MEDIATION</span>
-                                                <span class="app-service">Mediation Session</span>
-                                            </div>
-                                        </div>
-                                    </div>
+                                        }
+                                    }
                                 </div>
                             </div>
                         </div>
@@ -396,25 +688,169 @@ else
                 {
                     <p class="placeholder-text">@FilterLabel View - Coming Soon</p>
                 }
-            </section>
-        </main>
     </div>
 }
 
 @code {
+    private ApexChart<RegistrationData> registrationChart = default!;
+    private ApexChart<UserVerificationTrendData> verificationChart = default!;
+    private ApexChart<IncidentTrendData> incidentChart = default!;
+    private ApexChart<AppointmentTrendData> appointmentChart = default!;
+    private ApexChart<CategoryData> postStatusChart = default!;
+    private ApexChart<CategoryData> incidentCategoryChart = default!;
+
     private bool _isAuthorized = false;
+    private bool _isLoading = true;
 
     private List<RegistrationData> trendData = new();
+    private List<VerificationUser> verificationUsers = new();
+    private List<IncidentReport> incidentReports = new();
+    private List<CommunityPost> communityPosts = new();
+    private List<Appointment> appointments = new();
+    private List<CategoryData> incidentCategories = new();
+    private List<AppointmentTrendData> appTrendData = new();
+    private List<UserVerificationTrendData> verificationTrendData = new();
+    private List<CategoryData> postStatusData = new();
+    private List<IncidentTrendData> incidentTrendData = new();
+
+    private string _fontFamily = "'Inter', system-ui, -apple-system, sans-serif";
+    private string _primaryColor = "#3b82f6";
+    private string _secondaryTextColor = "#64748b";
+    private string _gridColor = "#f1f5f9";
+
+    private ApexChartOptions<T> GetDefaultOptions<T>() where T : class
+    {
+        return new ApexChartOptions<T>
+        {
+            Chart = new Chart
+            {
+                Toolbar = new Toolbar { Show = false },
+                Animations = new Animations { Enabled = true, Easing = Easing.Easeinout, Speed = 800 },
+                FontFamily = _fontFamily
+            },
+            DataLabels = new DataLabels { Enabled = false },
+            Xaxis = new XAxis
+            {
+                Labels = new XAxisLabels { Style = new AxisLabelStyle { FontSize = "11px", FontWeight = "600", Colors = _secondaryTextColor } },
+                AxisBorder = new AxisBorder { Show = false },
+                AxisTicks = new AxisTicks { Show = false }
+            },
+            Yaxis = new List<YAxis>
+            {
+                new YAxis
+                {
+                    Labels = new YAxisLabels { Style = new AxisLabelStyle { FontSize = "11px", FontWeight = "600", Colors = _secondaryTextColor } },
+                }
+            },
+            Grid = new Grid
+            {
+                Show = true,
+                BorderColor = _gridColor,
+                StrokeDashArray = 4,
+                Xaxis = new GridXAxis { Lines = new Lines { Show = false } },
+                Yaxis = new GridYAxis { Lines = new Lines { Show = true } }
+            },
+            Tooltip = new Tooltip
+            {
+                Theme = Mode.Light,
+                X = new TooltipX { Show = true }
+            },
+            Legend = new Legend
+            {
+                Position = LegendPosition.Top,
+                HorizontalAlign = Align.Right,
+                FontSize = "12px",
+                FontWeight = "600",
+                Labels = new LegendLabels { Colors = _secondaryTextColor }
+            }
+        };
+    }
+
     private ApexChartOptions<RegistrationData> chartOptions = new();
+    private ApexChartOptions<CategoryData> pieChartOptions = new();
+    private ApexChartOptions<AppointmentTrendData> appLineChartOptions = new();
+    private ApexChartOptions<UserVerificationTrendData> verificationChartOptions = new();
+    private ApexChartOptions<CategoryData> postStatusPieOptions = new();
+    private ApexChartOptions<IncidentTrendData> incidentLineChartOptions = new();
 
     public class RegistrationData
     {
         public string Month { get; set; } = "";
         public int Count { get; set; }
     }
+
+    public class CategoryData
+    {
+        public string Name { get; set; } = "";
+        public int Value { get; set; }
+    }
+
+    public class AppointmentTrendData
+    {
+        public string Month { get; set; } = "";
+        public string Category { get; set; } = "";
+        public int Count { get; set; }
+    }
+
+    public class UserVerificationTrendData
+    {
+        public string Month { get; set; } = "";
+        public string Status { get; set; } = "";
+        public int Count { get; set; }
+    }
+
+    public class IncidentTrendData
+    {
+        public string Month { get; set; } = "";
+        public string Status { get; set; } = "";
+        public int Count { get; set; }
+    }
+
+    public class VerificationUser
+    {
+        public string Id { get; set; } = "";
+        public string Name { get; set; } = "";
+        public string DateRegistered { get; set; } = "";
+        public string Status { get; set; } = "";
+        public string StatusClass { get; set; } = "";
+    }
+
+    public class IncidentReport
+    {
+        public string Id { get; set; } = "";
+        public string Complainant { get; set; } = "";
+        public string Title { get; set; } = "";
+        public string Category { get; set; } = "";
+        public string CategoryClass { get; set; } = "";
+        public string Date { get; set; } = "";
+        public string Status { get; set; } = "";
+        public string StatusClass { get; set; } = "";
+    }
+
+    public class CommunityPost
+    {
+        public string Id { get; set; } = "";
+        public string Author { get; set; } = "";
+        public string Topic { get; set; } = "";
+        public string Date { get; set; } = "";
+        public string Status { get; set; } = "";
+        public string StatusClass { get; set; } = "";
+    }
+
+    public class Appointment
+    {
+        public string Id { get; set; } = "";
+        public string Name { get; set; } = "";
+        public string Category { get; set; } = "";
+        public string Service { get; set; } = "";
+        public string Status { get; set; } = "";
+        public string StatusClass { get; set; } = "";
+    }
+
     public enum NotifFilter { Home, All, Appointment, Incident, Verification }
     private NotifFilter ActiveFilter = NotifFilter.Home;
     private int UnreadCount = 0;
+    private string ActiveTimeRange = "6M";
 
     private string FilterLabel => ActiveFilter switch
     {
@@ -426,8 +862,100 @@ else
         _                        => string.Empty
     };
 
+
     protected override void OnInitialized()
     {
+        LayoutService.OnSidebarToggled += HandleSidebarToggled;
+
+        chartOptions = GetDefaultOptions<RegistrationData>();
+        chartOptions.Stroke = new Stroke { Curve = Curve.Smooth, Width = 3, Colors = new List<string> { _primaryColor } };
+        chartOptions.Fill = new Fill
+        {
+            Type = new List<FillType> { FillType.Gradient },
+            Gradient = new FillGradient
+            {
+                ShadeIntensity = 1,
+                OpacityFrom = 0.45,
+                OpacityTo = 0.05,
+                Stops = new List<double> { 0, 100 }
+            }
+        };
+        chartOptions.Colors = new List<string> { _primaryColor };
+        chartOptions.Markers = new Markers { Size = 5, Colors = new List<string> { _primaryColor }, StrokeColors = new List<string> { "#ffffff" }, StrokeWidth = 2, Hover = new MarkersHover { Size = 7 } };
+        chartOptions.Tooltip.Y = new TooltipY { Title = new TooltipYTitle { Formatter = @"function(seriesName) { return 'Registrations'; }" } };
+
+        pieChartOptions = GetDefaultOptions<CategoryData>();
+        pieChartOptions.Colors = new List<string> { "#10b981", "#f59e0b", "#ef4444", "#9ca3af" };
+        pieChartOptions.Stroke = new Stroke { Show = true, Width = 2, Colors = new List<string> { "#ffffff" } };
+        pieChartOptions.Legend.Position = LegendPosition.Bottom;
+        pieChartOptions.Legend.HorizontalAlign = Align.Center;
+        pieChartOptions.PlotOptions = new PlotOptions
+        {
+            Pie = new PlotOptionsPie
+            {
+                Donut = new PlotOptionsDonut
+                {
+                    Size = "75%",
+                    Labels = new DonutLabels
+                    {
+                        Show = true,
+                        Name = new DonutLabelName { FontSize = "14px", Color = _secondaryTextColor, FontWeight = "600" },
+                        Value = new DonutLabelValue { FontSize = "24px", Color = "#0d0a2d", FontWeight = "800" },
+                        Total = new DonutLabelTotal { Show = true, Label = "Total", Color = _secondaryTextColor, FontSize = "14px", FontWeight = "600" }
+                    }
+                }
+            }
+        };
+        pieChartOptions.Tooltip.Y = new TooltipY { Title = new TooltipYTitle { Formatter = @"function(seriesName) { return ''; }" } };
+
+        appLineChartOptions = GetDefaultOptions<AppointmentTrendData>();
+        appLineChartOptions.Stroke = new Stroke { Curve = Curve.Smooth, Width = 3 };
+        appLineChartOptions.Colors = new List<string> { "#3b82f6", "#ef4444", "#10b981", "#8b5cf6", "#f59e0b" };
+        appLineChartOptions.Markers = new Markers { Size = 4, StrokeColors = new List<string> { "#ffffff" }, StrokeWidth = 2, Hover = new MarkersHover { Size = 6 } };
+
+        verificationChartOptions = GetDefaultOptions<UserVerificationTrendData>();
+        verificationChartOptions.Stroke = new Stroke { Curve = Curve.Smooth, Width = 3 };
+        verificationChartOptions.Colors = new List<string> { "#10b981", "#f59e0b" };
+        verificationChartOptions.Markers = new Markers { Size = 4, StrokeColors = new List<string> { "#ffffff" }, StrokeWidth = 2, Hover = new MarkersHover { Size = 6 } };
+
+        postStatusPieOptions = GetDefaultOptions<CategoryData>();
+        postStatusPieOptions.Colors = new List<string> { "#10b981", "#f59e0b", "#ef4444" };
+        postStatusPieOptions.Stroke = new Stroke { Show = true, Width = 2, Colors = new List<string> { "#ffffff" } };
+        postStatusPieOptions.Legend.Position = LegendPosition.Bottom;
+        postStatusPieOptions.Legend.HorizontalAlign = Align.Center;
+        postStatusPieOptions.PlotOptions = new PlotOptions
+        {
+            Pie = new PlotOptionsPie
+            {
+                Donut = new PlotOptionsDonut
+                {
+                    Size = "75%",
+                    Labels = new DonutLabels
+                    {
+                        Show = true,
+                        Name = new DonutLabelName { FontSize = "14px", Color = _secondaryTextColor, FontWeight = "600" },
+                        Value = new DonutLabelValue { FontSize = "24px", Color = "#0d0a2d", FontWeight = "800" },
+                        Total = new DonutLabelTotal { Show = true, Label = "Total", Color = _secondaryTextColor, FontSize = "14px", FontWeight = "600" }
+                    }
+                }
+            }
+        };
+        postStatusPieOptions.Tooltip.Y = new TooltipY { Title = new TooltipYTitle { Formatter = @"function(seriesName) { return ''; }" } };
+
+        incidentLineChartOptions = GetDefaultOptions<IncidentTrendData>();
+        incidentLineChartOptions.Stroke = new Stroke { Curve = Curve.Smooth, Width = 3 };
+        incidentLineChartOptions.Colors = new List<string> { "#10b981", "#f59e0b", "#ef4444" };
+        incidentLineChartOptions.Markers = new Markers { Size = 4, StrokeColors = new List<string> { "#ffffff" }, StrokeWidth = 2, Hover = new MarkersHover { Size = 6 } };
+    }
+
+    private async Task LoadDashboardData()
+    {
+        _isLoading = true;
+        StateHasChanged();
+
+        // Simulate API delay
+        await Task.Delay(1500);
+
         trendData = new List<RegistrationData>
         {
             new RegistrationData { Month = "JAN", Count = 120 },
@@ -438,16 +966,185 @@ else
             new RegistrationData { Month = "JUN", Count = 820 }
         };
 
-        chartOptions = new ApexChartOptions<RegistrationData>
+        verificationUsers = new List<VerificationUser>
         {
-            Chart = new Chart { Toolbar = new Toolbar { Show = false } },
-            DataLabels = new DataLabels { Enabled = false },
-            Stroke = new Stroke { Curve = Curve.Smooth, Width = 4, Colors = new List<string> { "#001d44" } },
-            Fill = new Fill { Type = new List<FillType> { FillType.Solid }, Colors = new List<string> { "#f3f4f5" }, Opacity = 1 },
-            Xaxis = new XAxis { Labels = new XAxisLabels { Style = new AxisLabelStyle { FontSize = "10px", FontWeight = "700" } } },
-            Yaxis = new List<YAxis> { new YAxis { Show = false } },
-            Grid = new Grid { Show = false }
+            new VerificationUser { Id = "#USR-3001", Name = "Ana Patricia Reyes", DateRegistered = "Oct 22, 2023", Status = "FULLY VERIFIED", StatusClass = "approved" },
+            new VerificationUser { Id = "#USR-3002", Name = "Carlos Miguel Torres", DateRegistered = "Oct 23, 2023", Status = "PARTIALLY VERIFIED", StatusClass = "yellow" },
+            new VerificationUser { Id = "#USR-3003", Name = "Diana Rose Lim", DateRegistered = "Oct 24, 2023", Status = "FULLY VERIFIED", StatusClass = "approved" },
+            new VerificationUser { Id = "#USR-3004", Name = "Roberto Santos Jr.", DateRegistered = "Oct 24, 2023", Status = "PARTIALLY VERIFIED", StatusClass = "yellow" }
         };
+
+        incidentReports = new List<IncidentReport>
+        {
+            new IncidentReport { Id = "#INC-4021", Complainant = "Maria Santos", Title = "Stray Animal Complaint", Category = "COMPLAINT", CategoryClass = "yellow", Date = "Oct 24, 2023", Status = "PENDING", StatusClass = "yellow" },
+            new IncidentReport { Id = "#INC-4020", Complainant = "Juan Dela Cruz", Title = "Noise Disturbance", Category = "OTHER", CategoryClass = "gray", Date = "Oct 24, 2023", Status = "REJECTED", StatusClass = "rejected" },
+            new IncidentReport { Id = "#INC-4019", Complainant = "Elena Rodriguez", Title = "Clogged Drainage", Category = "EMERGENCY", CategoryClass = "red", Date = "Oct 23, 2023", Status = "RESOLVED", StatusClass = "resolved" },
+            new IncidentReport { Id = "#INC-4018", Complainant = "Mark Jayson Sy", Title = "More Streetlights", Category = "SUGGESTION", CategoryClass = "green", Date = "Oct 23, 2023", Status = "RESOLVED", StatusClass = "resolved" }
+        };
+
+        incidentCategories = new List<CategoryData>
+        {
+            new CategoryData { Name = "SUGGESTION", Value = 28 },
+            new CategoryData { Name = "COMPLAINT", Value = 45 },
+            new CategoryData { Name = "EMERGENCY", Value = 12 },
+            new CategoryData { Name = "OTHER", Value = 15 }
+        };
+
+        incidentTrendData = new List<IncidentTrendData>
+        {
+            new IncidentTrendData { Month = "JAN", Status = "Resolved", Count = 30 },
+            new IncidentTrendData { Month = "FEB", Status = "Resolved", Count = 45 },
+            new IncidentTrendData { Month = "MAR", Status = "Resolved", Count = 38 },
+            new IncidentTrendData { Month = "APR", Status = "Resolved", Count = 65 },
+            new IncidentTrendData { Month = "MAY", Status = "Resolved", Count = 80 },
+            new IncidentTrendData { Month = "JUN", Status = "Resolved", Count = 95 },
+
+            new IncidentTrendData { Month = "JAN", Status = "Pending", Count = 15 },
+            new IncidentTrendData { Month = "FEB", Status = "Pending", Count = 22 },
+            new IncidentTrendData { Month = "MAR", Status = "Pending", Count = 18 },
+            new IncidentTrendData { Month = "APR", Status = "Pending", Count = 25 },
+            new IncidentTrendData { Month = "MAY", Status = "Pending", Count = 30 },
+            new IncidentTrendData { Month = "JUN", Status = "Pending", Count = 20 },
+
+            new IncidentTrendData { Month = "JAN", Status = "Rejected", Count = 5 },
+            new IncidentTrendData { Month = "FEB", Status = "Rejected", Count = 8 },
+            new IncidentTrendData { Month = "MAR", Status = "Rejected", Count = 4 },
+            new IncidentTrendData { Month = "APR", Status = "Rejected", Count = 10 },
+            new IncidentTrendData { Month = "MAY", Status = "Rejected", Count = 12 },
+            new IncidentTrendData { Month = "JUN", Status = "Rejected", Count = 7 }
+        };
+
+        appTrendData = new List<AppointmentTrendData>
+        {
+            new AppointmentTrendData { Month = "JAN", Category = "DOCUMENT REQUEST", Count = 45 },
+            new AppointmentTrendData { Month = "FEB", Category = "DOCUMENT REQUEST", Count = 52 },
+            new AppointmentTrendData { Month = "MAR", Category = "DOCUMENT REQUEST", Count = 38 },
+            new AppointmentTrendData { Month = "APR", Category = "DOCUMENT REQUEST", Count = 65 },
+            new AppointmentTrendData { Month = "MAY", Category = "DOCUMENT REQUEST", Count = 48 },
+            new AppointmentTrendData { Month = "JUN", Category = "DOCUMENT REQUEST", Count = 55 },
+
+            new AppointmentTrendData { Month = "JAN", Category = "COMPLAINT AND MEDIATION", Count = 10 },
+            new AppointmentTrendData { Month = "FEB", Category = "COMPLAINT AND MEDIATION", Count = 15 },
+            new AppointmentTrendData { Month = "MAR", Category = "COMPLAINT AND MEDIATION", Count = 12 },
+            new AppointmentTrendData { Month = "APR", Category = "COMPLAINT AND MEDIATION", Count = 18 },
+            new AppointmentTrendData { Month = "MAY", Category = "COMPLAINT AND MEDIATION", Count = 22 },
+            new AppointmentTrendData { Month = "JUN", Category = "COMPLAINT AND MEDIATION", Count = 25 },
+
+            new AppointmentTrendData { Month = "JAN", Category = "PERMITS & CLEARANCES", Count = 20 },
+            new AppointmentTrendData { Month = "FEB", Category = "PERMITS & CLEARANCES", Count = 25 },
+            new AppointmentTrendData { Month = "MAR", Category = "PERMITS & CLEARANCES", Count = 40 },
+            new AppointmentTrendData { Month = "APR", Category = "PERMITS & CLEARANCES", Count = 30 },
+            new AppointmentTrendData { Month = "MAY", Category = "PERMITS & CLEARANCES", Count = 35 },
+            new AppointmentTrendData { Month = "JUN", Category = "PERMITS & CLEARANCES", Count = 50 },
+
+            new AppointmentTrendData { Month = "JAN", Category = "COMMUNITY PROGRAMS", Count = 15 },
+            new AppointmentTrendData { Month = "FEB", Category = "COMMUNITY PROGRAMS", Count = 20 },
+            new AppointmentTrendData { Month = "MAR", Category = "COMMUNITY PROGRAMS", Count = 18 },
+            new AppointmentTrendData { Month = "APR", Category = "COMMUNITY PROGRAMS", Count = 25 },
+            new AppointmentTrendData { Month = "MAY", Category = "COMMUNITY PROGRAMS", Count = 30 },
+            new AppointmentTrendData { Month = "JUN", Category = "COMMUNITY PROGRAMS", Count = 35 },
+
+            new AppointmentTrendData { Month = "JAN", Category = "ASSISTANCE SERVICES", Count = 30 },
+            new AppointmentTrendData { Month = "FEB", Category = "ASSISTANCE SERVICES", Count = 35 },
+            new AppointmentTrendData { Month = "MAR", Category = "ASSISTANCE SERVICES", Count = 28 },
+            new AppointmentTrendData { Month = "APR", Category = "ASSISTANCE SERVICES", Count = 40 },
+            new AppointmentTrendData { Month = "MAY", Category = "ASSISTANCE SERVICES", Count = 45 },
+            new AppointmentTrendData { Month = "JUN", Category = "ASSISTANCE SERVICES", Count = 50 }
+        };
+
+        verificationTrendData = new List<UserVerificationTrendData>
+        {
+            new UserVerificationTrendData { Month = "JAN", Status = "Verified", Count = 80 },
+            new UserVerificationTrendData { Month = "FEB", Status = "Verified", Count = 150 },
+            new UserVerificationTrendData { Month = "MAR", Status = "Verified", Count = 220 },
+            new UserVerificationTrendData { Month = "APR", Status = "Verified", Count = 350 },
+            new UserVerificationTrendData { Month = "MAY", Status = "Verified", Count = 410 },
+            new UserVerificationTrendData { Month = "JUN", Status = "Verified", Count = 600 },
+
+            new UserVerificationTrendData { Month = "JAN", Status = "Partial", Count = 40 },
+            new UserVerificationTrendData { Month = "FEB", Status = "Partial", Count = 80 },
+            new UserVerificationTrendData { Month = "MAR", Status = "Partial", Count = 90 },
+            new UserVerificationTrendData { Month = "APR", Status = "Partial", Count = 130 },
+            new UserVerificationTrendData { Month = "MAY", Status = "Partial", Count = 140 },
+            new UserVerificationTrendData { Month = "JUN", Status = "Partial", Count = 220 }
+        };
+
+        postStatusData = new List<CategoryData>
+        {
+            new CategoryData { Name = "Approved", Value = 120 },
+            new CategoryData { Name = "Pending", Value = 45 },
+            new CategoryData { Name = "Rejected", Value = 15 }
+        };
+
+        communityPosts = new List<CommunityPost>
+        {
+            new CommunityPost { Id = "#PST-1052", Author = "Juan Dela Cruz", Topic = "Barangay Fiesta", Date = "Oct 24, 2023", Status = "PENDING", StatusClass = "yellow" },
+            new CommunityPost { Id = "#PST-1051", Author = "Maria Santos", Topic = "Clean & Green Drive", Date = "Oct 24, 2023", Status = "APPROVED", StatusClass = "approved" },
+            new CommunityPost { Id = "#PST-1050", Author = "Pedro Penduko", Topic = "Lost Pet", Date = "Oct 23, 2023", Status = "REJECTED", StatusClass = "rejected" }
+        };
+
+        appointments = new List<Appointment>
+        {
+            new Appointment { Id = "#APP-5001", Name = "Elena Rodriguez", Category = "DOCUMENT REQUEST", Service = "Certificate of Residency", Status = "PENDING", StatusClass = "yellow" },
+            new Appointment { Id = "#APP-5002", Name = "Mark Jayson Sy", Category = "PERMITS & CLEARANCES", Service = "Barangay Business Permit", Status = "APPROVED", StatusClass = "approved" },
+            new Appointment { Id = "#APP-5003", Name = "Maria Clara Santos", Category = "COMMUNITY PROGRAMS", Service = "Health Program", Status = "RESCHEDULED", StatusClass = "rescheduled" },
+            new Appointment { Id = "#APP-5004", Name = "Juan Dela Cruz", Category = "COMPLAINT AND MEDIATION", Service = "Mediation Session", Status = "REJECTED", StatusClass = "rejected" },
+            new Appointment { Id = "#APP-5005", Name = "Ricardo Gomez", Category = "ASSISTANCE SERVICES", Service = "Medical Assistance", Status = "APPROVED", StatusClass = "approved" }
+        };
+
+        _isLoading = false;
+        StateHasChanged();
+    }
+
+    private async void HandleSidebarToggled()
+    {
+        // Smooth resizing by triggering multiple times during the transition
+        const int totalDuration = 350;
+        const int steps = 5;
+        const int delayPerStep = totalDuration / steps;
+
+        for (int i = 0; i < steps; i++)
+        {
+            await Task.Delay(delayPerStep);
+            try
+            {
+                await JS.InvokeVoidAsync("eval", "window.dispatchEvent(new Event('resize'))");
+            }
+            catch (Exception ex)
+            {
+                Logger.LogWarning(ex, "Error dispatching resize event during transition step {Step}.", i);
+            }
+        }
+        
+        await RedrawCharts();
+    }
+
+    private async Task RedrawCharts()
+    {
+        try
+        {
+            var tasks = new List<Task>();
+            if (registrationChart != null) tasks.Add(registrationChart.RenderAsync());
+            if (verificationChart != null) tasks.Add(verificationChart.RenderAsync());
+            if (incidentChart != null) tasks.Add(incidentChart.RenderAsync());
+            if (appointmentChart != null) tasks.Add(appointmentChart.RenderAsync());
+            if (postStatusChart != null) tasks.Add(postStatusChart.RenderAsync());
+            if (incidentCategoryChart != null) tasks.Add(incidentCategoryChart.RenderAsync());
+
+            if (tasks.Any())
+            {
+                await Task.WhenAll(tasks);
+            }
+        }
+        catch (Exception ex)
+        {
+            Logger.LogWarning(ex, "Error redrawing charts after sidebar toggle.");
+        }
+    }
+
+    public void Dispose()
+    {
+        LayoutService.OnSidebarToggled -= HandleSidebarToggled;
     }
 
     protected override async Task OnAfterRenderAsync(bool firstRender)
@@ -475,7 +1172,7 @@ else
             }
 
             _isAuthorized = true;
-            StateHasChanged();
+            await LoadDashboardData();
         }
         catch (Exception ex)
         {
@@ -489,24 +1186,56 @@ else
         ActiveFilter = filter;
     }
 
-    private async Task Logout()
+    private async Task SetTimeRange(string range)
     {
-        try
+        ActiveTimeRange = range;
+        _isLoading = true;
+        StateHasChanged();
+        
+        await Task.Delay(800); // Simulate data fetch for different range
+
+        if (range == "1Y")
         {
-            var result = await ProtectedSessionStorage.GetAsync<string>("adminSessionKey");
-            if (result.Success && !string.IsNullOrWhiteSpace(result.Value))
+            trendData = new List<RegistrationData>
             {
-                await AdminSupabase.DeleteSession(result.Value);
-            }
+                new RegistrationData { Month = "JUL", Count = 100 },
+                new RegistrationData { Month = "AUG", Count = 150 },
+                new RegistrationData { Month = "SEP", Count = 180 },
+                new RegistrationData { Month = "OCT", Count = 220 },
+                new RegistrationData { Month = "NOV", Count = 280 },
+                new RegistrationData { Month = "DEC", Count = 350 },
+                new RegistrationData { Month = "JAN", Count = 380 },
+                new RegistrationData { Month = "FEB", Count = 420 },
+                new RegistrationData { Month = "MAR", Count = 500 },
+                new RegistrationData { Month = "APR", Count = 580 },
+                new RegistrationData { Month = "MAY", Count = 650 },
+                new RegistrationData { Month = "JUN", Count = 820 }
+            };
         }
-        catch (Exception ex)
+        else if (range == "ALL")
         {
-            Logger.LogError(ex, "Error during logout.");
+             trendData = new List<RegistrationData>
+            {
+                new RegistrationData { Month = "2023", Count = 1200 },
+                new RegistrationData { Month = "2024", Count = 2800 },
+                new RegistrationData { Month = "2025", Count = 4500 },
+                new RegistrationData { Month = "2026", Count = 5800 }
+            };
         }
-        finally
+        else
         {
-            await ProtectedSessionStorage.DeleteAsync("adminSessionKey");
-            Navigation.NavigateTo("/Admin/Login");
+            trendData = new List<RegistrationData>
+            {
+                new RegistrationData { Month = "JAN", Count = 120 },
+                new RegistrationData { Month = "FEB", Count = 230 },
+                new RegistrationData { Month = "MAR", Count = 310 },
+                new RegistrationData { Month = "APR", Count = 480 },
+                new RegistrationData { Month = "MAY", Count = 550 },
+                new RegistrationData { Month = "JUN", Count = 820 }
+            };
         }
+
+        _isLoading = false;
+        StateHasChanged();
     }
 }
