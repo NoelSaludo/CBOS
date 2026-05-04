@@ -76,6 +76,11 @@
     height: 18px;
 }
 
+.search-container:focus-within .search-icon svg {
+    color: var(--accent);
+    animation: var(--icon-pulse);
+}
+
 .search-input {
     border: none;
     background: transparent;
@@ -140,6 +145,10 @@
     color: var(--topbar-complement);
     transform: translateY(-2px);
     box-shadow: 0 4px 12px rgba(79, 70, 229, 0.18);
+}
+
+.notification-bell:hover svg {
+    animation: var(--icon-rotate);
 }
 
 .bell-icon svg {
