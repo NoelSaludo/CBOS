@@ -200,7 +200,7 @@ else
                                         <div class="dashboard-grid-3">
 <div class="architectural-card line-chart-card">
                                 <div class="card-header-split">
-                                    <h2 class="card-title">Verification Trends</h2>
+                                    <h2 class="card-title">User Verification Trends</h2>
                                 </div>
                                 <div class="chart-placeholder">
                                     @if (_isLoading)
@@ -300,20 +300,32 @@ else
                                                    Height="@("250")"
                                                    Options="appLineChartOptions">
                                             <ApexPointSeries TItem="AppointmentTrendData"
-                                                             Items='appTrendData.Where(x => x.Category == "Document").ToList()'
+                                                             Items='appTrendData.Where(x => x.Category == "DOCUMENT REQUEST").ToList()'
                                                              Name="Documents"
                                                              SeriesType="SeriesType.Line"
                                                              XValue="@(e => e.Month)"
                                                              YValue="@(e => e.Count)" />
                                             <ApexPointSeries TItem="AppointmentTrendData"
-                                                             Items='appTrendData.Where(x => x.Category == "Permits").ToList()'
+                                                             Items='appTrendData.Where(x => x.Category == "COMPLAINT AND MEDIATION").ToList()'
+                                                             Name="Mediation"
+                                                             SeriesType="SeriesType.Line"
+                                                             XValue="@(e => e.Month)"
+                                                             YValue="@(e => e.Count)" />
+                                            <ApexPointSeries TItem="AppointmentTrendData"
+                                                             Items='appTrendData.Where(x => x.Category == "PERMITS & CLEARANCES").ToList()'
                                                              Name="Permits"
                                                              SeriesType="SeriesType.Line"
                                                              XValue="@(e => e.Month)"
                                                              YValue="@(e => e.Count)" />
                                             <ApexPointSeries TItem="AppointmentTrendData"
-                                                             Items='appTrendData.Where(x => x.Category == "Mediation").ToList()'
-                                                             Name="Mediation"
+                                                             Items='appTrendData.Where(x => x.Category == "COMMUNITY PROGRAMS").ToList()'
+                                                             Name="Programs"
+                                                             SeriesType="SeriesType.Line"
+                                                             XValue="@(e => e.Month)"
+                                                             YValue="@(e => e.Count)" />
+                                            <ApexPointSeries TItem="AppointmentTrendData"
+                                                             Items='appTrendData.Where(x => x.Category == "ASSISTANCE SERVICES").ToList()'
+                                                             Name="Assistance"
                                                              SeriesType="SeriesType.Line"
                                                              XValue="@(e => e.Month)"
                                                              YValue="@(e => e.Count)" />
@@ -873,7 +885,7 @@ else
         chartOptions.Tooltip.Y = new TooltipY { Title = new TooltipYTitle { Formatter = @"function(seriesName) { return 'Registrations'; }" } };
 
         pieChartOptions = GetDefaultOptions<CategoryData>();
-        pieChartOptions.Colors = new List<string> { "#3b82f6", "#10b981", "#f59e0b", "#ef4444", "#6366f1" };
+        pieChartOptions.Colors = new List<string> { "#10b981", "#f59e0b", "#ef4444", "#9ca3af" };
         pieChartOptions.Stroke = new Stroke { Show = true, Width = 2, Colors = new List<string> { "#ffffff" } };
         pieChartOptions.Legend.Position = LegendPosition.Bottom;
         pieChartOptions.Legend.HorizontalAlign = Align.Center;
@@ -898,7 +910,7 @@ else
 
         appLineChartOptions = GetDefaultOptions<AppointmentTrendData>();
         appLineChartOptions.Stroke = new Stroke { Curve = Curve.Smooth, Width = 3 };
-        appLineChartOptions.Colors = new List<string> { "#3b82f6", "#10b981", "#f59e0b" };
+        appLineChartOptions.Colors = new List<string> { "#3b82f6", "#ef4444", "#10b981", "#8b5cf6", "#f59e0b" };
         appLineChartOptions.Markers = new Markers { Size = 4, StrokeColors = new List<string> { "#ffffff" }, StrokeWidth = 2, Hover = new MarkersHover { Size = 6 } };
 
         verificationChartOptions = GetDefaultOptions<UserVerificationTrendData>();
@@ -964,19 +976,18 @@ else
 
         incidentReports = new List<IncidentReport>
         {
-            new IncidentReport { Id = "#INC-4021", Complainant = "Maria Santos", Title = "Stray Animal Complaint", Category = "Complaint", CategoryClass = "yellow", Date = "Oct 24, 2023", Status = "PENDING", StatusClass = "yellow" },
-            new IncidentReport { Id = "#INC-4020", Complainant = "Juan Dela Cruz", Title = "Noise Disturbance", Category = "Other", CategoryClass = "gray", Date = "Oct 24, 2023", Status = "REJECTED", StatusClass = "rejected" },
-            new IncidentReport { Id = "#INC-4019", Complainant = "Elena Rodriguez", Title = "Clogged Drainage", Category = "Emergency", CategoryClass = "rejected", Date = "Oct 23, 2023", Status = "RESOLVED", StatusClass = "resolved" },
-            new IncidentReport { Id = "#INC-4018", Complainant = "Mark Jayson Sy", Title = "More Streetlights", Category = "Suggestion", CategoryClass = "resolved", Date = "Oct 23, 2023", Status = "RESOLVED", StatusClass = "resolved" }
+            new IncidentReport { Id = "#INC-4021", Complainant = "Maria Santos", Title = "Stray Animal Complaint", Category = "COMPLAINT", CategoryClass = "yellow", Date = "Oct 24, 2023", Status = "PENDING", StatusClass = "yellow" },
+            new IncidentReport { Id = "#INC-4020", Complainant = "Juan Dela Cruz", Title = "Noise Disturbance", Category = "OTHER", CategoryClass = "gray", Date = "Oct 24, 2023", Status = "REJECTED", StatusClass = "rejected" },
+            new IncidentReport { Id = "#INC-4019", Complainant = "Elena Rodriguez", Title = "Clogged Drainage", Category = "EMERGENCY", CategoryClass = "red", Date = "Oct 23, 2023", Status = "RESOLVED", StatusClass = "resolved" },
+            new IncidentReport { Id = "#INC-4018", Complainant = "Mark Jayson Sy", Title = "More Streetlights", Category = "SUGGESTION", CategoryClass = "green", Date = "Oct 23, 2023", Status = "RESOLVED", StatusClass = "resolved" }
         };
 
         incidentCategories = new List<CategoryData>
         {
-            new CategoryData { Name = "Complaint", Value = 45 },
-            new CategoryData { Name = "Emergency", Value = 12 },
-            new CategoryData { Name = "Suggestion", Value = 28 },
-            new CategoryData { Name = "Inquiry", Value = 34 },
-            new CategoryData { Name = "Other", Value = 15 }
+            new CategoryData { Name = "SUGGESTION", Value = 28 },
+            new CategoryData { Name = "COMPLAINT", Value = 45 },
+            new CategoryData { Name = "EMERGENCY", Value = 12 },
+            new CategoryData { Name = "OTHER", Value = 15 }
         };
 
         incidentTrendData = new List<IncidentTrendData>
@@ -1005,26 +1016,40 @@ else
 
         appTrendData = new List<AppointmentTrendData>
         {
-            new AppointmentTrendData { Month = "JAN", Category = "Document", Count = 45 },
-            new AppointmentTrendData { Month = "FEB", Category = "Document", Count = 52 },
-            new AppointmentTrendData { Month = "MAR", Category = "Document", Count = 38 },
-            new AppointmentTrendData { Month = "APR", Category = "Document", Count = 65 },
-            new AppointmentTrendData { Month = "MAY", Category = "Document", Count = 48 },
-            new AppointmentTrendData { Month = "JUN", Category = "Document", Count = 55 },
+            new AppointmentTrendData { Month = "JAN", Category = "DOCUMENT REQUEST", Count = 45 },
+            new AppointmentTrendData { Month = "FEB", Category = "DOCUMENT REQUEST", Count = 52 },
+            new AppointmentTrendData { Month = "MAR", Category = "DOCUMENT REQUEST", Count = 38 },
+            new AppointmentTrendData { Month = "APR", Category = "DOCUMENT REQUEST", Count = 65 },
+            new AppointmentTrendData { Month = "MAY", Category = "DOCUMENT REQUEST", Count = 48 },
+            new AppointmentTrendData { Month = "JUN", Category = "DOCUMENT REQUEST", Count = 55 },
 
-            new AppointmentTrendData { Month = "JAN", Category = "Permits", Count = 20 },
-            new AppointmentTrendData { Month = "FEB", Category = "Permits", Count = 25 },
-            new AppointmentTrendData { Month = "MAR", Category = "Permits", Count = 40 },
-            new AppointmentTrendData { Month = "APR", Category = "Permits", Count = 30 },
-            new AppointmentTrendData { Month = "MAY", Category = "Permits", Count = 35 },
-            new AppointmentTrendData { Month = "JUN", Category = "Permits", Count = 50 },
+            new AppointmentTrendData { Month = "JAN", Category = "COMPLAINT AND MEDIATION", Count = 10 },
+            new AppointmentTrendData { Month = "FEB", Category = "COMPLAINT AND MEDIATION", Count = 15 },
+            new AppointmentTrendData { Month = "MAR", Category = "COMPLAINT AND MEDIATION", Count = 12 },
+            new AppointmentTrendData { Month = "APR", Category = "COMPLAINT AND MEDIATION", Count = 18 },
+            new AppointmentTrendData { Month = "MAY", Category = "COMPLAINT AND MEDIATION", Count = 22 },
+            new AppointmentTrendData { Month = "JUN", Category = "COMPLAINT AND MEDIATION", Count = 25 },
 
-            new AppointmentTrendData { Month = "JAN", Category = "Mediation", Count = 10 },
-            new AppointmentTrendData { Month = "FEB", Category = "Mediation", Count = 15 },
-            new AppointmentTrendData { Month = "MAR", Category = "Mediation", Count = 12 },
-            new AppointmentTrendData { Month = "APR", Category = "Mediation", Count = 18 },
-            new AppointmentTrendData { Month = "MAY", Category = "Mediation", Count = 22 },
-            new AppointmentTrendData { Month = "JUN", Category = "Mediation", Count = 25 }
+            new AppointmentTrendData { Month = "JAN", Category = "PERMITS & CLEARANCES", Count = 20 },
+            new AppointmentTrendData { Month = "FEB", Category = "PERMITS & CLEARANCES", Count = 25 },
+            new AppointmentTrendData { Month = "MAR", Category = "PERMITS & CLEARANCES", Count = 40 },
+            new AppointmentTrendData { Month = "APR", Category = "PERMITS & CLEARANCES", Count = 30 },
+            new AppointmentTrendData { Month = "MAY", Category = "PERMITS & CLEARANCES", Count = 35 },
+            new AppointmentTrendData { Month = "JUN", Category = "PERMITS & CLEARANCES", Count = 50 },
+
+            new AppointmentTrendData { Month = "JAN", Category = "COMMUNITY PROGRAMS", Count = 15 },
+            new AppointmentTrendData { Month = "FEB", Category = "COMMUNITY PROGRAMS", Count = 20 },
+            new AppointmentTrendData { Month = "MAR", Category = "COMMUNITY PROGRAMS", Count = 18 },
+            new AppointmentTrendData { Month = "APR", Category = "COMMUNITY PROGRAMS", Count = 25 },
+            new AppointmentTrendData { Month = "MAY", Category = "COMMUNITY PROGRAMS", Count = 30 },
+            new AppointmentTrendData { Month = "JUN", Category = "COMMUNITY PROGRAMS", Count = 35 },
+
+            new AppointmentTrendData { Month = "JAN", Category = "ASSISTANCE SERVICES", Count = 30 },
+            new AppointmentTrendData { Month = "FEB", Category = "ASSISTANCE SERVICES", Count = 35 },
+            new AppointmentTrendData { Month = "MAR", Category = "ASSISTANCE SERVICES", Count = 28 },
+            new AppointmentTrendData { Month = "APR", Category = "ASSISTANCE SERVICES", Count = 40 },
+            new AppointmentTrendData { Month = "MAY", Category = "ASSISTANCE SERVICES", Count = 45 },
+            new AppointmentTrendData { Month = "JUN", Category = "ASSISTANCE SERVICES", Count = 50 }
         };
 
         verificationTrendData = new List<UserVerificationTrendData>
@@ -1060,10 +1085,11 @@ else
 
         appointments = new List<Appointment>
         {
-            new Appointment { Id = "#APP-5001", Name = "Elena Rodriguez", Category = "DOCUMENT REQUEST", Service = "Barangay Clearance", Status = "PENDING", StatusClass = "yellow" },
+            new Appointment { Id = "#APP-5001", Name = "Elena Rodriguez", Category = "DOCUMENT REQUEST", Service = "Certificate of Residency", Status = "PENDING", StatusClass = "yellow" },
             new Appointment { Id = "#APP-5002", Name = "Mark Jayson Sy", Category = "PERMITS & CLEARANCES", Service = "Barangay Business Permit", Status = "APPROVED", StatusClass = "approved" },
-            new Appointment { Id = "#APP-5003", Name = "Maria Clara Santos", Category = "DOCUMENT REQUEST", Service = "Certificate of Residency", Status = "RESCHEDULED", StatusClass = "rescheduled" },
-            new Appointment { Id = "#APP-5004", Name = "Juan Dela Cruz", Category = "COMPLAINT AND MEDIATION", Service = "Mediation Session", Status = "REJECTED", StatusClass = "rejected" }
+            new Appointment { Id = "#APP-5003", Name = "Maria Clara Santos", Category = "COMMUNITY PROGRAMS", Service = "Health Program", Status = "RESCHEDULED", StatusClass = "rescheduled" },
+            new Appointment { Id = "#APP-5004", Name = "Juan Dela Cruz", Category = "COMPLAINT AND MEDIATION", Service = "Mediation Session", Status = "REJECTED", StatusClass = "rejected" },
+            new Appointment { Id = "#APP-5005", Name = "Ricardo Gomez", Category = "ASSISTANCE SERVICES", Service = "Medical Assistance", Status = "APPROVED", StatusClass = "approved" }
         };
 
         _isLoading = false;
