@@ -1,13 +1,17 @@
 @page "/admin/app"
 @layout AdminDashboardLayout
+@implements IDisposable
 
 @using Microsoft.AspNetCore.Components.Server.ProtectedBrowserStorage
 @using CBOS.Components.Shared
+@using CBOS.Components.Services
 
 @inject NavigationManager Navigation
 @inject ILogger<AdminApp> Logger
 @inject AdminSupabase AdminSupabase
 @inject ProtectedSessionStorage ProtectedSessionStorage
+@inject LayoutService LayoutService
+@inject IJSRuntime JS
 
 @rendermode InteractiveServer
 
@@ -173,6 +177,7 @@ else
                                 else
                                 {
                                     <ApexChart TItem="RegistrationData"
+                                               @ref="registrationChart"
                                                Height="@("250")"
                                                Options="chartOptions">
                                         <ApexPointSeries TItem="RegistrationData"
@@ -211,6 +216,7 @@ else
                                     else
                                     {
                                         <ApexChart TItem="UserVerificationTrendData"
+                                                   @ref="verificationChart"
                                                    Height="@("250")"
                                                    Options="verificationChartOptions">
                                             <ApexPointSeries TItem="UserVerificationTrendData"
@@ -247,6 +253,7 @@ else
                                     else
                                     {
                                         <ApexChart TItem="IncidentTrendData"
+                                                   @ref="incidentChart"
                                                    Height="@("250")"
                                                    Options="incidentLineChartOptions">
                                             <ApexPointSeries TItem="IncidentTrendData"
@@ -289,6 +296,7 @@ else
                                     else
                                     {
                                         <ApexChart TItem="AppointmentTrendData"
+                                                   @ref="appointmentChart"
                                                    Height="@("250")"
                                                    Options="appLineChartOptions">
                                             <ApexPointSeries TItem="AppointmentTrendData"
@@ -334,6 +342,7 @@ else
                                     else
                                     {
                                         <ApexChart TItem="CategoryData"
+                                                   @ref="postStatusChart"
                                                    Height="@("300")"
                                                    Options="postStatusPieOptions">
                                             <ApexPointSeries TItem="CategoryData"
@@ -364,6 +373,7 @@ else
                                     else
                                     {
                                         <ApexChart TItem="CategoryData"
+                                                   @ref="incidentCategoryChart"
                                                    Height="@("300")"
                                                    Options="pieChartOptions">
                                             <ApexPointSeries TItem="CategoryData"
@@ -670,6 +680,13 @@ else
 }
 
 @code {
+    private ApexChart<RegistrationData> registrationChart = default!;
+    private ApexChart<UserVerificationTrendData> verificationChart = default!;
+    private ApexChart<IncidentTrendData> incidentChart = default!;
+    private ApexChart<AppointmentTrendData> appointmentChart = default!;
+    private ApexChart<CategoryData> postStatusChart = default!;
+    private ApexChart<CategoryData> incidentCategoryChart = default!;
+
     private bool _isAuthorized = false;
     private bool _isLoading = true;
 
@@ -836,6 +853,8 @@ else
 
     protected override void OnInitialized()
     {
+        LayoutService.OnSidebarToggled += HandleSidebarToggled;
+
         chartOptions = GetDefaultOptions<RegistrationData>();
         chartOptions.Stroke = new Stroke { Curve = Curve.Smooth, Width = 3, Colors = new List<string> { _primaryColor } };
         chartOptions.Fill = new Fill
@@ -1049,6 +1068,57 @@ else
 
         _isLoading = false;
         StateHasChanged();
+    }
+
+    private async void HandleSidebarToggled()
+    {
+        // Smooth resizing by triggering multiple times during the transition
+        const int totalDuration = 350;
+        const int steps = 5;
+        const int delayPerStep = totalDuration / steps;
+
+        for (int i = 0; i < steps; i++)
+        {
+            await Task.Delay(delayPerStep);
+            try
+            {
+                await JS.InvokeVoidAsync("eval", "window.dispatchEvent(new Event('resize'))");
+            }
+            catch (Exception ex)
+            {
+                Logger.LogWarning(ex, "Error dispatching resize event during transition step {Step}.", i);
+            }
+        }
+        
+        await RedrawCharts();
+    }
+
+    private async Task RedrawCharts()
+    {
+        try
+        {
+            var tasks = new List<Task>();
+            if (registrationChart != null) tasks.Add(registrationChart.RenderAsync());
+            if (verificationChart != null) tasks.Add(verificationChart.RenderAsync());
+            if (incidentChart != null) tasks.Add(incidentChart.RenderAsync());
+            if (appointmentChart != null) tasks.Add(appointmentChart.RenderAsync());
+            if (postStatusChart != null) tasks.Add(postStatusChart.RenderAsync());
+            if (incidentCategoryChart != null) tasks.Add(incidentCategoryChart.RenderAsync());
+
+            if (tasks.Any())
+            {
+                await Task.WhenAll(tasks);
+            }
+        }
+        catch (Exception ex)
+        {
+            Logger.LogWarning(ex, "Error redrawing charts after sidebar toggle.");
+        }
+    }
+
+    public void Dispose()
+    {
+        LayoutService.OnSidebarToggled -= HandleSidebarToggled;
     }
 
     protected override async Task OnAfterRenderAsync(bool firstRender)

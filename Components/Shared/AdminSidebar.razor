@@ -132,11 +132,13 @@
     [Inject] private AdminSupabase AdminSupabase { get; set; }
     [Inject] private ProtectedSessionStorage ProtectedSessionStorage { get; set; }
 
-    private bool isCollapsed = false;
+    [Inject] private LayoutService LayoutService { get; set; }
+
+    private bool isCollapsed => LayoutService.IsSidebarCollapsed;
 
     private void ToggleSidebar()
     {
-        isCollapsed = !isCollapsed;
+        LayoutService.ToggleSidebar();
     }
 
     private async Task Logout()
