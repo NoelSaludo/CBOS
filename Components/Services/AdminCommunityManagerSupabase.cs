@@ -38,7 +38,7 @@ public class AdminCommunityManagerSupabase : ISupabase
     }
 
     // Updates the ticket status for a community post.
-    public async Task UpdatePostTicketStatusAsync(CommunityPostTicket ticket, string status)
+    public async Task UpdatePostTicketStatusAsync(CommunityPostTicket ticket, string status, long AdminId)
     {
         if (ticket == null)
             throw new ArgumentNullException(nameof(ticket));
@@ -46,6 +46,8 @@ public class AdminCommunityManagerSupabase : ISupabase
         await supabase.From<Ticket>()
             .Where(t => t.Id == ticket.TicketId)
             .Set(t => t.Status, status)
+            .Set(t => t.ApprovedBy, AdminId)
+            .Set(t => t.ApprovedAt, DateTime.UtcNow)
             .Update();
     }
 

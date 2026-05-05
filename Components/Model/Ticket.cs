@@ -26,6 +26,8 @@ public class Ticket : BaseModel
 
     [Column("approved_by")]
     public long? ApprovedBy { get; set; }
+    [Column("approved_at")]
+    public DateTime? ApprovedAt { get; set; }
 }
 
 public enum TicketType
