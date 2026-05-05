@@ -1,4 +1,4 @@
-﻿@page "/admin/app"
+@page "/admin/app"
 @layout AdminDashboardLayout
 @implements IDisposable
 
@@ -258,20 +258,26 @@ else
                                                    Height="@("250")"
                                                    Options="incidentLineChartOptions">
                                             <ApexPointSeries TItem="IncidentTrendData"
-                                                             Items='incidentTrendData.Where(x => x.Status == "Resolved").ToList()'
-                                                             Name="Resolved"
+                                                             Items='incidentTrendData.Where(x => x.Category == "EMERGENCY").ToList()'
+                                                             Name="Emergency"
                                                              SeriesType="SeriesType.Line"
                                                              XValue="@(e => e.Month)"
                                                              YValue="@(e => e.Count)" />
                                             <ApexPointSeries TItem="IncidentTrendData"
-                                                             Items='incidentTrendData.Where(x => x.Status == "Pending").ToList()'
-                                                             Name="Pending"
+                                                             Items='incidentTrendData.Where(x => x.Category == "COMPLAINT").ToList()'
+                                                             Name="Complaint"
                                                              SeriesType="SeriesType.Line"
                                                              XValue="@(e => e.Month)"
                                                              YValue="@(e => e.Count)" />
                                             <ApexPointSeries TItem="IncidentTrendData"
-                                                             Items='incidentTrendData.Where(x => x.Status == "Rejected").ToList()'
-                                                             Name="Rejected"
+                                                             Items='incidentTrendData.Where(x => x.Category == "SUGGESTION").ToList()'
+                                                             Name="Suggestion"
+                                                             SeriesType="SeriesType.Line"
+                                                             XValue="@(e => e.Month)"
+                                                             YValue="@(e => e.Count)" />
+                                            <ApexPointSeries TItem="IncidentTrendData"
+                                                             Items='incidentTrendData.Where(x => x.Category == "OTHER").ToList()'
+                                                             Name="Other"
                                                              SeriesType="SeriesType.Line"
                                                              XValue="@(e => e.Month)"
                                                              YValue="@(e => e.Count)" />
@@ -474,6 +480,7 @@ else
     private List<UserVerificationTrendData> verificationTrendData = new();
     private List<CategoryData> postStatusData = new();
     private List<IncidentTrendData> incidentTrendData = new();
+    private List<IncidentReportDto> _allIncidentData = new();
 
     private string _fontFamily = "'Inter', system-ui, -apple-system, sans-serif";
     private string _primaryColor = "#3b82f6";
@@ -564,7 +571,7 @@ else
     public class IncidentTrendData
     {
         public string Month { get; set; } = "";
-        public string Status { get; set; } = "";
+        public string Category { get; set; } = "";
         public int Count { get; set; }
     }
 
@@ -707,7 +714,7 @@ else
 
         incidentLineChartOptions = GetDefaultOptions<IncidentTrendData>();
         incidentLineChartOptions.Stroke = new Stroke { Curve = Curve.Smooth, Width = 3 };
-        incidentLineChartOptions.Colors = new List<string> { "#10b981", "#f59e0b", "#ef4444" };
+        incidentLineChartOptions.Colors = new List<string> { "#ef4444", "#f59e0b", "#3b82f6", "#64748b" };
         incidentLineChartOptions.Markers = new Markers { Size = 4, StrokeColors = new List<string> { "#ffffff" }, StrokeWidth = 2, Hover = new MarkersHover { Size = 6 } };
     }
 
@@ -716,6 +723,7 @@ else
         try
         {
             var incidentData = await IncidentService.GetIncidentReportsAsync();
+            _allIncidentData = incidentData;
 
             incidentReports = incidentData
                 .Take(4)
@@ -733,12 +741,16 @@ else
                 .ToList();
 
             incidentStatuses = BuildIncidentStatuses(incidentData);
+            incidentTrendData = BuildIncidentTrends(_allIncidentData, ActiveTimeRange);
 
             StateHasChanged();
 
-            if (redrawChart && incidentCategoryChart != null)
+            if (redrawChart)
             {
-                await incidentCategoryChart.RenderAsync();
+                var tasks = new List<Task>();
+                if (incidentCategoryChart != null) tasks.Add(incidentCategoryChart.RenderAsync());
+                if (incidentChart != null) tasks.Add(incidentChart.RenderAsync());
+                if (tasks.Any()) await Task.WhenAll(tasks);
             }
         }
         catch (Exception ex)
@@ -747,8 +759,10 @@ else
 
             if (clearOnFailure)
             {
+                _allIncidentData = new List<IncidentReportDto>();
                 incidentReports = new List<IncidentReport>();
                 incidentStatuses = new List<CategoryData>();
+                incidentTrendData = new List<IncidentTrendData>();
                 StateHasChanged();
             }
         }
@@ -781,30 +795,6 @@ else
         };
 
         await RefreshIncidentDataAsync(redrawChart: false, clearOnFailure: true);
-
-        incidentTrendData = new List<IncidentTrendData>
-        {
-            new IncidentTrendData { Month = "JAN", Status = "Resolved", Count = 30 },
-            new IncidentTrendData { Month = "FEB", Status = "Resolved", Count = 45 },
-            new IncidentTrendData { Month = "MAR", Status = "Resolved", Count = 38 },
-            new IncidentTrendData { Month = "APR", Status = "Resolved", Count = 65 },
-            new IncidentTrendData { Month = "MAY", Status = "Resolved", Count = 80 },
-            new IncidentTrendData { Month = "JUN", Status = "Resolved", Count = 95 },
-
-            new IncidentTrendData { Month = "JAN", Status = "Pending", Count = 15 },
-            new IncidentTrendData { Month = "FEB", Status = "Pending", Count = 22 },
-            new IncidentTrendData { Month = "MAR", Status = "Pending", Count = 18 },
-            new IncidentTrendData { Month = "APR", Status = "Pending", Count = 25 },
-            new IncidentTrendData { Month = "MAY", Status = "Pending", Count = 30 },
-            new IncidentTrendData { Month = "JUN", Status = "Pending", Count = 20 },
-
-            new IncidentTrendData { Month = "JAN", Status = "Rejected", Count = 5 },
-            new IncidentTrendData { Month = "FEB", Status = "Rejected", Count = 8 },
-            new IncidentTrendData { Month = "MAR", Status = "Rejected", Count = 4 },
-            new IncidentTrendData { Month = "APR", Status = "Rejected", Count = 10 },
-            new IncidentTrendData { Month = "MAY", Status = "Rejected", Count = 12 },
-            new IncidentTrendData { Month = "JUN", Status = "Rejected", Count = 7 }
-        };
 
         appTrendData = new List<AppointmentTrendData>
         {
@@ -1039,6 +1029,60 @@ else
         return statuses;
     }
 
+    private static List<IncidentTrendData> BuildIncidentTrends(IEnumerable<IncidentReportDto> incidentData, string timeRange)
+    {
+        var categories = new[] { "EMERGENCY", "COMPLAINT", "SUGGESTION", "OTHER" };
+        var result = new List<IncidentTrendData>();
+
+        if (timeRange == "ALL")
+        {
+            var years = incidentData.Select(d => d.Date.Year).Distinct().OrderBy(y => y).ToList();
+            if (!years.Any()) years = new List<int> { DateTime.UtcNow.Year }; // fallback
+
+            foreach (var category in categories)
+            {
+                foreach (var year in years)
+                {
+                    var count = incidentData.Count(d => d.Category == category && d.Date.Year == year);
+                    result.Add(new IncidentTrendData
+                    {
+                        Month = year.ToString(),
+                        Category = category,
+                        Count = count
+                    });
+                }
+            }
+        }
+        else
+        {
+            var monthsToGenerate = timeRange == "1Y" ? 12 : 6;
+            var endDate = DateTime.UtcNow;
+            var months = new List<DateTime>();
+            for (int i = 0; i < monthsToGenerate; i++)
+            {
+                months.Add(endDate.AddMonths(- (monthsToGenerate - 1 - i)));
+            }
+
+            foreach (var category in categories)
+            {
+                foreach (var monthDate in months)
+                {
+                    var monthStr = monthDate.ToString("MMM").ToUpperInvariant();
+                    var count = incidentData.Count(d => d.Category == category && d.Date.Year == monthDate.Year && d.Date.Month == monthDate.Month);
+                    
+                    result.Add(new IncidentTrendData 
+                    {
+                        Month = monthStr,
+                        Category = category,
+                        Count = count
+                    });
+                }
+            }
+        }
+
+        return result;
+    }
+
     private static string NormalizeIncidentStatus(string status)
     {
         var normalizedStatus = status?.Trim().ToUpperInvariant() ?? string.Empty;
@@ -1099,6 +1143,12 @@ else
                 new RegistrationData { Month = "MAY", Count = 550 },
                 new RegistrationData { Month = "JUN", Count = 820 }
             };
+        }
+
+        incidentTrendData = BuildIncidentTrends(_allIncidentData, ActiveTimeRange);
+        if (incidentChart != null)
+        {
+            _ = incidentChart.RenderAsync();
         }
 
         _isLoading = false;
