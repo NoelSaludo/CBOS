@@ -10,7 +10,7 @@ public class Ticket : BaseModel
     public long Id { get; set; }
 
     [Column("type")]
-    public string Type { get; set; } = "";
+    public string Type { get; set; }
 
     [Column("source_id")]
     public long SourceId { get; set; }
@@ -26,4 +26,13 @@ public class Ticket : BaseModel
 
     [Column("approved_by")]
     public long? ApprovedBy { get; set; }
+    [Column("approved_at")]
+    public DateTime? ApprovedAt { get; set; }
+}
+
+public enum TicketType
+{
+    Appointment, 
+    Incident,
+    Post
 }

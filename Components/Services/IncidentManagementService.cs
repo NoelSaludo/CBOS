@@ -29,16 +29,11 @@ public class IncidentManagementService
             .Order("created_at", Ordering.Descending)
             .Get();
 
-        _logger.LogInformation("Fetched {Count} report-type tickets from database.", ticketResponse.Models.Count);
-
         var results = new List<IncidentReportDto>();
 
         // TODO: This does N+2 queries per ticket. For production scale, consider a Supabase RPC/view or batch-fetch approach.
         foreach (var ticket in ticketResponse.Models)
         {
-            _logger.LogInformation("Processing ticket {TicketId}, source_id={SourceId}, status={Status}",
-                ticket.Id, ticket.SourceId, ticket.Status);
-
             // 2. Fetch the corresponding report via source_id
             var report = await _supabase.From<Report>()
                 .Filter("id", Operator.Equals, ticket.SourceId.ToString())
@@ -73,9 +68,6 @@ public class IncidentManagementService
                 ? $"{user.FirstName} {user.LastName}".Trim()
                 : "Unknown User";
 
-            _logger.LogInformation("Mapped report {ReportId}: title='{Title}', category={Category}, complainant={Complainant}",
-                report.Id, report.Title, normalizedCategory, complainant);
-
             results.Add(new IncidentReportDto
             {
                 ReportId = report.Id,
@@ -91,7 +83,6 @@ public class IncidentManagementService
             });
         }
 
-        _logger.LogInformation("Returning {Count} incident reports to UI.", results.Count);
         return results;
     }
 
