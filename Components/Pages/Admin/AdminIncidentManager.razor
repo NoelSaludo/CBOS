@@ -197,10 +197,10 @@ else
                         }
                         else
                         {
-                            @foreach (var report in FilteredReports)
+                            @foreach (var report in PaginatedReports)
                             {
                                 <tr class="clickable-row" @onclick="() => OpenDetailsModal(report)">
-                                    <td class="id-cell">@report.Id</td>
+                                    <td class="id-cell">@report.FormattedId</td>
                                     <td class="bold-cell">
                                         <div class="user-avatar-group">
                                             <div class="avatar-circle">@report.Complainant[0]</div>
@@ -212,7 +212,7 @@ else
                                     </td>
                                     <td class="light-cell">@report.Title</td>
                                     <td><span class="data-chip @report.CategoryClass">@report.Category</span></td>
-                                    <td class="light-cell">@report.Date</td>
+                                    <td class="light-cell">@report.Date.ToString("MMM dd, yyyy")</td>
                                     <td><span class="data-chip @report.StatusClass">@report.Status</span></td>
                                     <td>
                                         <div class="row-actions" style="justify-content: center;">
@@ -233,14 +233,16 @@ else
             </div>
             <div class="table-footer">
                 <div class="pagination-info">
-                    Showing <span>@FilteredReports.Count</span> of <span>@incidentReports.Count</span> reports
+                    Showing <span>@PaginatedReports.Count</span> of <span>@FilteredReports.Count</span> reports
                 </div>
                 <div class="pagination-controls">
-                    <button class="page-btn" disabled>&lt;</button>
-                    <button class="page-btn active">1</button>
-                    <button class="page-btn">2</button>
-                    <button class="page-btn">3</button>
-                    <button class="page-btn">&gt;</button>
+                    <button class="page-btn" disabled="@(_currentPage <= 1)" @onclick="PrevPage">&lt;</button>
+                    @for (int i = 1; i <= TotalPages; i++)
+                    {
+                        var pageNum = i;
+                        <button class="page-btn @(pageNum == _currentPage ? "active" : "")" @onclick="() => GoToPage(pageNum)">@pageNum</button>
+                    }
+                    <button class="page-btn" disabled="@(_currentPage >= TotalPages)" @onclick="NextPage">&gt;</button>
                 </div>
             </div>
         </div>
@@ -258,7 +260,7 @@ else
                     </div>
                     <div class="modal-text">
                         <h3>@_selectedReport.Title</h3>
-                        <p>ID: <span class="id-text">@_selectedReport.Id</span></p>
+                        <p>ID: <span class="id-text">@_selectedReport.FormattedId</span></p>
                     </div>
                 </div>
                 <div class="header-actions">
@@ -286,18 +288,8 @@ else
                             </div>
                             <div class="detail-item">
                                 <span class="summary-label">DATE SUBMITTED</span>
-                                <span class="summary-value mt-1">@_selectedReport.Date</span>
+                                <span class="summary-value mt-1">@_selectedReport.Date.ToString("MMM dd, yyyy")</span>
                             </div>
-                            @if (_selectedReport.AdditionalMetadata != null && _selectedReport.AdditionalMetadata.Any())
-                            {
-                                @foreach (var kvp in _selectedReport.AdditionalMetadata)
-                                {
-                                    <div class="detail-item">
-                                        <span class="summary-label">@kvp.Key.ToUpper()</span>
-                                        <span class="summary-value mt-1">@kvp.Value</span>
-                                    </div>
-                                }
-                            }
                         </div>
                         <div class="detail-item full-width mt-3">
                             <span class="summary-label">DESCRIPTION</span>
@@ -389,24 +381,40 @@ else
     private string selectedStatus = "All";
     private List<IncidentReport> incidentReports = new();
 
+    // Pagination
+    private int _currentPage = 1;
+    private int _pageSize = 10;
+
+    // Analytics computed properties
     private int TotalIncidents => incidentReports.Count;
-    private int PendingIncidents => incidentReports.Count(r => r.Status == "PENDING");
-    private int ResolvedIncidents => incidentReports.Count(r => r.Status == "RESOLVED");
-    private int EmergencyIncidents => incidentReports.Count(r => r.Category == "EMERGENCY");
+    private int PendingIncidents => incidentReports.Count(r => string.Equals(r.Status, "PENDING", StringComparison.OrdinalIgnoreCase));
+    private int ResolvedIncidents => incidentReports.Count(r => string.Equals(r.Status, "RESOLVED", StringComparison.OrdinalIgnoreCase));
+    private int EmergencyIncidents => incidentReports.Count(r => string.Equals(r.Category, "EMERGENCY", StringComparison.OrdinalIgnoreCase));
 
     // Modal State
     private bool _showDetailsModal = false;
     private IncidentReport? _selectedReport;
     private string _newStatus = "";
+    private bool _isUpdatingStatus = false;
+    
+    // Auth State
+    private long? _currentAdminId;
 
     private List<IncidentReport> FilteredReports => incidentReports
-        .Where(r => (selectedCategory == "All" || r.Category == selectedCategory) &&
-                    (selectedStatus == "All" || r.Status == selectedStatus) &&
-                    (string.IsNullOrWhiteSpace(searchQuery) || 
-                     r.Complainant.Contains(searchQuery, StringComparison.OrdinalIgnoreCase) || 
-                     r.Title.Contains(searchQuery, StringComparison.OrdinalIgnoreCase) || 
-                     r.Id.Contains(searchQuery, StringComparison.OrdinalIgnoreCase)))
+        .Where(r => (selectedCategory == "All" || string.Equals(r.Category, selectedCategory, StringComparison.OrdinalIgnoreCase)) &&
+                    (selectedStatus == "All" || string.Equals(r.Status, selectedStatus, StringComparison.OrdinalIgnoreCase)) &&
+                    (string.IsNullOrWhiteSpace(searchQuery) ||
+                     r.Complainant.Contains(searchQuery, StringComparison.OrdinalIgnoreCase) ||
+                     r.Title.Contains(searchQuery, StringComparison.OrdinalIgnoreCase) ||
+                     r.FormattedId.Contains(searchQuery, StringComparison.OrdinalIgnoreCase)))
         .ToList();
+
+    private List<IncidentReport> PaginatedReports => FilteredReports
+        .Skip((_currentPage - 1) * _pageSize)
+        .Take(_pageSize)
+        .ToList();
+
+    private int TotalPages => Math.Max(1, (int)Math.Ceiling((double)FilteredReports.Count / _pageSize));
 
     [Inject] private ProtectedSessionStorage ProtectedSessionStorage { get; set; } = default!;
     [Inject] private NavigationManager Navigation { get; set; } = default!;
@@ -437,6 +445,12 @@ else
                 return;
             }
 
+            var admin = await AdminSupabase.GetAdminBySessionKey(result.Value);
+            if (admin != null)
+            {
+                _currentAdminId = admin.Id;
+            }
+
             _isAuthorized = true;
             await LoadData();
             StateHasChanged();
@@ -451,20 +465,30 @@ else
     private async Task LoadData()
     {
         _isLoading = true;
-        // Simulate loading
-        await Task.Delay(1000);
 
-        incidentReports = new List<IncidentReport>
+        try
         {
-            new IncidentReport { Id = "#INC-4021", Complainant = "Maria Santos", Title = "Stray Animal Complaint", Category = "COMPLAINT", Date = "Oct 24, 2023", Status = "PENDING", Description = "There is a large stray dog roaming around the playground area. It looks aggressive and might bite the children.", AttachedImages = new List<string> { "https://images.unsplash.com/photo-1548199973-03cce0bbc87b?auto=format&fit=crop&q=80&w=400&h=300" }, AdditionalMetadata = new Dictionary<string, string> { { "Location", "North Playground" }, { "Priority", "High" }, { "Assigned To", "Animal Control" } } },
-            new IncidentReport { Id = "#INC-4020", Complainant = "Juan Dela Cruz", Title = "Noise Disturbance", Category = "COMPLAINT", Date = "Oct 23, 2023", Status = "RESOLVED", Description = "Neighbors are having loud karaoke sessions past 12 midnight on a weekday.", AttachedImages = new List<string>(), AdditionalMetadata = new Dictionary<string, string> { { "Location", "Block 4" }, { "Resolution", "Warning issued" } } },
-            new IncidentReport { Id = "#INC-4019", Complainant = "Elena Rodriguez", Title = "Clogged Drainage", Category = "OTHER", Date = "Oct 22, 2023", Status = "PENDING", Description = "The drainage system near the community center is completely blocked causing minor flooding.", AttachedImages = new List<string>() },
-            new IncidentReport { Id = "#INC-4018", Complainant = "Mark Jayson Sy", Title = "New Park Benches", Category = "SUGGESTION", Date = "Oct 22, 2023", Status = "PENDING", Description = "We should add more benches in the main park, especially near the basketball court.", AttachedImages = new List<string>() },
-            new IncidentReport { Id = "#INC-4017", Complainant = "Liza Soberano", Title = "Illegal Parking", Category = "COMPLAINT", Date = "Oct 21, 2023", Status = "REJECTED", Description = "A red sedan is blocking my driveway. Plate number ABC 1234.", AttachedImages = new List<string>() },
-            new IncidentReport { Id = "#INC-4016", Complainant = "Ricardo Dalisay", Title = "Gas Leak", Category = "EMERGENCY", Date = "Oct 20, 2023", Status = "RESOLVED", Description = "Strong smell of gas coming from the utility room of Building C. Requires immediate attention.", AttachedImages = new List<string>() },
-            new IncidentReport { Id = "#INC-4015", Complainant = "Berna Mea", Title = "Broken Water Pipe", Category = "OTHER", Date = "Oct 19, 2023", Status = "RESOLVED", Description = "A main water pipe burst near the entrance gate. Water is leaking everywhere.", AttachedImages = new List<string>() },
-            new IncidentReport { Id = "#INC-4014", Complainant = "Jose Mari Chan", Title = "Holiday Decor Suggestion", Category = "SUGGESTION", Date = "Sep 01, 2023", Status = "PENDING", Description = "It's almost ber-months, suggesting we put up Christmas lights early this year.", AttachedImages = new List<string>() }
-        };
+            var dtos = await AdminSupabase.GetIncidentReportsAsync();
+
+            incidentReports = dtos.Select(dto => new IncidentReport
+            {
+                ReportId = dto.ReportId,
+                TicketId = dto.TicketId,
+                FormattedId = dto.FormattedId,
+                Complainant = dto.Complainant,
+                Title = dto.Title,
+                Description = dto.Description,
+                Category = dto.Category,
+                Date = dto.Date,
+                Status = dto.Status,
+                AttachedImages = dto.MediaLinks.ToList()
+            }).ToList();
+        }
+        catch (Exception ex)
+        {
+            Logger.LogError(ex, "Failed to load incident reports from database.");
+            incidentReports = new List<IncidentReport>();
+        }
 
         _isLoading = false;
     }
@@ -480,20 +504,38 @@ else
     {
         _showDetailsModal = false;
         _selectedReport = null;
+        _isUpdatingStatus = false;
     }
 
     private async Task ConfirmStatusUpdate()
     {
-        if (_selectedReport != null)
+        if (_selectedReport != null && !_isUpdatingStatus)
         {
-            // In a real app, you would call your service here
-            // await AdminSupabase.UpdateIncidentStatus(_selectedReport.Id, _newStatus);
-            
-            _selectedReport.Status = _newStatus;
-            
-            // Mocking a short delay for UX
-            await Task.Delay(300);
-            
+            _isUpdatingStatus = true;
+            StateHasChanged();
+
+            try
+            {
+                await AdminSupabase.UpdateTicketStatusAsync(
+                    _selectedReport.TicketId,
+                    _newStatus,
+                    _currentAdminId
+                );
+
+                string formattedStatus = string.IsNullOrEmpty(_newStatus) ? "" : char.ToUpper(_newStatus[0]) + _newStatus.Substring(1).ToLower();
+                _selectedReport.Status = formattedStatus;
+                
+                Logger.LogInformation(
+                    "Ticket {TicketId} status updated to {Status} by admin {AdminId}",
+                    _selectedReport.TicketId, formattedStatus, _currentAdminId);
+            }
+            catch (Exception ex)
+            {
+                Logger.LogError(ex, "Failed to update ticket {TicketId} status.",
+                    _selectedReport.TicketId);
+            }
+
+            _isUpdatingStatus = false;
             CloseDetailsModal();
             StateHasChanged();
         }
@@ -504,19 +546,30 @@ else
         searchQuery = "";
         selectedCategory = "All";
         selectedStatus = "All";
+        _currentPage = 1;
     }
+
+    // Pagination helpers
+    private void GoToPage(int page)
+    {
+        _currentPage = Math.Clamp(page, 1, TotalPages);
+    }
+
+    private void PrevPage() => GoToPage(_currentPage - 1);
+    private void NextPage() => GoToPage(_currentPage + 1);
 
     public class IncidentReport
     {
-        public string Id { get; set; } = string.Empty;
+        public long ReportId { get; set; }
+        public long TicketId { get; set; }
+        public string FormattedId { get; set; } = string.Empty;
         public string Complainant { get; set; } = string.Empty;
         public string Title { get; set; } = string.Empty;
         public string Category { get; set; } = string.Empty;
-        public string Date { get; set; } = string.Empty;
+        public DateTime Date { get; set; }
         public string Status { get; set; } = string.Empty;
         public string Description { get; set; } = string.Empty;
         public List<string> AttachedImages { get; set; } = new();
-        public Dictionary<string, string> AdditionalMetadata { get; set; } = new();
 
         public string CategoryClass => Category.ToUpper() switch
         {
