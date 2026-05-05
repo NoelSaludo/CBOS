@@ -1,4 +1,4 @@
-@page "/admin/app"
+﻿@page "/admin/app"
 @layout AdminDashboardLayout
 @implements IDisposable
 
@@ -9,6 +9,7 @@
 @inject NavigationManager Navigation
 @inject ILogger<AdminApp> Logger
 @inject AdminSupabase AdminSupabase
+@inject IncidentManagementService IncidentService
 @inject ProtectedSessionStorage ProtectedSessionStorage
 @inject LayoutService LayoutService
 @inject IJSRuntime JS
@@ -405,7 +406,7 @@ else
 <div class="architectural-card list-card">
                                 <div class="card-header-split">
                                     <h2 class="card-title">User Verification</h2>
-                                    <a href="#" class="card-link">VIEW ALL</a>
+                                    <a href="/admin/incidents" class="card-link">VIEW ALL</a>
                                 </div>
                                 <div class="table-container">
                                     <table class="data-table">
@@ -474,7 +475,7 @@ else
 <div class="architectural-card list-card">
                                 <div class="card-header-split">
                                     <h2 class="card-title">Recent Incident Reports</h2>
-                                    <a href="#" class="card-link">VIEW ALL</a>
+                                    <a href="/admin/incidents" class="card-link">VIEW ALL</a>
                                 </div>
                                 <div class="table-container">
                                     <table class="data-table">
@@ -524,15 +525,12 @@ else
                                             {
                                                 @foreach (var report in incidentReports)
                                                 {
-                                                    <tr>
+                                                    <tr class="clickable-row" role="button" tabindex="0" @onclick="NavigateToIncidentManager">
                                                         <td class="id-cell">@report.Id</td>
                                                         <td class="bold-cell">
-                                                            <div class="user-avatar-group">
-                                                                <div class="avatar-circle">@report.Complainant[0]</div>
-                                                                <div class="name-details">
-                                                                    <span>@report.Complainant</span>
-                                                                    <span class="sub-text">Complainant</span>
-                                                                </div>
+                                                            <div class="name-details">
+                                                                <span>@report.Complainant</span>
+                                                                <span class="sub-text">Complainant</span>
                                                             </div>
                                                         </td>
                                                         <td class="light-cell">@report.Title</td>
@@ -974,13 +972,30 @@ else
             new VerificationUser { Id = "#USR-3004", Name = "Roberto Santos Jr.", DateRegistered = "Oct 24, 2023", Status = "PARTIALLY VERIFIED", StatusClass = "yellow" }
         };
 
-        incidentReports = new List<IncidentReport>
+        try
         {
-            new IncidentReport { Id = "#INC-4021", Complainant = "Maria Santos", Title = "Stray Animal Complaint", Category = "COMPLAINT", CategoryClass = "yellow", Date = "Oct 24, 2023", Status = "PENDING", StatusClass = "yellow" },
-            new IncidentReport { Id = "#INC-4020", Complainant = "Juan Dela Cruz", Title = "Noise Disturbance", Category = "OTHER", CategoryClass = "gray", Date = "Oct 24, 2023", Status = "REJECTED", StatusClass = "rejected" },
-            new IncidentReport { Id = "#INC-4019", Complainant = "Elena Rodriguez", Title = "Clogged Drainage", Category = "EMERGENCY", CategoryClass = "red", Date = "Oct 23, 2023", Status = "RESOLVED", StatusClass = "resolved" },
-            new IncidentReport { Id = "#INC-4018", Complainant = "Mark Jayson Sy", Title = "More Streetlights", Category = "SUGGESTION", CategoryClass = "green", Date = "Oct 23, 2023", Status = "RESOLVED", StatusClass = "resolved" }
-        };
+            var incidentData = await IncidentService.GetIncidentReportsAsync();
+
+            incidentReports = incidentData
+                .Take(4)
+                .Select(report => new IncidentReport
+                {
+                    Id = report.FormattedId,
+                    Complainant = report.Complainant,
+                    Title = report.Title,
+                    Category = report.Category,
+                    CategoryClass = GetIncidentCategoryClass(report.Category),
+                    Date = report.Date.ToString("MMM dd, yyyy"),
+                    Status = report.Status,
+                    StatusClass = GetIncidentStatusClass(report.Status)
+                })
+                .ToList();
+        }
+        catch (Exception ex)
+        {
+            Logger.LogWarning(ex, "Failed to load recent incident reports for the dashboard.");
+            incidentReports = new List<IncidentReport>();
+        }
 
         incidentCategories = new List<CategoryData>
         {
@@ -1184,6 +1199,38 @@ else
     private void SetFilter(NotifFilter filter)
     {
         ActiveFilter = filter;
+    }
+
+    private void NavigateToIncidentManager()
+    {
+        Navigation.NavigateTo("/admin/incidents");
+    }
+
+    private static string GetIncidentCategoryClass(string category)
+    {
+        var normalizedCategory = category?.ToUpperInvariant() ?? string.Empty;
+
+        return normalizedCategory switch
+        {
+            "SUGGESTION" => "review",
+            "COMPLAINT" => "yellow",
+            "EMERGENCY" => "red",
+            "OTHER" => "gray",
+            _ => "gray"
+        };
+    }
+
+    private static string GetIncidentStatusClass(string status)
+    {
+        var normalizedStatus = status?.ToUpperInvariant() ?? string.Empty;
+
+        return normalizedStatus switch
+        {
+            "PENDING" => "yellow",
+            "RESOLVED" => "resolved",
+            "REJECTED" => "rejected",
+            _ => "gray"
+        };
     }
 
     private async Task SetTimeRange(string range)
