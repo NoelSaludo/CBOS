@@ -70,7 +70,8 @@
                     {
                         @foreach (var user in VerificationUsers)
                         {
-                            <tr class="clickable-row" role="button" tabindex="0">
+                            <tr class="clickable-row" role="button" tabindex="0" @onclick="OnRowClicked">
+
                                 <td class="id-cell">@user.Id</td>
                                 <td class="bold-cell">
                                     <div class="user-avatar-group">
@@ -90,7 +91,8 @@
                     {
                         @foreach (var post in CommunityPosts)
                         {
-                            <tr class="clickable-row" role="button" tabindex="0">
+                            <tr class="clickable-row" role="button" tabindex="0" @onclick="OnRowClicked">
+
                                 <td class="id-cell">@post.Id</td>
                                 <td class="bold-cell">
                                     <div class="user-avatar-group">
@@ -111,7 +113,8 @@
                     {
                         @foreach (var app in Appointments)
                         {
-                            <tr class="clickable-row" role="button" tabindex="0">
+                            <tr class="clickable-row" role="button" tabindex="0" @onclick="OnRowClicked">
+
                                 <td class="id-cell">@app.Id</td>
                                 <td class="bold-cell">
                                     <div class="user-avatar-group">
@@ -157,8 +160,17 @@
 
     private void OnRowClicked()
     {
-        Navigation.NavigateTo("/admin/incidents");
+        var target = TableType switch
+        {
+            DashboardTableType.Incident => "/admin/incidents",
+            DashboardTableType.Verification => "/admin/verification",
+            DashboardTableType.CommunityPost => "/admin/community-posts",
+            DashboardTableType.Appointment => "/admin/appointments",
+            _ => "/admin/app"
+        };
+        Navigation.NavigateTo(target);
     }
+
 
     private bool HasNoData()
     {

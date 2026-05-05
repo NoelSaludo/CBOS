@@ -7,6 +7,8 @@ public class AppointmentTicketModel
     public long TicketId { get; set; }
     public long AppointmentId { get; set; }
     public string FullName { get; set; } = "";
+    public string FirstName { get; set; } = "";
+    public string LastName { get; set; } = "";
     public string AppointmentType { get; set; } = "";
     public DateTime ScheduledDate { get; set; }
     public string Description { get; set; } = "";

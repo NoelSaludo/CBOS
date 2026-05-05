@@ -7,6 +7,8 @@ namespace CBOS.Components.Services;
 
 public class TicketSupabase : ISupabase
 {
+    public event Action? OnAppointmentsChanged;
+
     public TicketSupabase(Client supabase) : base(supabase)
     {
     }
@@ -62,6 +64,7 @@ public class TicketSupabase : ISupabase
             if (!appointmentMap.TryGetValue(t.SourceId, out var ap))
                 continue;
 
+            var userFound = userMap.TryGetValue(t.SubmittedBy, out var user);
             var model = new AppointmentTicketModel
             {
                 TicketId = t.Id,
@@ -70,9 +73,11 @@ public class TicketSupabase : ISupabase
                 ScheduledDate = ap.ScheduledDate,
                 Description = ap.Description ?? string.Empty,
                 Status = t.Status ?? "Pending",
-                FullName = userMap.TryGetValue(t.SubmittedBy, out var user)
-                    ? string.Join(" ", new[] { user.FirstName, user.MiddleName, user.LastName }.Where(s => !string.IsNullOrWhiteSpace(s)))
-                    : "Unknown"
+                FullName = userFound
+                    ? string.Join(" ", new[] { user!.FirstName, user.MiddleName, user.LastName }.Where(s => !string.IsNullOrWhiteSpace(s)))
+                    : "Unknown",
+                FirstName = user?.FirstName ?? "Unknown",
+                LastName = user?.LastName ?? ""
             };
 
             result.Add(model);
@@ -82,8 +87,6 @@ public class TicketSupabase : ISupabase
 
         return result;
     }
-
-
 
     public async Task UpdateAppointmentTicketStatusAsync(AppointmentTicketModel ticket, string status)
     {
@@ -95,7 +98,7 @@ public class TicketSupabase : ISupabase
             .Where(t => t.Id == ticket.TicketId)
             .Set(t => t.Status, status)
             .Update();
-    }
 
-    
-}
+        OnAppointmentsChanged?.Invoke();
+    }
+}
