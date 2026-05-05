@@ -31,7 +31,6 @@ public class AdminSupabase : ISupabase {
     private Admin currentAdmin;
     public AdminSupabase(Supabase.Client supabase,ILogger<AdminSupabase> logger) : base(supabase) {
         this.logger = logger;
-        this.currentAdmin = null;
      }
 
     public async Task<bool> CheckSessionKey(string sessionKey)
@@ -92,6 +91,11 @@ public class AdminSupabase : ISupabase {
         // This would typically find the current session and delete it
         logger.LogInformation("User logged out");
         this.currentAdmin = null;
+    }
+
+    public long GetCurrentAdminId()
+    {
+        return currentAdmin?.Id ?? 0;
     }
 }
 

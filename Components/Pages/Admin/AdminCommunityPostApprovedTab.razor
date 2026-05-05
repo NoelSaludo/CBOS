@@ -1,6 +1,8 @@
+@using CBOS.Components.Shared
 @using CBOS.Components.Services
 
 @inject AdminCommunityManagerSupabase CommunityManager
+@inject AdminSupabase AdminSupabase
 
 @if (_isLoading)
 {
@@ -125,7 +127,7 @@ else
 
         try
         {
-            await CommunityManager.UpdatePostTicketStatusAsync(ticket, newStatus);
+            await CommunityManager.UpdatePostTicketStatusAsync(ticket, newStatus, AdminSupabase.GetCurrentAdminId());
             await LoadPostsAsync();
         }
         catch (Exception ex)
