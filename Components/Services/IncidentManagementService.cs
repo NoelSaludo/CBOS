@@ -1,4 +1,4 @@
-﻿using Supabase;
+using Supabase;
 using CBOS.Components.Model;
 using static Supabase.Postgrest.Constants;
 

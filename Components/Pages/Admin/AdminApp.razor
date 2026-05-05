@@ -1,4 +1,4 @@
-@page "/admin/app"
+﻿@page "/admin/app"
 @layout AdminDashboardLayout
 @implements IDisposable
 
@@ -136,8 +136,9 @@ else
                             </div>
                             <div class="stat-info">
                                 <div class="stat-number-wrapper">
-                                    <p class="stat-number">@TotalAppointmentsCount.ToString("D2")</p>
+                                    <p class="stat-number">@TotalAppointmentsCount</p>
                                 </div>
+
                                 <h3>APPOINTMENTS</h3>
                             </div>
                         </div>
