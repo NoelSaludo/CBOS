@@ -105,12 +105,12 @@ else
                                 </div>
                                 <div class="stat-trend up">
                                     <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="23 6 13.5 15.5 8.5 10.5 1 18"></polyline><polyline points="17 6 23 6 23 12"></polyline></svg>
-                                    <span>+2 today</span>
+                                    <span>+@IncidentsTodayCount today</span>
                                 </div>
                             </div>
                             <div class="stat-info">
                                 <div class="stat-number-wrapper">
-                                    <p class="stat-number">12</p>
+                                    <p class="stat-number">@TotalIncidentsCount</p>
                                 </div>
                                 <h3>INCIDENT REPORTS</h3>
                             </div>
@@ -481,6 +481,8 @@ else
     private List<CategoryData> postStatusData = new();
     private List<IncidentTrendData> incidentTrendData = new();
     private List<IncidentReportDto> _allIncidentData = new();
+    private int TotalIncidentsCount = 0;
+    private int IncidentsTodayCount = 0;
 
     private string _fontFamily = "'Inter', system-ui, -apple-system, sans-serif";
     private string _primaryColor = "#3b82f6";
@@ -724,6 +726,9 @@ else
         {
             var incidentData = await IncidentService.GetIncidentReportsAsync();
             _allIncidentData = incidentData;
+            
+            TotalIncidentsCount = _allIncidentData.Count;
+            IncidentsTodayCount = _allIncidentData.Count(d => d.Date.Date == DateTime.Today);
 
             incidentReports = incidentData
                 .Take(4)
@@ -742,6 +747,20 @@ else
 
             incidentStatuses = BuildIncidentStatuses(incidentData);
             incidentTrendData = BuildIncidentTrends(_allIncidentData, ActiveTimeRange);
+
+            var statusColors = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase)
+            {
+                { "PENDING", "#f59e0b" },
+                { "RESOLVED", "#10b981" },
+                { "REJECTED", "#ef4444" }
+            };
+            
+            if (incidentStatuses.Any())
+            {
+                pieChartOptions.Colors = incidentStatuses
+                    .Select(s => statusColors.TryGetValue(s.Name, out var c) ? c : "#64748b")
+                    .ToList();
+            }
 
             StateHasChanged();
 
@@ -1018,11 +1037,10 @@ else
         var orderedStatuses = new[] { "PENDING", "RESOLVED", "REJECTED" };
 
         var statuses = orderedStatuses
-            .Where(status => counts.TryGetValue(status, out var count) && count > 0)
             .Select(status => new CategoryData
             {
                 Name = status,
-                Value = counts[status]
+                Value = counts.TryGetValue(status, out var count) ? count : 0
             })
             .ToList();
 
