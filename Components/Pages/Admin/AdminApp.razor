@@ -754,20 +754,15 @@ else
                     StatusClass = GetIncidentStatusClass(report.Status)
                 })
                 .ToList();
+
+            incidentCategories = BuildIncidentCategories(incidentData);
         }
         catch (Exception ex)
         {
             Logger.LogWarning(ex, "Failed to load recent incident reports for the dashboard.");
             incidentReports = new List<IncidentReport>();
+            incidentCategories = new List<CategoryData>();
         }
-
-        incidentCategories = new List<CategoryData>
-        {
-            new CategoryData { Name = "SUGGESTION", Value = 28 },
-            new CategoryData { Name = "COMPLAINT", Value = 45 },
-            new CategoryData { Name = "EMERGENCY", Value = 12 },
-            new CategoryData { Name = "OTHER", Value = 15 }
-        };
 
         incidentTrendData = new List<IncidentTrendData>
         {
@@ -990,6 +985,42 @@ else
             "RESOLVED" => "resolved",
             "REJECTED" => "rejected",
             _ => "gray"
+        };
+    }
+
+    private static List<CategoryData> BuildIncidentCategories(IEnumerable<IncidentReportDto> incidentData)
+    {
+        var counts = incidentData
+            .GroupBy(report => NormalizeIncidentCategory(report.Category))
+            .ToDictionary(group => group.Key, group => group.Count());
+
+        var orderedCategories = new[] { "SUGGESTION", "COMPLAINT", "EMERGENCY", "OTHER" };
+
+        var categories = orderedCategories
+            .Select(category => new CategoryData
+            {
+                Name = category,
+                Value = counts.TryGetValue(category, out var count) ? count : 0
+            })
+            .ToList();
+
+        return categories.All(category => category.Value == 0)
+            ? new List<CategoryData>()
+            : categories;
+    }
+
+    private static string NormalizeIncidentCategory(string category)
+    {
+        var normalizedCategory = category?.Trim().ToUpperInvariant() ?? string.Empty;
+
+        return normalizedCategory switch
+        {
+            "OTHERS" => "OTHER",
+            "SUGGESTION" => "SUGGESTION",
+            "COMPLAINT" => "COMPLAINT",
+            "EMERGENCY" => "EMERGENCY",
+            "OTHER" => "OTHER",
+            _ => "OTHER"
         };
     }
 
