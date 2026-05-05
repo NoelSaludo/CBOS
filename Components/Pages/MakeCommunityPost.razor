@@ -1,7 +1,11 @@
 @page "/app/make-post"
 @layout MainLayout
+@rendermode InteractiveServer
 @inject NavigationManager Navigation
 @inject IJSRuntime JS
+@inject Supabase.Client Supabase
+@inject CBOS.Components.Services.AuthService AuthService
+@using CBOS.Components.Model
 
 <div class="make-post-wrapper">
     <div class="make-post-container">
@@ -58,22 +62,49 @@
                 </p>
             </div>
 
+            @if (!string.IsNullOrEmpty(errorMessage))
+            {
+                <div class="error-message">@errorMessage</div>
+            }
+
             <!-- Submit Button -->
-            <button type="submit" class="submit-button">
-                Submit
+            <button type="submit" class="submit-button" disabled="@isSubmitting">
+                @(isSubmitting ? "Submitting..." : "Submit")
             </button>
         </form>
+
+        @if (showSuccess)
+        {
+            <div class="success-overlay">
+                <div class="success-card">
+                    <h2>Post Submitted!</h2>
+                    <p>Your post is pending admin approval and will appear in the feed once approved.</p>
+                    <button type="button" class="submit-button" @onclick="GoBack">Back to Feed</button>
+                </div>
+            </div>
+        }
     </div>
 </div>
 
 @code {
     private string postDescription = "";
     private string mediaPreview = "";
-    private InputFile fileInput;
+    private InputFile? fileInput;
+    private bool isSubmitting;
+    private bool showSuccess;
+    private string errorMessage = "";
+
+    protected override void OnInitialized()
+    {
+        if (!AuthService.IsAuthenticated)
+        {
+            Navigation.NavigateTo("/login");
+        }
+    }
 
     private void GoBack()
     {
-        Navigation.NavigateTo("/app");
+        Navigation.NavigateTo("/app/feed");
     }
 
     private async Task HandleAttachMedia()
@@ -118,11 +149,98 @@
 
     private async Task HandleSubmit()
     {
-        // TODO: Implement post submission logic
-        // This should send the post data (description + media) to your backend
-        Console.WriteLine($"Post submitted: {postDescription}");
-        postDescription = "";
-        mediaPreview = "";
+        errorMessage = "";
+
+        if (!AuthService.IsAuthenticated || string.IsNullOrEmpty(AuthService.UserEmail))
+        {
+            Navigation.NavigateTo("/login");
+            return;
+        }
+
+        if (string.IsNullOrWhiteSpace(postDescription))
+        {
+            errorMessage = "Please enter a description for your post.";
+            return;
+        }
+
+        isSubmitting = true;
+
+        try
+        {
+            var profile = await Supabase
+                .From<UserProfile>()
+                .Match(new Dictionary<string, string> { { "emailaddress", AuthService.UserEmail } })
+                .Single();
+
+            if (profile == null)
+            {
+                errorMessage = "Unable to find your user profile. Please log in again.";
+                return;
+            }
+
+            if (profile.BarangayId == null)
+            {
+                errorMessage = "Your account is not yet linked to a barangay. Please contact support.";
+                return;
+            }
+
+            long userId = profile.Id;
+            long barangayId = profile.BarangayId.Value;
+            string author = $"{profile.FirstName} {profile.LastName}".Trim();
+
+            var newPost = new UserPost
+            {
+                UserId = userId,
+                BarangayId = barangayId,
+                Title = "",
+                Author = author,
+                Description = postDescription.Trim(),
+                MediaLink = new List<string>()
+            };
+
+            var insertedPost = await Supabase.From<UserPost>().Insert(newPost);
+            var postId = insertedPost.Models.FirstOrDefault()?.Id ?? 0;
+
+            if (postId == 0)
+            {
+                errorMessage = "Post was created but the ID could not be retrieved.";
+                return;
+            }
+
+            try
+            {
+                var ticket = new Ticket
+                {
+                    Type = "post",
+                    SourceId = postId,
+                    SubmittedBy = userId,
+                    Status = "Pending"
+                };
+
+                await Supabase.From<Ticket>().Insert(ticket);
+            }
+            catch
+            {
+                // Compensating delete: if ticket creation fails, remove the orphaned post
+                // so it doesn't end up invisible to the moderation queue.
+                await Supabase.From<UserPost>()
+                    .Where(p => p.Id == postId)
+                    .Delete();
+                throw;
+            }
+
+            postDescription = "";
+            mediaPreview = "";
+            showSuccess = true;
+        }
+        catch (Exception ex)
+        {
+            errorMessage = $"Failed to submit post: {ex.Message}";
+        }
+        finally
+        {
+            isSubmitting = false;
+        }
     }
 }
 
@@ -302,6 +420,53 @@
 
 .submit-button:active {
     transform: scale(0.98);
+}
+
+.submit-button:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+}
+
+.error-message {
+    background-color: #fef2f2;
+    color: #e50000;
+    border: 1px solid #f5a0a0;
+    border-radius: 8px;
+    padding: 12px 16px;
+    margin-bottom: 16px;
+    font-size: 0.9rem;
+}
+
+.success-overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.5);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 1000;
+}
+
+.success-card {
+    background: white;
+    border-radius: 16px;
+    padding: 40px;
+    max-width: 420px;
+    text-align: center;
+    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.2);
+}
+
+.success-card h2 {
+    color: #0078d4;
+    margin: 0 0 12px 0;
+    font-size: 1.5rem;
+}
+
+.success-card p {
+    color: #666;
+    margin: 0 0 24px 0;
+    font-size: 0.95rem;
+    line-height: 1.5;
 }
 </style>
 
