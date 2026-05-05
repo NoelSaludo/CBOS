@@ -1,4 +1,4 @@
-@page "/admin/app"
+﻿@page "/admin/app"
 @layout AdminDashboardLayout
 @implements IDisposable
 
@@ -32,7 +32,7 @@ else
                         <div class="welcome-orb orb-1"></div>
                         <div class="welcome-orb orb-2"></div>
                         <div class="welcome-text-group">
-                            <h1>Welcome back, Official Name.</h1>
+                            <h1>Welcome back, Admin @adminFirstName.</h1>
                             <p>Here's what's happening in your Barangay today.</p>
                         </div>
                         <div class="welcome-actions">
@@ -463,6 +463,7 @@ else
 
     private bool _isAuthorized = false;
     private bool _isLoading = true;
+    private string adminFirstName = "Official Name";
 
     // Table headers
     private List<string> verificationHeaders = new() { "ID", "NAME", "DATE REGISTERED", "STATUS" };
@@ -983,6 +984,12 @@ else
                 Logger.LogWarning("adminSessionKey exists but is invalid or expired.");
                 Navigation.NavigateTo("/admin/access-denied");
                 return;
+            }
+
+            var admin = await AdminSupabase.GetAdminBySessionKey(result.Value);
+            if (admin != null && !string.IsNullOrWhiteSpace(admin.FirstName))
+            {
+                adminFirstName = admin.FirstName;
             }
 
             _isAuthorized = true;
