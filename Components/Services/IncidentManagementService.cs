@@ -1,6 +1,5 @@
 ﻿using Supabase;
 using CBOS.Components.Model;
-using Supabase.Postgrest.Models;
 using static Supabase.Postgrest.Constants;
 
 namespace CBOS.Components.Services;
@@ -9,6 +8,8 @@ public class IncidentManagementService
 {
     private readonly Client _supabase;
     private readonly ILogger<IncidentManagementService> _logger;
+
+    public event Action? OnIncidentsChanged;
 
     public IncidentManagementService(Client supabase, ILogger<IncidentManagementService> logger)
     {
@@ -128,6 +129,8 @@ public class IncidentManagementService
                     _logger.LogWarning("Failed to find report with id {SourceId} to update.", ticket.SourceId);
                 }
             }
+
+            OnIncidentsChanged?.Invoke();
         }
     }
 }

@@ -370,17 +370,17 @@ else
                             </div>
 <div class="architectural-card pie-chart-card">
                                 <div class="card-header-split">
-                                    <h2 class="card-title">Incident Categories</h2>
+                                    <h2 class="card-title">Incident Statuses</h2>
                                 </div>
                                 <div class="pie-chart-container">
                                     @if (_isLoading)
                                     {
                                         <div class="skeleton skeleton-chart" style="border-radius: 50%; width: 200px; height: 200px; margin: 0 auto;"></div>
                                     }
-                                    else if (incidentCategories == null || !incidentCategories.Any())
+                                    else if (incidentStatuses == null || !incidentStatuses.Any())
                                     {
                                         <div class="empty-state">
-                                            <p class="empty-state-text">No category data available.</p>
+                                            <p class="empty-state-text">No incident status data available.</p>
                                         </div>
                                     }
                                     else
@@ -390,7 +390,7 @@ else
                                                    Height="@("300")"
                                                    Options="pieChartOptions">
                                             <ApexPointSeries TItem="CategoryData"
-                                                             Items="incidentCategories"
+                                                             Items="incidentStatuses"
                                                              Name="Incidents"
                                                              SeriesType="SeriesType.Donut"
                                                              XValue="@(e => e.Name)"
@@ -469,7 +469,7 @@ else
     private List<IncidentReport> incidentReports = new();
     private List<CommunityPost> communityPosts = new();
     private List<Appointment> appointments = new();
-    private List<CategoryData> incidentCategories = new();
+    private List<CategoryData> incidentStatuses = new();
     private List<AppointmentTrendData> appTrendData = new();
     private List<UserVerificationTrendData> verificationTrendData = new();
     private List<CategoryData> postStatusData = new();
@@ -628,6 +628,7 @@ else
     protected override void OnInitialized()
     {
         LayoutService.OnSidebarToggled += HandleSidebarToggled;
+        IncidentService.OnIncidentsChanged += HandleIncidentsChanged;
 
         chartOptions = GetDefaultOptions<RegistrationData>();
         chartOptions.Stroke = new Stroke { Curve = Curve.Smooth, Width = 3, Colors = new List<string> { _primaryColor } };
@@ -647,7 +648,7 @@ else
         chartOptions.Tooltip.Y = new TooltipY { Title = new TooltipYTitle { Formatter = @"function(seriesName) { return 'Registrations'; }" } };
 
         pieChartOptions = GetDefaultOptions<CategoryData>();
-        pieChartOptions.Colors = new List<string> { "#10b981", "#f59e0b", "#ef4444", "#9ca3af" };
+            pieChartOptions.Colors = new List<string> { "#f59e0b", "#10b981", "#ef4444" };
         pieChartOptions.Stroke = new Stroke { Show = true, Width = 2, Colors = new List<string> { "#ffffff" } };
         pieChartOptions.Legend.Position = LegendPosition.Bottom;
         pieChartOptions.Legend.HorizontalAlign = Align.Center;
@@ -710,6 +711,49 @@ else
         incidentLineChartOptions.Markers = new Markers { Size = 4, StrokeColors = new List<string> { "#ffffff" }, StrokeWidth = 2, Hover = new MarkersHover { Size = 6 } };
     }
 
+    private async Task RefreshIncidentDataAsync(bool redrawChart, bool clearOnFailure)
+    {
+        try
+        {
+            var incidentData = await IncidentService.GetIncidentReportsAsync();
+
+            incidentReports = incidentData
+                .Take(4)
+                .Select(report => new IncidentReport
+                {
+                    Id = report.FormattedId,
+                    Complainant = report.Complainant,
+                    Title = report.Title,
+                    Category = report.Category,
+                    CategoryClass = GetIncidentCategoryClass(report.Category),
+                    Date = report.Date.ToString("MMM dd, yyyy"),
+                    Status = report.Status,
+                    StatusClass = GetIncidentStatusClass(report.Status)
+                })
+                .ToList();
+
+            incidentStatuses = BuildIncidentStatuses(incidentData);
+
+            StateHasChanged();
+
+            if (redrawChart && incidentCategoryChart != null)
+            {
+                await incidentCategoryChart.RenderAsync();
+            }
+        }
+        catch (Exception ex)
+        {
+            Logger.LogWarning(ex, "Failed to refresh incident dashboard data.");
+
+            if (clearOnFailure)
+            {
+                incidentReports = new List<IncidentReport>();
+                incidentStatuses = new List<CategoryData>();
+                StateHasChanged();
+            }
+        }
+    }
+
     private async Task LoadDashboardData()
     {
         _isLoading = true;
@@ -736,33 +780,7 @@ else
             new VerificationUser { Id = "#USR-3004", Name = "Roberto Santos Jr.", DateRegistered = "Oct 24, 2023", Status = "PARTIALLY VERIFIED", StatusClass = "yellow" }
         };
 
-        try
-        {
-            var incidentData = await IncidentService.GetIncidentReportsAsync();
-
-            incidentReports = incidentData
-                .Take(4)
-                .Select(report => new IncidentReport
-                {
-                    Id = report.FormattedId,
-                    Complainant = report.Complainant,
-                    Title = report.Title,
-                    Category = report.Category,
-                    CategoryClass = GetIncidentCategoryClass(report.Category),
-                    Date = report.Date.ToString("MMM dd, yyyy"),
-                    Status = report.Status,
-                    StatusClass = GetIncidentStatusClass(report.Status)
-                })
-                .ToList();
-
-            incidentCategories = BuildIncidentCategories(incidentData);
-        }
-        catch (Exception ex)
-        {
-            Logger.LogWarning(ex, "Failed to load recent incident reports for the dashboard.");
-            incidentReports = new List<IncidentReport>();
-            incidentCategories = new List<CategoryData>();
-        }
+        await RefreshIncidentDataAsync(redrawChart: false, clearOnFailure: true);
 
         incidentTrendData = new List<IncidentTrendData>
         {
@@ -919,6 +937,19 @@ else
     public void Dispose()
     {
         LayoutService.OnSidebarToggled -= HandleSidebarToggled;
+        IncidentService.OnIncidentsChanged -= HandleIncidentsChanged;
+    }
+
+    private async void HandleIncidentsChanged()
+    {
+        try
+        {
+            await InvokeAsync(() => RefreshIncidentDataAsync(redrawChart: true, clearOnFailure: false));
+        }
+        catch (Exception ex)
+        {
+            Logger.LogWarning(ex, "Error refreshing incident dashboard data after an incident update.");
+        }
     }
 
     protected override async Task OnAfterRenderAsync(bool firstRender)
@@ -988,39 +1019,36 @@ else
         };
     }
 
-    private static List<CategoryData> BuildIncidentCategories(IEnumerable<IncidentReportDto> incidentData)
+    private static List<CategoryData> BuildIncidentStatuses(IEnumerable<IncidentReportDto> incidentData)
     {
         var counts = incidentData
-            .GroupBy(report => NormalizeIncidentCategory(report.Category))
+            .GroupBy(report => NormalizeIncidentStatus(report.Status))
             .ToDictionary(group => group.Key, group => group.Count());
 
-        var orderedCategories = new[] { "SUGGESTION", "COMPLAINT", "EMERGENCY", "OTHER" };
+        var orderedStatuses = new[] { "PENDING", "RESOLVED", "REJECTED" };
 
-        var categories = orderedCategories
-            .Select(category => new CategoryData
+        var statuses = orderedStatuses
+            .Where(status => counts.TryGetValue(status, out var count) && count > 0)
+            .Select(status => new CategoryData
             {
-                Name = category,
-                Value = counts.TryGetValue(category, out var count) ? count : 0
+                Name = status,
+                Value = counts[status]
             })
             .ToList();
 
-        return categories.All(category => category.Value == 0)
-            ? new List<CategoryData>()
-            : categories;
+        return statuses;
     }
 
-    private static string NormalizeIncidentCategory(string category)
+    private static string NormalizeIncidentStatus(string status)
     {
-        var normalizedCategory = category?.Trim().ToUpperInvariant() ?? string.Empty;
+        var normalizedStatus = status?.Trim().ToUpperInvariant() ?? string.Empty;
 
-        return normalizedCategory switch
+        return normalizedStatus switch
         {
-            "OTHERS" => "OTHER",
-            "SUGGESTION" => "SUGGESTION",
-            "COMPLAINT" => "COMPLAINT",
-            "EMERGENCY" => "EMERGENCY",
-            "OTHER" => "OTHER",
-            _ => "OTHER"
+            "PENDING" => "PENDING",
+            "RESOLVED" => "RESOLVED",
+            "REJECTED" => "REJECTED",
+            _ => normalizedStatus
         };
     }
 
