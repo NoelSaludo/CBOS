@@ -1,4 +1,4 @@
-﻿@page "/admin/app"
+@page "/admin/app"
 @layout AdminDashboardLayout
 @implements IDisposable
 
@@ -13,6 +13,7 @@
 @inject ProtectedSessionStorage ProtectedSessionStorage
 @inject LayoutService LayoutService
 @inject TicketSupabase TicketService
+@inject AdminCommunityManagerSupabase CommunityService
 
 @inject IJSRuntime JS
 
@@ -648,6 +649,7 @@ else
         LayoutService.OnSidebarToggled += HandleSidebarToggled;
         IncidentService.OnIncidentsChanged += HandleIncidentsChanged;
         TicketService.OnAppointmentsChanged += HandleAppointmentsChanged;
+        CommunityService.OnCommunityPostsChanged += HandleCommunityPostsChanged;
 
 
         chartOptions = GetDefaultOptions<RegistrationData>();
@@ -845,6 +847,62 @@ else
         }
     }
 
+    private async Task RefreshCommunityPostDataAsync(bool redrawChart, bool clearOnFailure)
+    {
+        try
+        {
+            var postData = await CommunityService.GetAllCommunityPostTicketsAsync();
+            
+            communityPosts = postData
+                .OrderByDescending(p => p.CreatedAt)
+                .Take(5)
+                .Select(p => new CommunityPost
+                {
+                    Id = $"#PST-{p.TicketId}",
+                    Author = p.Author,
+                    Topic = p.Title,
+                    Date = p.CreatedAt.ToString("MMM dd, yyyy"),
+                    Status = p.Status.ToUpperInvariant(),
+                    StatusClass = GetPostStatusClass(p.Status)
+                })
+                .ToList();
+
+            postStatusData = BuildPostStatuses(postData);
+
+            var statusColors = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase)
+            {
+                { "PENDING", "#f59e0b" },
+                { "APPROVED", "#10b981" },
+                { "REJECTED", "#ef4444" }
+            };
+            
+            if (postStatusData.Any())
+            {
+                postStatusPieOptions.Colors = postStatusData
+                    .Select(s => statusColors.TryGetValue(s.Name, out var c) ? c : "#64748b")
+                    .ToList();
+            }
+
+            StateHasChanged();
+
+            if (redrawChart && postStatusChart != null)
+            {
+                await postStatusChart.RenderAsync();
+            }
+        }
+        catch (Exception ex)
+        {
+            Logger.LogWarning(ex, "Failed to refresh community post dashboard data.");
+
+            if (clearOnFailure)
+            {
+                communityPosts = new List<CommunityPost>();
+                postStatusData = new List<CategoryData>();
+                StateHasChanged();
+            }
+        }
+    }
+
     private async Task LoadDashboardData()
     {
         _isLoading = true;
@@ -873,10 +931,10 @@ else
 
         await RefreshIncidentDataAsync(redrawChart: false, clearOnFailure: true);
         await RefreshAppointmentDataAsync(redrawChart: false, clearOnFailure: true);
-
+        await RefreshCommunityPostDataAsync(redrawChart: false, clearOnFailure: true);
 
         // appTrendData is now populated in RefreshAppointmentDataAsync
-
+        // postStatusData and communityPosts are now populated in RefreshCommunityPostDataAsync
 
         verificationTrendData = new List<UserVerificationTrendData>
         {
@@ -894,23 +952,6 @@ else
             new UserVerificationTrendData { Month = "MAY", Status = "Partial", Count = 140 },
             new UserVerificationTrendData { Month = "JUN", Status = "Partial", Count = 220 }
         };
-
-        postStatusData = new List<CategoryData>
-        {
-            new CategoryData { Name = "Approved", Value = 120 },
-            new CategoryData { Name = "Pending", Value = 45 },
-            new CategoryData { Name = "Rejected", Value = 15 }
-        };
-
-        communityPosts = new List<CommunityPost>
-        {
-            new CommunityPost { Id = "#PST-1052", Author = "Juan Dela Cruz", Topic = "Barangay Fiesta", Date = "Oct 24, 2023", Status = "PENDING", StatusClass = "yellow" },
-            new CommunityPost { Id = "#PST-1051", Author = "Maria Santos", Topic = "Clean & Green Drive", Date = "Oct 24, 2023", Status = "APPROVED", StatusClass = "approved" },
-            new CommunityPost { Id = "#PST-1050", Author = "Pedro Penduko", Topic = "Lost Pet", Date = "Oct 23, 2023", Status = "REJECTED", StatusClass = "rejected" }
-        };
-
-        // appointments list is now populated in RefreshAppointmentDataAsync
-
 
         _isLoading = false;
         StateHasChanged();
@@ -967,6 +1008,7 @@ else
         LayoutService.OnSidebarToggled -= HandleSidebarToggled;
         IncidentService.OnIncidentsChanged -= HandleIncidentsChanged;
         TicketService.OnAppointmentsChanged -= HandleAppointmentsChanged;
+        CommunityService.OnCommunityPostsChanged -= HandleCommunityPostsChanged;
     }
 
 
@@ -991,6 +1033,18 @@ else
         catch (Exception ex)
         {
             Logger.LogWarning(ex, "Error refreshing appointment dashboard data after an appointment update.");
+        }
+    }
+
+    private async void HandleCommunityPostsChanged()
+    {
+        try
+        {
+            await InvokeAsync(() => RefreshCommunityPostDataAsync(redrawChart: true, clearOnFailure: false));
+        }
+        catch (Exception ex)
+        {
+            Logger.LogWarning(ex, "Error refreshing community post dashboard data after a post update.");
         }
     }
 
@@ -1078,6 +1132,19 @@ else
             "APPROVED" => "approved",
             "ACCEPTED" => "approved",
             "RESCHEDULED" => "rescheduled",
+            "REJECTED" => "rejected",
+            _ => "gray"
+        };
+    }
+
+    private static string GetPostStatusClass(string status)
+    {
+        var normalizedStatus = status?.ToUpperInvariant() ?? string.Empty;
+
+        return normalizedStatus switch
+        {
+            "PENDING" => "yellow",
+            "APPROVED" => "approved",
             "REJECTED" => "rejected",
             _ => "gray"
         };
@@ -1231,6 +1298,23 @@ else
             "REJECTED" => "REJECTED",
             _ => normalizedStatus
         };
+    }
+
+    private static List<CategoryData> BuildPostStatuses(IEnumerable<CommunityPostTicket> postData)
+    {
+        var counts = postData
+            .GroupBy(p => p.Status.ToUpperInvariant())
+            .ToDictionary(group => group.Key, group => group.Count());
+
+        var orderedStatuses = new[] { "APPROVED", "PENDING", "REJECTED" };
+
+        return orderedStatuses
+            .Select(status => new CategoryData
+            {
+                Name = status,
+                Value = counts.TryGetValue(status, out var count) ? count : 0
+            })
+            .ToList();
     }
 
     private async Task SetTimeRange(string range)

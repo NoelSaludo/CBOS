@@ -13,6 +13,8 @@ public class AdminCommunityManagerSupabase : ISupabase
     private const string StatusRejected = "Rejected";
     private const string StatusApproved = "Approved";
     private const string StatusAccepted = "Accepted";
+    
+    public event Action? OnCommunityPostsChanged;
 
     // Creates the Supabase-backed community manager.
     public AdminCommunityManagerSupabase(Client supabase) : base(supabase)
@@ -37,6 +39,12 @@ public class AdminCommunityManagerSupabase : ISupabase
         return GetPostTicketsByStatusesAsync(new[] { StatusRejected });
     }
 
+    // Gets all community post tickets.
+    public Task<List<CommunityPostTicket>> GetAllCommunityPostTicketsAsync()
+    {
+        return GetPostTicketsByStatusesAsync(new[] { StatusPending, StatusApproved, StatusRejected });
+    }
+
     // Updates the ticket status for a community post.
     public async Task UpdatePostTicketStatusAsync(CommunityPostTicket ticket, string status, long AdminId)
     {
@@ -49,6 +57,8 @@ public class AdminCommunityManagerSupabase : ISupabase
             .Set(t => t.ApprovedBy, AdminId)
             .Set(t => t.ApprovedAt, DateTime.UtcNow)
             .Update();
+
+        OnCommunityPostsChanged?.Invoke();
     }
 
     // Loads post tickets filtered by a normalized status set.
@@ -84,6 +94,7 @@ public class AdminCommunityManagerSupabase : ISupabase
                 Title = string.IsNullOrWhiteSpace(post.Title) ? "Untitled" : post.Title,
                 Description = post.Description ?? string.Empty,
                 PrimaryImageUrl = GetPrimaryImageUrl(post.MediaLink),
+                Author = string.IsNullOrWhiteSpace(post.Author) ? "Resident" : post.Author,
                 Status = NormalizeStatus(ticket.Status),
                 CreatedAt = post.CreatedAt
             });
