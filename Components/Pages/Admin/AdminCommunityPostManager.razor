@@ -1,0 +1,70 @@
+@page "/admin/feed"
+@layout AdminDashboardLayout
+@rendermode InteractiveServer
+
+<div class="community-manager">
+	<div class="welcome-section">
+		<h1>Community Posts</h1>
+		<p>Manage community feed submissions by status.</p>
+	</div>
+
+	<div class="tab-bar" role="tablist" aria-label="Community post tabs">
+		<button class="tab-button @(IsActiveTab(CommunityPostTab.Approved) ? "active" : "")"
+				type="button"
+				role="tab"
+				aria-selected="@IsActiveTab(CommunityPostTab.Approved)"
+				@onclick="() => SelectTab(CommunityPostTab.Approved)">
+			Approved
+		</button>
+		<button class="tab-button @(IsActiveTab(CommunityPostTab.Pending) ? "active" : "")"
+				type="button"
+				role="tab"
+				aria-selected="@IsActiveTab(CommunityPostTab.Pending)"
+				@onclick="() => SelectTab(CommunityPostTab.Pending)">
+			Pending
+		</button>
+		<button class="tab-button @(IsActiveTab(CommunityPostTab.Rejected) ? "active" : "")"
+				type="button"
+				role="tab"
+				aria-selected="@IsActiveTab(CommunityPostTab.Rejected)"
+				@onclick="() => SelectTab(CommunityPostTab.Rejected)">
+			Rejected
+		</button>
+	</div>
+
+	<section class="tab-panel">
+		@if (_activeTab == CommunityPostTab.Approved)
+		{
+			<AdminCommunityPostApprovedTab />
+		}
+		else if (_activeTab == CommunityPostTab.Pending)
+		{
+			<AdminCommunityPostPendingTab />
+		}
+		else
+		{
+			<AdminCommunityPostRejectedTab />
+		}
+	</section>
+</div>
+
+@code {
+	private CommunityPostTab _activeTab = CommunityPostTab.Approved;
+
+	// Switches the visible community post tab.
+	private void SelectTab(CommunityPostTab tab)
+	{
+		_activeTab = tab;
+	}
+
+	// Checks whether a tab is currently active.
+	private bool IsActiveTab(CommunityPostTab tab) => _activeTab == tab;
+
+	private enum CommunityPostTab
+	{
+		Approved,
+		Pending,
+		Rejected
+	}
+}
+
