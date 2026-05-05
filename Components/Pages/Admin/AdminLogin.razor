@@ -58,7 +58,7 @@
     {
         Logger.LogInformation("Attempting admin login with ID: {AdminId}", Model?.id);
 
-        var result = await AdminSupabase.Login(Model?.id ?? string.Empty, Model?.password ?? string.Empty);
+        var result = await AdminSupabase.LoginAndSetCurrentAdmin(Model?.id ?? string.Empty, Model?.password ?? string.Empty);
         switch (result.Code)
         {
             case AdminSupabaseCode.Success:
