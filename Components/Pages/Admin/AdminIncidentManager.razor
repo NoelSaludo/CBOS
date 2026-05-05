@@ -3,7 +3,10 @@
 @rendermode InteractiveServer
 @using CBOS.Components.Layout
 @using CBOS.Components.Shared
+@using CBOS.Components.Services
 @using Microsoft.AspNetCore.Components.Server.ProtectedBrowserStorage
+
+@inject IncidentManagementService IncidentService
 
 @if (!_isAuthorized)
 {
@@ -468,7 +471,7 @@ else
 
         try
         {
-            var dtos = await AdminSupabase.GetIncidentReportsAsync();
+            var dtos = await IncidentService.GetIncidentReportsAsync();
 
             incidentReports = dtos.Select(dto => new IncidentReport
             {
@@ -516,9 +519,9 @@ else
 
             try
             {
-                await AdminSupabase.UpdateTicketStatusAsync(
-                    _selectedReport.TicketId,
-                    _newStatus,
+                await IncidentService.UpdateTicketStatusAsync(
+                    _selectedReport.TicketId, 
+                    _newStatus, 
                     _currentAdminId
                 );
 
