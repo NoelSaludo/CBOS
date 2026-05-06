@@ -62,7 +62,7 @@ else
                         <button class="action-btn accept"
                                 type="button"
                                 disabled="@IsUpdating(ticket.TicketId)"
-                                @onclick="() => UpdateStatusAsync(ticket, StatusApproved)">
+                                @onclick="() => UpdateStatusToAccepted(ticket)">
                             Accept
                         </button>
                     </div>
@@ -78,6 +78,7 @@ else
     private string? _loadError;
     private string? _updateError;
     private readonly HashSet<long> _updatingTicketIds = new();
+    private long adminId;
 
     private const string StatusApproved = "Approved";
 
@@ -85,6 +86,7 @@ else
     protected override async Task OnInitializedAsync()
     {
         await LoadPostsAsync();
+        adminId = AdminSupabase.GetCurrentAdminId();
     }
 
     // Requests the rejected community posts from Supabase.
@@ -110,7 +112,7 @@ else
     }
 
     // Updates the status of a post ticket and refreshes the list.
-    private async Task UpdateStatusAsync(CommunityPostTicket ticket, string newStatus)
+    private async Task UpdateStatusToAccepted(CommunityPostTicket ticket)
     {
         _updateError = null;
 
@@ -119,7 +121,7 @@ else
 
         try
         {
-            await CommunityManager.UpdatePostTicketStatusAsync(ticket, newStatus, AdminSupabase.GetCurrentAdminId());
+            await CommunityManager.UpdatePostTicketStatusToApprovedAsync(ticket.TicketId, adminId);
             await LoadPostsAsync();
         }
         catch (Exception ex)
