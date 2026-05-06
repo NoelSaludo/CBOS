@@ -98,7 +98,7 @@ else
     Title="User Verification"
     Headers="verificationHeaders"
     IsLoading="_isLoading"
-    SkeletonRows="4"
+    SkeletonRows="5"
     VerificationUsers="verificationUsers"
     OnViewAll="OnViewAllVerifications" />
                                 <AdminDashboardTable 
@@ -106,7 +106,7 @@ else
                                     Title="Recent Incident Reports"
                                     Headers="incidentHeaders"
                                     IsLoading="_isLoading"
-                                    SkeletonRows="4"
+                                    SkeletonRows="5"
                                     IncidentReports="incidentReports"
                                     OnViewAll="OnViewAllIncidents" />
                         </div>
@@ -116,7 +116,7 @@ else
                                     Title="Recent Community Posts"
                                     Headers="communityPostHeaders"
                                     IsLoading="_isLoading"
-                                    SkeletonRows="3"
+                                    SkeletonRows="5"
                                     CommunityPosts="communityPosts"
                                     OnViewAll="OnViewAllPosts" />
                                 <AdminDashboardTable 
@@ -124,7 +124,7 @@ else
                                     Title="Appointments"
                                     Headers="appointmentHeaders"
                                     IsLoading="_isLoading"
-                                    SkeletonRows="4"
+                                    SkeletonRows="5"
                                     Appointments="appointments"
                                     OnViewAll="OnViewAllAppointments" />
                         </div>
@@ -452,7 +452,8 @@ else
             IncidentsTodayCount = _allIncidentData.Count(d => d.Date.Date == DateTime.Today);
 
             incidentReports = incidentData
-                .Take(4)
+                .OrderByDescending(report => report.Date)
+                .Take(5)
                 .Select(report => new IncidentReport
                 {
                     Id = report.FormattedId,
@@ -584,7 +585,8 @@ else
             new VerificationUser { Id = "#USR-3001", Name = "Ana Patricia Reyes", DateRegistered = "Oct 22, 2023", Status = "FULLY VERIFIED", StatusClass = "approved" },
             new VerificationUser { Id = "#USR-3002", Name = "Carlos Miguel Torres", DateRegistered = "Oct 23, 2023", Status = "PARTIALLY VERIFIED", StatusClass = "yellow" },
             new VerificationUser { Id = "#USR-3003", Name = "Diana Rose Lim", DateRegistered = "Oct 24, 2023", Status = "FULLY VERIFIED", StatusClass = "approved" },
-            new VerificationUser { Id = "#USR-3004", Name = "Roberto Santos Jr.", DateRegistered = "Oct 24, 2023", Status = "PARTIALLY VERIFIED", StatusClass = "yellow" }
+            new VerificationUser { Id = "#USR-3004", Name = "Roberto Santos Jr.", DateRegistered = "Oct 24, 2023", Status = "PARTIALLY VERIFIED", StatusClass = "yellow" },
+            new VerificationUser { Id = "#USR-3005", Name = "Elena Garcia", DateRegistered = "Oct 25, 2023", Status = "FULLY VERIFIED", StatusClass = "approved" }
         };
 
         await RefreshIncidentDataAsync(redrawChart: false, clearOnFailure: true);
