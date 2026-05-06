@@ -1,0 +1,473 @@
+@page "/app/feed"
+@layout MainLayout
+@rendermode InteractiveServer
+@inject NavigationManager Navigation
+
+@* Community Feed Component *@
+<div class="community-feed-container">
+    <!-- Left Sidebar - User Profile -->
+    <div class="feed-sidebar left-sidebar">
+        <div class="profile-card">
+            <div class="profile-header"></div>
+            <div class="profile-avatar">[PROFILE AVATAR]</div>
+            <h3 class="profile-name">Juan Dela Cruz</h3>
+            <p class="profile-subtitle">Student at Batangas State University</p>
+            <p class="profile-location">216 Tapan St. Brgy 143</p>
+        </div>
+    </div>
+
+    <!-- Main Feed - Center -->
+    <div class="feed-main">
+        <!-- Create Post Section -->
+        <div class="create-post">
+            <div class="create-post-header">
+                <div class="create-avatar">[AVATAR]</div>
+                <input type="text"
+                       placeholder="Start a Post"
+                       class="create-input"
+                       readonly
+                       @onclick="GoToCreatePost" />
+            </div>
+            <div class="create-actions">
+                <button class="action-btn" @onclick="GoToCreatePost">📎 Attach Media</button>
+                <button class="action-btn upload-btn" @onclick="GoToCreatePost">☁️ Upload</button>
+            </div>
+        </div>
+
+        <!-- Posts Feed -->
+        <div class="posts-feed">
+            <!-- Post 1 -->
+            <div class="post">
+                <div class="post-header">
+                    <div class="post-avatar">[AVATAR]</div>
+                    <div class="post-info">
+                        <h4 class="post-author">Jose Santos <span class="verified">✓</span></h4>
+                        <span class="post-time">1h ago · 20/2/2026</span>
+                    </div>
+                    <button class="post-menu">⋯</button>
+                </div>
+                <div class="post-content">
+                    <p>Has anyone else noticed the recent increase in oil prices? Fuel costs keep going up, and it's starting to hit our daily transportation and goods in our area. I hope our barangay or local officials can share updates or possible measures to help residents manage these rising costs. What are your thoughts or experiences so far?</p>
+                </div>
+                <div class="post-image">[POST IMAGE]</div>
+                <div class="post-stats">
+                    <span>⭐ 362</span>
+                    <span>12 Comments</span>
+                </div>
+            </div>
+
+            <!-- Post 2 -->
+            <div class="post">
+                <div class="post-header">
+                    <div class="post-avatar">[AVATAR]</div>
+                    <div class="post-info">
+                        <h4 class="post-author">Jenny Manalo <span class="verified">✓</span> <span class="admin-badge">Admin</span></h4>
+                        <span class="post-time">2h ago · 20/2/2026</span>
+                    </div>
+                    <button class="post-menu">⋯</button>
+                </div>
+                <div class="post-content">
+                    <p>The barangay will be holding a community clean-up drive this Saturday morning to help keep our streets and public spaces clean. All residents are encouraged to participate and bring basic cleaning tools if possible. Let's work together to maintain a cleaner and healthier community. See you there!</p>
+                </div>
+                <div class="post-image">[POST IMAGE]</div>
+                <div class="post-stats">
+                    <span>⭐ 512</span>
+                    <span>56 Comments</span>
+                </div>
+            </div>
+
+            <!-- Post 3 -->
+            <div class="post">
+                <div class="post-header">
+                    <div class="post-avatar">[AVATAR]</div>
+                    <div class="post-info">
+                        <h4 class="post-author">Jong Batongbakal</h4>
+                        <span class="post-time">2d ago · 18/2/2026</span>
+                    </div>
+                    <button class="post-menu">⋯</button>
+                </div>
+                <div class="post-content">
+                    <p>Hi everyone, I just wanted to report that the streetlight near our block hasn't been working for the past few nights. The area gets really dark, especially for people walking home late. Hoping this can be checked by the barangay soon for safety. Thank you!</p>
+                </div>
+                <div class="post-image">[POST IMAGE]</div>
+                <div class="post-stats">
+                    <span>⭐ 145</span>
+                    <span>23 Comments</span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Right Sidebar - Barangay Bulletin -->
+    <div class="feed-sidebar right-sidebar">
+        <h3 class="bulletin-title">Barangay Bulletin</h3>
+        
+        <div class="bulletin-item">
+            <div class="bulletin-image">[BULLETIN IMAGE]</div>
+            <h4>Welcome Barangay Assembly Day</h4>
+            <p class="bulletin-date">Municipal Gymnasium</p>
+        </div>
+
+        <div class="bulletin-item">
+            <div class="bulletin-image">[BULLETIN IMAGE]</div>
+            <h4>Punla ng Pag-Asa Tree Planting Drive 2030</h4>
+            <p class="bulletin-date">Community Event</p>
+        </div>
+
+        <div class="bulletin-item">
+            <div class="bulletin-image">[BULLETIN IMAGE]</div>
+            <h4>Barangay Ermita Operation Libreng Tuli</h4>
+            <p class="bulletin-date">Health Program</p>
+        </div>
+
+        <button class="see-all-btn">See all Barangay Posts →</button>
+    </div>
+</div>
+
+<style>
+    .community-feed-container {
+        display: grid;
+        grid-template-columns: 280px 1fr 300px;
+        gap: 20px;
+        padding: 20px;
+        max-width: 1400px;
+        margin: 0 auto;
+    }
+
+    .feed-sidebar {
+        position: sticky;
+        top: 80px;
+        height: fit-content;
+    }
+
+    .left-sidebar {
+        grid-column: 1;
+    }
+
+    .right-sidebar {
+        grid-column: 3;
+    }
+
+    .feed-main {
+        grid-column: 2;
+    }
+
+    /* Profile Card */
+    .profile-card {
+        background: white;
+        border-radius: 12px;
+        overflow: hidden;
+        box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+    }
+
+    .profile-header {
+        height: 60px;
+        background: linear-gradient(135deg, #00B4D8 0%, #0099CC 100%);
+    }
+
+    .profile-avatar {
+        width: 80px;
+        height: 80px;
+        background: #e0e0e0;
+        border-radius: 50%;
+        margin: -40px auto 16px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 12px;
+        color: #999;
+    }
+
+    .profile-name {
+        text-align: center;
+        font-size: 16px;
+        font-weight: 600;
+        color: #00B4D8;
+        margin: 0 0 4px 0;
+    }
+
+    .profile-subtitle {
+        text-align: center;
+        font-size: 13px;
+        color: #666;
+        margin: 0 0 8px 0;
+    }
+
+    .profile-location {
+        text-align: center;
+        font-size: 12px;
+        color: #999;
+        margin: 0 16px;
+        padding: 0 0 16px 0;
+    }
+
+    /* Create Post */
+    .create-post {
+        background: white;
+        border-radius: 12px;
+        padding: 16px;
+        margin-bottom: 16px;
+        box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+    }
+
+    .create-post-header {
+        display: flex;
+        gap: 12px;
+        margin-bottom: 12px;
+    }
+
+    .create-avatar {
+        width: 40px;
+        height: 40px;
+        background: #e0e0e0;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 10px;
+        color: #999;
+        flex-shrink: 0;
+    }
+
+    .create-input {
+        flex: 1;
+        border: 1px solid #e0e0e0;
+        border-radius: 20px;
+        padding: 10px 16px;
+        font-size: 14px;
+        color: #666;
+        cursor: pointer;
+        background-color: #f5f5f5;
+    }
+
+    .create-input:hover {
+        background-color: #ebebeb;
+    }
+
+    .create-input::placeholder {
+        color: #999;
+    }
+
+    .create-actions {
+        display: flex;
+        gap: 8px;
+        padding-top: 12px;
+        border-top: 1px solid #f0f0f0;
+    }
+
+    .action-btn {
+        flex: 1;
+        border: none;
+        background: transparent;
+        color: #00B4D8;
+        padding: 8px;
+        border-radius: 6px;
+        cursor: pointer;
+        font-size: 13px;
+        transition: background 0.2s;
+    }
+
+    .action-btn:hover {
+        background: #f5f5f5;
+    }
+
+    .upload-btn {
+        background: #f0f0f0;
+    }
+
+    /* Posts Feed */
+    .posts-feed {
+        display: flex;
+        flex-direction: column;
+        gap: 16px;
+    }
+
+    .post {
+        background: white;
+        border-radius: 12px;
+        padding: 16px;
+        box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+    }
+
+    .post-header {
+        display: flex;
+        gap: 12px;
+        margin-bottom: 12px;
+        align-items: flex-start;
+    }
+
+    .post-avatar {
+        width: 40px;
+        height: 40px;
+        background: #e0e0e0;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 10px;
+        color: #999;
+        flex-shrink: 0;
+    }
+
+    .post-info {
+        flex: 1;
+    }
+
+    .post-author {
+        font-size: 14px;
+        font-weight: 600;
+        color: #333;
+        margin: 0 0 2px 0;
+    }
+
+    .verified {
+        color: #00B4D8;
+        font-size: 12px;
+    }
+
+    .admin-badge {
+        background: #00B4D8;
+        color: white;
+        padding: 2px 6px;
+        border-radius: 4px;
+        font-size: 11px;
+        font-weight: 600;
+        margin-left: 4px;
+    }
+
+    .post-time {
+        font-size: 12px;
+        color: #999;
+    }
+
+    .post-menu {
+        background: none;
+        border: none;
+        font-size: 16px;
+        cursor: pointer;
+        color: #999;
+    }
+
+    .post-content {
+        font-size: 14px;
+        line-height: 1.5;
+        color: #333;
+        margin-bottom: 12px;
+    }
+
+    .post-image {
+        width: 100%;
+        height: 200px;
+        background: #f0f0f0;
+        border-radius: 8px;
+        margin-bottom: 12px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: #999;
+        font-size: 12px;
+    }
+
+    .post-stats {
+        display: flex;
+        gap: 16px;
+        font-size: 13px;
+        color: #666;
+        padding-top: 8px;
+        border-top: 1px solid #f0f0f0;
+    }
+
+    /* Bulletin */
+    .bulletin-title {
+        font-size: 16px;
+        font-weight: 600;
+        color: #333;
+        margin: 0 0 16px 0;
+    }
+
+    .bulletin-item {
+        background: white;
+        border-radius: 8px;
+        overflow: hidden;
+        margin-bottom: 12px;
+        box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+    }
+
+    .bulletin-image {
+        width: 100%;
+        height: 120px;
+        background: #e0e0e0;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: #999;
+        font-size: 11px;
+    }
+
+    .bulletin-item h4 {
+        font-size: 13px;
+        font-weight: 600;
+        color: #333;
+        padding: 8px 12px 4px 12px;
+        margin: 0;
+    }
+
+    .bulletin-date {
+        font-size: 11px;
+        color: #999;
+        padding: 0 12px 12px 12px;
+        margin: 0;
+    }
+
+    .see-all-btn {
+        width: 100%;
+        background: #00B4D8;
+        color: white;
+        border: none;
+        padding: 10px;
+        border-radius: 6px;
+        font-size: 13px;
+        font-weight: 600;
+        cursor: pointer;
+        margin-top: 12px;
+        transition: background 0.2s;
+    }
+
+    .see-all-btn:hover {
+        background: #0088AA;
+    }
+
+    /* Responsive */
+    @@media (max-width: 1200px) {
+        .community-feed-container {
+            grid-template-columns: 1fr 300px;
+        }
+        
+        .left-sidebar {
+            display: none;
+        }
+    }
+
+    @@media (max-width: 768px) {
+        .community-feed-container {
+            grid-template-columns: 1fr;
+            gap: 12px;
+            padding: 12px;
+        }
+        
+        .right-sidebar {
+            display: none;
+        }
+
+        .feed-sidebar {
+            position: static;
+        }
+    }
+</style>
+
+@code {
+    private void GoToCreatePost()
+    {
+        Navigation.NavigateTo("/app/make-post");
+    }
+}

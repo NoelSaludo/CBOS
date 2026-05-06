@@ -1,0 +1,269 @@
+@page "/login"
+@layout LoginLayout
+@rendermode InteractiveServer
+@inject Supabase.Client Supabase
+@inject CBOS.Components.Services.AuthService AuthService
+@inject NavigationManager Navigation
+@using CBOS.Components.Model
+
+<PageTitle>Login – CBOS Batangas</PageTitle>
+
+<div class="cbos-login-container">
+
+    <div class="cbos-left-panel">
+        <img src="/images/city-bg.png"            class="cbos-city-bg"        alt="City background" />
+        <img src="/images/cbos-logo-outline.png"  class="cbos-logo-watermark" alt="CBOS Logo"       />
+    </div>
+
+    <div class="cbos-right-panel">
+        <div class="cbos-form-card">
+
+            <div class="cbos-brand">
+                <img src="/images/cbos-logo.png" class="cbos-brand-icon" alt="CBOS icon" />
+                <h1 class="cbos-welcome">WELCOME</h1>
+                <p class="cbos-sub">CBOS Batangas</p>
+            </div>
+
+            @* Error banner *@
+            @if (!string.IsNullOrEmpty(_errorMessage))
+            {
+                <div class="cbos-error" role="alert">
+                    <span>⚠</span> @_errorMessage
+                </div>
+            }
+
+            <div class="cbos-fields">
+
+                @* Email field *@
+                <div class="cbos-input-wrap @(_emailError ? "cbos-input-wrap--error" : "")">
+                    <span class="cbos-input-icon" aria-hidden="true">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24"
+                             fill="none" stroke="currentColor" stroke-width="2"
+                             stroke-linecap="round" stroke-linejoin="round">
+                            <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" />
+                            <circle cx="12" cy="7" r="4" />
+                        </svg>
+                    </span>
+                    <input type="email"
+                           placeholder="Email"
+                           value="@_email"
+                           @oninput="OnEmailInput"
+                           @onkeydown="HandleKeyDown"
+                           class="cbos-input"
+                           autocomplete="email"
+                           disabled="@_isLoading"
+                           aria-label="Email address" />
+                </div>
+
+                @* Password field *@
+                <div class="cbos-input-wrap @(_passwordError ? "cbos-input-wrap--error" : "")">
+                    <span class="cbos-input-icon" aria-hidden="true">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24"
+                             fill="none" stroke="currentColor" stroke-width="2"
+                             stroke-linecap="round" stroke-linejoin="round">
+                            <rect x="3" y="11" width="18" height="11" rx="2" ry="2" />
+                            <path d="M7 11V7a5 5 0 0 1 10 0v4" />
+                        </svg>
+                    </span>
+                    <input type="@(_showPassword ? "text" : "password")"
+                           placeholder="Password"
+                           value="@_password"
+                           @oninput="OnPasswordInput"
+                           @onkeydown="HandleKeyDown"
+                           class="cbos-input"
+                           autocomplete="current-password"
+                           disabled="@_isLoading"
+                           aria-label="Password" />
+                    <button type="button"
+                            class="cbos-eye-btn"
+                            @onclick="TogglePassword"
+                            aria-label="@(_showPassword ? "Hide password" : "Show password")">
+                        @if (_showPassword)
+                        {
+                            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24"
+                                 fill="none" stroke="currentColor" stroke-width="2"
+                                 stroke-linecap="round" stroke-linejoin="round">
+                                <path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94" />
+                                <path d="M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19" />
+                                <line x1="1" y1="1" x2="23" y2="23" />
+                            </svg>
+                        }
+                        else
+                        {
+                            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24"
+                                 fill="none" stroke="currentColor" stroke-width="2"
+                                 stroke-linecap="round" stroke-linejoin="round">
+                                <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z" />
+                                <circle cx="12" cy="12" r="3" />
+                            </svg>
+                        }
+                    </button>
+                </div>
+
+                <div class="cbos-forgot-row">
+                    <a href="/forgot-password" class="cbos-forgot-link">Forgot password?</a>
+                </div>
+
+                <button class="cbos-signin-btn"
+                        @onclick="HandleLogin"
+                        disabled="@_isLoading"
+                        aria-busy="@_isLoading">
+                    @if (_isLoading)
+                    {
+                        <span class="cbos-spinner" aria-hidden="true"></span>
+                        <span>Signing in…</span>
+                    }
+                    else
+                    {
+                        <span>Sign In</span>
+                    }
+                </button>
+
+                <div class="cbos-signup-row">
+                    <span>Don't have an account yet? </span>
+                    <a href="/register" class="cbos-signup-link">Sign Up</a>
+                </div>
+
+            </div>
+        </div>
+    </div>
+</div>
+
+@code {
+    private string _email         = "";
+    private string _password      = "";
+    private string _errorMessage  = "";
+    private bool   _isLoading;
+    private bool   _showPassword;
+    private bool   _emailError;
+    private bool   _passwordError;
+
+    protected override void OnInitialized()
+    {
+        if (AuthService.IsAuthenticated)
+            Navigation.NavigateTo("/app/feed", replace: true);
+    }
+
+    private void OnEmailInput(ChangeEventArgs e)
+    {
+        _email      = e.Value?.ToString() ?? "";
+        _emailError = false;
+        if (_passwordError is false) _errorMessage = "";
+    }
+
+    private void OnPasswordInput(ChangeEventArgs e)
+    {
+        _password      = e.Value?.ToString() ?? "";
+        _passwordError = false;
+        if (_emailError is false) _errorMessage = "";
+    }
+
+    private void TogglePassword() => _showPassword = !_showPassword;
+
+    private async Task HandleKeyDown(KeyboardEventArgs e)
+    {
+        if (e.Key == "Enter")
+            await HandleLogin();
+    }
+
+    private async Task HandleLogin()
+    {
+        _errorMessage  = "";
+        _emailError    = false;
+        _passwordError = false;
+
+        if (string.IsNullOrWhiteSpace(_email))
+        {
+            _emailError   = true;
+            _errorMessage = "Please enter your email address.";
+            return;
+        }
+
+        if (string.IsNullOrWhiteSpace(_password))
+        {
+            _passwordError = true;
+            _errorMessage  = "Please enter your password.";
+            return;
+        }
+
+        if (!_email.Contains('@') || !_email.Contains('.'))
+        {
+            _emailError   = true;
+            _errorMessage = "Please enter a valid email address.";
+            return;
+        }
+
+        _isLoading = true;
+        StateHasChanged();
+
+        try
+        {
+            var session = await Supabase.Auth.SignIn(_email.Trim().ToLower(), _password);
+
+            if (session?.User != null)
+            {
+                // ── Check public.users row exists ───────────────────────
+                bool profileExists = false;
+                try
+                {
+                    var existing = await Supabase
+                        .From<UserProfile>()
+                        .Select("id")
+                        .Match(new Dictionary<string, string>
+                        {
+                            { "emailaddress", _email.Trim().ToLower() }
+                        })
+                        .Single();
+
+                    profileExists = existing != null;
+                }
+                catch
+                {
+                    profileExists = false;
+                }
+
+                if (!profileExists)
+                {
+                    // ── Block login — no public.users row ───────────────
+                    await Supabase.Auth.SignOut();
+                    _errorMessage  = "Your account is not registered in the system. Please register first.";
+                    _emailError    = true;
+                    _passwordError = false;
+                    return;
+                }
+
+                // ── Profile confirmed — read name from metadata ─────────
+                var firstName = session.User.UserMetadata
+                    ?.GetValueOrDefault("first_name")
+                    ?.ToString() ?? "";
+
+                AuthService.SetSession(session, firstName);
+                Navigation.NavigateTo("/app/feed", replace: true);
+            }
+            else
+            {
+                _errorMessage  = "Invalid email or password. Please try again.";
+                _emailError    = true;
+                _passwordError = true;
+            }
+        }
+        catch (Supabase.Gotrue.Exceptions.GotrueException ex)
+        {
+            _errorMessage = ex.Message.Contains("Email not confirmed", StringComparison.OrdinalIgnoreCase)
+                ? "Please confirm your email address before logging in."
+                : "Invalid email or password. Please try again.";
+
+            _emailError    = true;
+            _passwordError = true;
+        }
+        catch (Exception)
+        {
+            _errorMessage = "An unexpected error occurred. Please try again later.";
+        }
+        finally
+        {
+            _isLoading = false;
+            StateHasChanged();
+        }
+    }
+}

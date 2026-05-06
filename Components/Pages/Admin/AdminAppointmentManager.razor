@@ -1,0 +1,181 @@
+@page "/admin/appointments"
+@using CBOS.Components.Model
+@using CBOS.Components.Services
+@using CBOS.Components.Shared
+@layout AdminDashboardLayout
+
+@inject AppointmentTicketSupabase TicketService
+@inject AdminSupabase AdminService
+
+@rendermode InteractiveServer
+
+<div class="welcome-section">
+    <h1>Appointments</h1>
+    <p>Review and update appointment requests by status.</p>
+</div>
+
+@if (_isLoading)
+{
+    <div class="architectural-card">
+        <div class="placeholder-text">Loading appointments…</div>
+    </div>
+}
+else if (!string.IsNullOrWhiteSpace(_loadError))
+{
+    <div class="architectural-card">
+        <div class="error-banner" role="alert">@_loadError</div>
+        <div class="card-footer-center">
+            <button class="action-btn secondary" type="button" @onclick="LoadTicketsAsync">Retry</button>
+        </div>
+    </div>
+}
+else
+{
+    @if (!string.IsNullOrWhiteSpace(_updateError))
+    {
+        <div class="error-banner" role="alert">@_updateError</div>
+    }
+
+    <div class="appointments-board">
+        @StatusColumn("Pending", PendingTickets, "Pending")
+        @StatusColumn("Accepted", AcceptedTickets, "Approved")
+        @StatusColumn("Rejected", RejectedTickets, "Rejected")
+    </div>
+}
+
+@code {
+    private List<AppointmentTicketModel> _items = new();
+    private bool _isLoading = true;
+    private string? _loadError;
+    private string? _updateError;
+    private readonly HashSet<long> _updatingTicketIds = new();
+
+    private const string StatusPending = "Pending";
+    private const string StatusAccepted = "Accepted";
+    private const string StatusRejected = "Rejected";
+
+    protected override async Task OnInitializedAsync()
+    {
+        await LoadTicketsAsync();
+    }
+
+    private List<AppointmentTicketModel> PendingTickets =>
+        _items.Where(i => NormalizeStatus(i.Status) == StatusPending).OrderBy(i => i.ScheduledDate).ToList();
+
+    private List<AppointmentTicketModel> AcceptedTickets =>
+        _items.Where(i => NormalizeStatus(i.Status) == StatusAccepted).OrderByDescending(i => i.ScheduledDate).ToList();
+
+    private List<AppointmentTicketModel> RejectedTickets =>
+        _items.Where(i => NormalizeStatus(i.Status) == StatusRejected).OrderByDescending(i => i.ScheduledDate).ToList();
+
+    private static string NormalizeStatus(string? status)
+    {
+        if (string.IsNullOrWhiteSpace(status)) return StatusPending;
+
+        var normalized = status.Trim();
+        return normalized.Equals(StatusAccepted, StringComparison.OrdinalIgnoreCase) ? StatusAccepted
+            : normalized.Equals(StatusRejected, StringComparison.OrdinalIgnoreCase) ? StatusRejected
+            : normalized.Equals("Rejected", StringComparison.OrdinalIgnoreCase) ? StatusRejected
+            : normalized.Equals("Approved", StringComparison.OrdinalIgnoreCase) ? StatusAccepted
+            : StatusPending;
+    }
+
+    private async Task LoadTicketsAsync()
+    {
+        _isLoading = true;
+        _loadError = null;
+        _updateError = null;
+
+        try
+        {
+            _items = await TicketService.GetAppointmentBoardAsync();
+        }
+        catch (Exception ex)
+        {
+            _loadError = $"Failed to load appointments: {ex.Message}";
+        }
+        finally
+        {
+            _isLoading = false;
+        }
+    }
+
+    private RenderFragment StatusColumn(string title, IReadOnlyCollection<AppointmentTicketModel> tickets, string chipClass) => @<section class="architectural-card status-column">
+        <div class="card-header-split">
+            <h2 class="card-title">@title</h2>
+            <span class="data-chip @chipClass">@tickets.Count</span>
+        </div>
+
+        @if (tickets.Count == 0)
+        {
+            <div class="empty-state">No items</div>
+        }
+        else
+        {
+            <div class="appointments-list">
+                @foreach (var ticket in tickets)
+                {
+                    <div class="appointment-item">
+                        <div class="app-header-row">
+                            <span class="app-id">#TKT-@ticket.TicketId</span>
+                            <span class="data-chip @chipClass">@NormalizeStatus(ticket.Status)</span>
+                        </div>
+
+                        <div class="app-meta">
+                            <span class="app-category">@ticket.AppointmentType</span>
+                            <span class="app-service">@ticket.FullName</span>
+                        </div>
+
+                        <div class="ticket-submeta">
+                            <span>@ticket.ScheduledDate.ToLocalTime().ToString("MMM dd, yyyy • h:mm tt")</span>
+                            <span class="dot">•</span>
+                            <span>@(ticket.Description?.Length > 50 ? ticket.Description.Substring(0, 50) + "…" : ticket.Description)</span>
+                        </div>
+
+                        @if (NormalizeStatus(ticket.Status) == StatusPending)
+                        {
+                            <div class="action-row">
+                                <button class="action-btn accept"
+                                        type="button"
+                                        disabled="@IsUpdating(ticket.TicketId)"
+                                        @onclick="() => UpdateStatusAsync(ticket, StatusAccepted)">
+                                    Accept
+                                </button>
+                                <button class="action-btn decline"
+                                        type="button"
+                                        disabled="@IsUpdating(ticket.TicketId)"
+                                        @onclick="() => UpdateStatusAsync(ticket, StatusRejected)">
+                                    Decline
+                                </button>
+                            </div>
+                        }
+                    </div>
+                }
+            </div>
+        }
+    </section>;
+
+    private bool IsUpdating(long ticketId) => _updatingTicketIds.Contains(ticketId);
+
+    private async Task UpdateStatusAsync(AppointmentTicketModel ticket, string newStatus)
+    {
+        _updateError = null;
+
+        if (!_updatingTicketIds.Add(ticket.TicketId))
+            return;
+
+        try
+        {
+            await TicketService.UpdateAppointmentTicketStatusAsync(ticket.TicketId, newStatus, AdminService.GetCurrentAdminId());
+            ticket.Status = newStatus;
+        }
+        catch (Exception ex)
+        {
+            _updateError = $"Failed to update appointment: {ex.Message}";
+        }
+        finally
+        {
+            _updatingTicketIds.Remove(ticket.TicketId);
+        }
+    }
+}

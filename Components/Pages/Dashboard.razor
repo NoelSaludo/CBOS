@@ -1,0 +1,52 @@
+@page "/app"
+@layout MainLayout
+@using CBOS.Components.Pages
+@using CBOS.Components.Shared
+@using Microsoft.AspNetCore.Components;
+@inject NavigationManager Navigation
+@inject AdminSupabase AdminSupabase
+
+
+<!-- Dashboard Content -->
+<div class="dashboard-content">
+    @if (CurrentSection == "feed")
+    {
+        <CommunityFeed />
+    }
+    else if (CurrentSection == "appointments")
+    {
+        <AppointmentScheduling />
+    }
+    else if (CurrentSection == "profile")
+    {
+        <ProfileInformation />
+    }
+    else if (CurrentSection == "notifications")
+    {
+        <Notifications />
+    }
+    else if (CurrentSection == "incidents")
+    {
+        <IncidentReporting />
+    }
+    else if (CurrentSection == "settings")
+    {
+        <Settings />
+    }
+</div>
+
+@code {
+    private string CurrentSection = "feed";
+
+    protected override void OnInitialized()
+    {
+        // Default to Community Feed
+        CurrentSection = "feed";
+    }
+
+    private async Task Logout()
+    {
+        await AdminSupabase.LogoutAsync();
+        Navigation.NavigateTo("/adminlogin", true);
+    }
+}

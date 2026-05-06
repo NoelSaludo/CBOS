@@ -1,0 +1,113 @@
+﻿/* Design Tokens & Shell*/
+.dashboard-wrapper {
+    /* Color Palette */
+    --primary: #0d0a2d;
+    --primary-hover: #1a164d;
+    --accent: #153871;
+    --accent-subtle: #eff6ff;
+    --secondary: #64748b;
+    --surface: #f1f5f9;
+    --surface-card: #ffffff;
+    --surface-hover: #e2e8f0;
+    --on-surface: #0d0a2d;
+    --outline: #e2e8f0;
+    --outline-light: #f1f5f9;
+
+    /* Elevation System */
+    --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.04);
+    --shadow-md: 0 4px 16px rgba(0, 0, 0, 0.06);
+    --shadow-lg: 0 8px 32px rgba(0, 0, 0, 0.08);
+    --shadow-hover: 0 8px 24px rgba(0, 29, 68, 0.10);
+
+    /* Shape System */
+    --radius-sm: 0.5rem;
+    --radius-md: 0.75rem;
+    --radius-lg: 1rem;
+    --radius-xl: 1.25rem;
+    --radius-full: 9999px;
+
+    /* Motion System */
+    --ease-out: cubic-bezier(0.16, 1, 0.3, 1);
+    --transition-fast: 0.15s var(--ease-out);
+    --transition-base: 0.25s var(--ease-out);
+    --transition-slow: 0.35s var(--ease-out);
+
+    /* Icon Animations */
+    --icon-bounce: icon-bounce 0.5s var(--ease-out);
+    --icon-rotate: icon-rotate 0.4s var(--ease-out);
+    --icon-pulse: icon-pulse 2s infinite ease-in-out;
+
+    /* Layout */
+    display: flex;
+    height: 100vh;
+    background-color: var(--surface);
+    font-family: 'Inter', system-ui, -apple-system, sans-serif;
+    color: var(--on-surface);
+    overflow: hidden;
+}
+
+.main-content {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    overflow-y: auto;
+    padding: 0;
+}
+
+/* Custom Scrollbar */
+.main-content::-webkit-scrollbar {
+    width: 6px;
+}
+
+.main-content::-webkit-scrollbar-track {
+    background: transparent;
+}
+
+.main-content::-webkit-scrollbar-thumb {
+    background: rgba(0, 29, 68, 0.12);
+    border-radius: var(--radius-full);
+}
+
+.main-content::-webkit-scrollbar-thumb:hover {
+    background: rgba(0, 29, 68, 0.25);
+}
+
+.content-area {
+    display: flex;
+    flex-direction: column;
+    gap: 1.75rem;
+    padding: 2.5rem;
+    padding-bottom: 3rem;
+}
+
+.welcome-section h1 {
+    font-size: 1.65rem;
+    font-weight: 800;
+    color: var(--primary);
+    letter-spacing: -0.025em;
+    margin: 0 0 0.35rem 0;
+}
+
+.welcome-section p {
+    font-size: 0.85rem;
+    color: var(--secondary);
+    margin: 0;
+    line-height: 1.5;
+}
+
+/* ─── Shared Animations ─── */
+@keyframes icon-bounce {
+    0%, 100% { transform: translateY(0); }
+    50% { transform: translateY(-4px); }
+}
+
+@keyframes icon-rotate {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(15deg); }
+}
+
+@keyframes icon-pulse {
+    0% { transform: scale(1); opacity: 1; }
+    50% { transform: scale(1.1); opacity: 0.8; }
+    100% { transform: scale(1); opacity: 1; }
+}

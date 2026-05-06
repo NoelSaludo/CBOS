@@ -1,0 +1,189 @@
+@using CBOS.Components.Shared
+@using CBOS.Components.Services
+
+@inject AdminCommunityManagerSupabase CommunityManager
+@inject AdminSupabase AdminSupabase
+
+@if (_isLoading)
+{
+    <div class="post-card">
+        <div class="placeholder-text">Loading approved posts...</div>
+    </div>
+}
+else if (!string.IsNullOrWhiteSpace(_loadError))
+{
+    <div class="post-card">
+        <div class="error-banner" role="alert">@_loadError</div>
+        <div class="card-footer-center">
+            <button class="action-btn secondary" type="button" @onclick="LoadPostsAsync">Retry</button>
+        </div>
+    </div>
+}
+else
+{
+    @if (!string.IsNullOrWhiteSpace(_updateError))
+    {
+        <div class="error-banner" role="alert">@_updateError</div>
+    }
+
+    <div class="tab-header">
+        <h2 class="tab-title">Approved Posts</h2>
+        <span class="data-chip approved">@_tickets.Count</span>
+    </div>
+
+    @if (_tickets.Count == 0)
+    {
+        <div class="empty-state">No approved posts</div>
+    }
+    else
+    {
+        <div class="post-grid">
+            @foreach (var ticket in _tickets)
+            {
+                <article class="post-card">
+                    <div class="post-card-header">
+                        <div>
+                            <h3 class="post-title">@ticket.Title</h3>
+                            <span class="post-meta">#POST-@ticket.PostId • @ticket.CreatedAt.ToLocalTime().ToString("MMM dd, yyyy")</span>
+                        </div>
+                        <span class="data-chip @GetStatusClass(ticket.Status)">@ticket.Status</span>
+                    </div>
+
+                    <p class="post-description">@GetShortDescription(ticket.Description)</p>
+
+                    @if (!string.IsNullOrWhiteSpace(ticket.PrimaryImageUrl))
+                    {
+                        <div class="post-image">
+                            <img src="@ticket.PrimaryImageUrl" alt="Post image" />
+                        </div>
+                    }
+
+                    <div class="action-row">
+                        <button class="action-btn secondary"
+                                type="button"
+                                disabled="@IsUpdating(ticket.TicketId)"
+                                @onclick="() => UpdateStatusToPendingAsync(ticket)">
+                            Move to Pending
+                        </button>
+                        <button class="action-btn decline"
+                                type="button"
+                                disabled="@IsUpdating(ticket.TicketId)"
+                                @onclick="() => UpdateStatusToRejectedAsync(ticket)">
+                            Reject
+                        </button>
+                    </div>
+                </article>
+            }
+        </div>
+    }
+}
+
+@code {
+    private readonly List<CommunityPostTicket> _tickets = new();
+    private bool _isLoading = true;
+    private string? _loadError;
+    private string? _updateError;
+    private readonly HashSet<long> _updatingTicketIds = new();
+
+    private const string StatusPending = "Pending";
+    private const string StatusRejected = "Rejected";
+    private const string StatusApproved = "Approved";
+
+    private long adminId;
+    // Loads approved post tickets on initialization.
+    protected override async Task OnInitializedAsync()
+    {
+        await LoadPostsAsync();
+        adminId = AdminSupabase.GetCurrentAdminId();
+    }
+
+    // Requests the approved community posts from Supabase.
+    private async Task LoadPostsAsync()
+    {
+        _isLoading = true;
+        _loadError = null;
+        _updateError = null;
+
+        try
+        {
+            _tickets.Clear();
+            _tickets.AddRange(await CommunityManager.GetApprovedPostsAsync());
+        }
+        catch (Exception ex)
+        {
+            _loadError = $"Failed to load posts: {ex.Message}";
+        }
+        finally
+        {
+            _isLoading = false;
+        }
+    }
+
+    private async Task UpdateStatusToPendingAsync(CommunityPostTicket ticket)
+    {
+        _updateError = null;
+
+        if (!_updatingTicketIds.Add(ticket.TicketId))
+            return;
+
+        try
+        {
+            await CommunityManager.UpdatePostTicketStatusToPendingAsync(ticket.TicketId, adminId);
+            await LoadPostsAsync();
+        }
+        catch (Exception ex)
+        {
+            _updateError = $"Failed to update post: {ex.Message}";
+        }
+        finally
+        {
+            _updatingTicketIds.Remove(ticket.TicketId);
+        }
+    }
+    // Updates the status of a post ticket and refreshes the list.
+    private async Task UpdateStatusToRejectedAsync(CommunityPostTicket ticket)
+    {
+        _updateError = null;
+
+        if (!_updatingTicketIds.Add(ticket.TicketId))
+            return;
+
+        try
+        {
+            await CommunityManager.UpdatePostTicketStatusToRejectedAsync(ticket.TicketId, adminId);
+            await LoadPostsAsync();
+        }
+        catch (Exception ex)
+        {
+            _updateError = $"Failed to update post: {ex.Message}";
+        }
+        finally
+        {
+            _updatingTicketIds.Remove(ticket.TicketId);
+        }
+    }
+
+    // Checks whether a ticket is currently updating.
+    private bool IsUpdating(long ticketId) => _updatingTicketIds.Contains(ticketId);
+
+    // Picks the appropriate chip style for a status.
+    private static string GetStatusClass(string status)
+    {
+        if (status.Equals(StatusApproved, StringComparison.OrdinalIgnoreCase))
+            return "approved";
+
+        if (status.Equals(StatusRejected, StringComparison.OrdinalIgnoreCase))
+            return "rejected";
+
+        return "pending";
+    }
+
+    // Trims descriptions to 50 characters for card previews.
+    private static string GetShortDescription(string description)
+    {
+        if (string.IsNullOrWhiteSpace(description))
+            return "No description provided.";
+
+        return description.Length > 50 ? description.Substring(0, 50) + "..." : description;
+    }
+}
