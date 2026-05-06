@@ -5,9 +5,9 @@ using Supabase;
 
 namespace CBOS.Components.Services;
 
-public class TicketSupabase : ISupabase
+public class AppointmentTicketSupabase : ISupabase
 {
-    public TicketSupabase(Client supabase) : base(supabase)
+    public AppointmentTicketSupabase(Client supabase) : base(supabase)
     {
     }
 
