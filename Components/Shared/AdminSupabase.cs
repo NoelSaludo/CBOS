@@ -1,6 +1,7 @@
 using CBOS.Components.Model;
 using Supabase.Postgrest.Attributes;
 using Supabase.Postgrest.Models;
+using static Supabase.Postgrest.Constants;
 
 namespace CBOS.Components.Shared;
 
@@ -39,6 +40,31 @@ public class AdminSupabase : ISupabase {
             .Where(s => s.SessonKey == sessionKey && s.expirationAt > DateTime.UtcNow).Single();
 
         return session != null;
+    }
+
+    /// <summary>
+    /// Retrieves the admin user associated with a given session key.
+    /// The session key format is a 24-character base64 string followed by the verification number.
+    /// </summary>
+    public async Task<Model.Admin?> GetAdminBySessionKey(string sessionKey)
+    {
+        if (string.IsNullOrEmpty(sessionKey) || sessionKey.Length <= 24)
+            return null;
+
+        try
+        {
+            string verificationNumber = sessionKey.Substring(24);
+            var admin = await supabase.From<Model.Admin>()
+                .Filter("verification_number", Operator.Equals, verificationNumber)
+                .Single();
+                
+            return admin;
+        }
+        catch (Exception ex)
+        {
+            logger.LogError(ex, "Failed to retrieve admin for session key.");
+            return null;
+        }
     }
 
     public async Task DeleteSession(string sessionKey)
