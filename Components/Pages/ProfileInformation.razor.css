@@ -1,0 +1,66 @@
+﻿/* Container to give the slight off-white/gray background of the page */
+.profile-page-wrapper {
+    padding: 2rem 4rem;
+    min-height: calc(100vh - 80px); /* Adjust based on your MainLayout header height */
+    background-color: #f2f3f5;
+}
+
+/* Big blue header */
+.profile-header {
+    color: #009dff;
+    font-weight: 700;
+    font-size: 3.5rem;
+    letter-spacing: -1px;
+    margin-bottom: 2rem;
+}
+
+/* The white outer wrapper for the card */
+.status-container-white {
+    background-color: #ffffff;
+    border-radius: 16px;
+    padding: 12px;
+    width: 100%;
+    max-width: 900px; /* Constrains width so it doesn't stretch too far */
+    margin-bottom: 1.5rem;
+}
+
+/* The inner gray rectangle */
+.status-card-gray {
+    background-color: #e6e6e6;
+    border-radius: 12px;
+    padding: 12px 24px;
+}
+
+.account-status-text {
+    font-size: 1.1rem;
+    color: #1a1a1a;
+}
+
+.status-label-text {
+    font-size: 1.1rem;
+    color: #1a1a1a;
+}
+
+/* Customizing the bootstrap badge */
+.custom-badge {
+    font-weight: 500;
+    font-size: 0.9rem;
+    padding: 8px 16px;
+    background-color: #707070 !important; /* Overrides bg-secondary to match the specific gray in your mockup */
+}
+
+/* The blue Verify Account button */
+.btn-verify {
+    background-color: #4a8df8;
+    color: white;
+    border: none;
+    padding: 10px 24px;
+    font-weight: 500;
+    font-size: 1rem;
+    transition: background-color 0.2s ease-in-out;
+}
+
+.btn-verify:hover {
+    background-color: #3b74d6;
+    color: white;
+}

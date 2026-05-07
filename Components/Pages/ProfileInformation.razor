@@ -1,0 +1,115 @@
+﻿@page "/app/profile"
+@layout MainLayout
+@using CBOS.Components.Services
+@using CBOS.Services
+@inject VerificationService VerificationSvc
+@inject AuthService AuthSvc
+
+<div class="profile-page-wrapper">
+    <h1 class="profile-header">Profile Information</h1>
+
+    <div class="status-container-white">
+        <div class="status-card-gray d-flex justify-content-between align-items-center">
+            <span class="account-status-text">Account Status</span>
+            
+            <div class="status-indicator d-flex align-items-center">
+                <span class="status-label-text me-2">Status:</span>
+                
+                @if (_isStatusLoading)
+                {
+                    <span class="badge bg-secondary rounded-pill custom-badge">Loading…</span>
+                }
+                else
+                {
+                    <span class="badge @_statusToneClass rounded-pill custom-badge">@_statusLabel</span>
+                }
+            </div>
+        </div>
+    </div>
+
+    @if (!string.IsNullOrWhiteSpace(_statusDescription) && !_isStatusLoading)
+    {
+        <div class="text-muted mb-3 px-2">@_statusDescription</div>
+    }
+
+    <NavLink class="btn btn-verify rounded-pill mt-2" href="/user/verify">
+        Verify account
+    </NavLink>
+</div>
+
+@code {
+    private bool _isStatusLoading = true;
+    private string _statusLabel = "No Submission";
+    private string _statusDescription = "";
+    private string _statusToneClass = "bg-secondary";
+
+    protected override async Task OnInitializedAsync()
+    {
+        await LoadVerificationStatusAsync();
+    }
+
+    private async Task LoadVerificationStatusAsync()
+    {
+        _isStatusLoading = true;
+        if (!AuthSvc.IsAuthenticated)
+        {
+            SetStatus(null);
+            _isStatusLoading = false;
+            return;
+        }
+
+        var userId = AuthSvc.CurrentSession?.User?.Id ?? string.Empty;
+        var accessToken = AuthSvc.CurrentSession?.AccessToken ?? string.Empty;
+
+        if (string.IsNullOrWhiteSpace(userId) || string.IsNullOrWhiteSpace(accessToken))
+        {
+            SetStatus(null);
+            _isStatusLoading = false;
+            return;
+        }
+
+        var status = await VerificationSvc.GetUserVerificationStatusAsync(userId, accessToken);
+        SetStatus(status);
+        _isStatusLoading = false;
+    }
+
+    private void SetStatus(string? status)
+    {
+        if (string.IsNullOrWhiteSpace(status))
+        {
+            _statusLabel = "No Submission";
+            _statusDescription = "";
+            _statusToneClass = "bg-secondary";
+            return;
+        }
+
+        if (string.Equals(status, "Pending", StringComparison.OrdinalIgnoreCase))
+        {
+            _statusLabel = "Pending";
+            _statusDescription = "Your request is under review.";
+            _statusToneClass = "bg-warning text-dark"; // Added text-dark for better contrast on yellow
+            return;
+        }
+
+        if (string.Equals(status, "Approved", StringComparison.OrdinalIgnoreCase))
+        {
+            _statusLabel = "Approved";
+            _statusDescription = "Your account has been verified.";
+            _statusToneClass = "bg-success";
+            return;
+        }
+
+        if (string.Equals(status, "Rejected", StringComparison.OrdinalIgnoreCase) ||
+            string.Equals(status, "Declined", StringComparison.OrdinalIgnoreCase))
+        {
+            _statusLabel = "Rejected";
+            _statusDescription = "Your request was not approved.";
+            _statusToneClass = "bg-danger";
+            return;
+        }
+
+        _statusLabel = status;
+        _statusDescription = "Verification status recorded.";
+        _statusToneClass = "bg-secondary";
+    }
+}
