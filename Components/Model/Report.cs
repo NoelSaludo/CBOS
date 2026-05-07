@@ -15,9 +15,6 @@ public class Report : BaseModel
     [Column("userid")]
     public long UserId { get; set; }
 
-    [Column("category")]
-    public string Category { get; set; } = "";
-
     [Column("title")]
     public string Title { get; set; } = "";
 
@@ -25,8 +22,14 @@ public class Report : BaseModel
     public string Content { get; set; } = "";
 
     [Column("approved_at")]
-    public DateTime? ApprovedAt { get; set; }
+    public DateTime ApprovedAt { get; set; }
 
     [Column("approved_by")]
     public long? ApprovedBy { get; set; }
+
+    [Column("media_links")]
+    public string[]? MediaLinks { get; set; }
+
+    [Column("category")]
+    public string Category { get; set; } = "";
 }

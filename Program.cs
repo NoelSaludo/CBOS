@@ -41,7 +41,10 @@ builder.Services.AddRazorComponents()
 builder.Services.AddSingleton(supabase);
 builder.Services.AddScoped<AuthService>();
 builder.Services.AddScoped<AdminSupabase>();
-builder.Services.AddScoped<TicketSupabase>();
+builder.Services.AddScoped<AppointmentTicketSupabase>();
+builder.Services.AddScoped<AdminCommunityManagerSupabase>();
+builder.Services.AddScoped<LayoutService>();
+builder.Services.AddScoped<IncidentManagementService>();
 builder.Services.AddScoped<LayoutService>();
 
 // ── MISSING: Cookie authentication config ──────────────────────────────────

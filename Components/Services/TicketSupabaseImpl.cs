@@ -5,9 +5,9 @@ using Supabase;
 
 namespace CBOS.Components.Services;
 
-public class TicketSupabase : ISupabase
+public class AppointmentTicketSupabase : ISupabase
 {
-    public TicketSupabase(Client supabase) : base(supabase)
+    public AppointmentTicketSupabase(Client supabase) : base(supabase)
     {
     }
 
@@ -85,15 +85,17 @@ public class TicketSupabase : ISupabase
 
 
 
-    public async Task UpdateAppointmentTicketStatusAsync(AppointmentTicketModel ticket, string status)
+    public async Task UpdateAppointmentTicketStatusAsync(long ticketId, string status, long adminId)
     {
-        if (ticket == null)
-            throw new ArgumentNullException(nameof(ticket));
+        if (ticketId <= 0)
+            throw new ArgumentException("Invalid ticket ID.", nameof(ticketId));
 
         // Keep the ticket and appointment statuses aligned.
         await supabase.From<Ticket>()
-            .Where(t => t.Id == ticket.TicketId)
+            .Where(t => t.Id == ticketId)
             .Set(t => t.Status, status)
+            .Set(t => t.ApprovedBy, adminId)
+            .Set(t => t.ApprovedAt, DateTime.UtcNow)
             .Update();
     }
 

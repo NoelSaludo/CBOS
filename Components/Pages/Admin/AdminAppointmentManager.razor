@@ -1,9 +1,11 @@
 @page "/admin/appointments"
 @using CBOS.Components.Model
 @using CBOS.Components.Services
+@using CBOS.Components.Shared
 @layout AdminDashboardLayout
 
-@inject TicketSupabase TicketService
+@inject AppointmentTicketSupabase TicketService
+@inject AdminSupabase AdminService
 
 @rendermode InteractiveServer
 
@@ -164,7 +166,7 @@ else
 
         try
         {
-            await TicketService.UpdateAppointmentTicketStatusAsync(ticket, newStatus);
+            await TicketService.UpdateAppointmentTicketStatusAsync(ticket.TicketId, newStatus, AdminService.GetCurrentAdminId());
             ticket.Status = newStatus;
         }
         catch (Exception ex)
