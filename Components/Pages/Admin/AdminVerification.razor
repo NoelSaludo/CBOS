@@ -1,0 +1,420 @@
+﻿@page "/admin/verification"
+@layout AdminDashboardLayout
+@rendermode InteractiveServer
+@using CBOS.Components.Model
+@using CBOS.Components.Services
+@using CBOS.Components.Shared
+
+@inject AdminVerificationManagerSupabase VerificationManager
+@inject AdminSupabase AdminSupabase
+
+<div class="management-container">
+    <div class="welcome-section">
+        <div class="welcome-orb orb-1"></div>
+        <div class="welcome-orb orb-2"></div>
+        <div class="welcome-text-group">
+            <h1>User Verification</h1>
+            <p>Review and manage account verifications by status.</p>
+        </div>
+        <div class="welcome-actions">
+            <button class="quick-action-btn" type="button" @onclick="LoadTicketsAsync">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M21 2v6h-6"></path>
+                    <path d="M20 13a9 9 0 1 1-2.12-5.88L21 8"></path>
+                </svg>
+                Refresh Data
+            </button>
+        </div>
+    </div>
+
+    <div class="section-divider">
+        <p class="section-label">ACCOUNTS CONSOLE</p>
+        <div class="section-line"></div>
+    </div>
+
+    <div class="filters-card architectural-card">
+        <div class="search-box">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
+            <input type="text" placeholder="Search by name, email, or user ID..." @bind="searchQuery" @bind:event="oninput" />
+        </div>
+        <div class="filter-groups">
+            <select @bind="selectedStatus" class="filter-select">
+                <option value="All">All Status</option>
+                <option value="Pending">Pending</option>
+                <option value="Approved">Approved</option>
+                <option value="Rejected">Rejected</option>
+            </select>
+            <button class="icon-action reset-btn" @onclick="ResetFilters" title="Reset Filters">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M23 4v6h-6"></path><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"></path></svg>
+            </button>
+        </div>
+    </div>
+
+    @if (_isLoading)
+    {
+        <div class="architectural-card">
+            <div class="placeholder-text">Loading verification tickets…</div>
+        </div>
+    }
+    else if (!string.IsNullOrWhiteSpace(_loadError))
+    {
+        <div class="architectural-card">
+            <div class="error-banner" role="alert">@_loadError</div>
+            <div class="card-footer-center">
+                <button class="action-btn secondary" type="button" @onclick="LoadTicketsAsync">Retry</button>
+            </div>
+        </div>
+    }
+    else
+    {
+        @if (!string.IsNullOrWhiteSpace(_updateError))
+        {
+            <div class="error-banner" role="alert">@_updateError</div>
+        }
+
+        <div class="table-card architectural-card">
+            <div class="table-container">
+                <table class="data-table">
+                    <thead>
+                        <tr>
+                            <th>ID</th>
+                            <th>USER</th>
+                            <th>SUBMITTED</th>
+                            <th>STATUS</th>
+                            <th class="actions-header" style="text-align: center;">ACTIONS</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @if (!FilteredTickets.Any())
+                        {
+                            <tr>
+                                <td colspan="5">
+                                    <div class="empty-state">
+                                        <div class="empty-state-icon">
+                                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                                <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
+                                                <circle cx="12" cy="7" r="4"></circle>
+                                            </svg>
+                                        </div>
+                                        <p class="empty-state-text">No verification tickets match your filters.</p>
+                                    </div>
+                                </td>
+                            </tr>
+                        }
+                        else
+                        {
+                            @foreach (var ticket in FilteredTickets)
+                            {
+                                <tr class="clickable-row" @onclick="() => OpenDetailsModal(ticket)">
+                                    <td class="id-cell">#VER-@GetTicketDisplayId(ticket.Id)</td>
+                                    <td class="bold-cell">
+                                        <div>@GetDisplayName(ticket)</div>
+                                        <div class="light-cell">@ticket.UserEmail</div>
+                                    </td>
+                                    <td class="light-cell">@ticket.CreatedDate.ToLocalTime().ToString("MMM dd, yyyy")</td>
+                                    <td><span class="data-chip @GetStatusClass(ticket.Status)">@GetDisplayStatus(ticket.Status)</span></td>
+                                    <td>
+                                        <div class="row-actions" style="justify-content: center;">
+                                            <button class="view-details-btn" @onclick="() => OpenDetailsModal(ticket)" @onclick:stopPropagation title="Manage Verification">
+                                                <span>Manage</span>
+                                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                                    <path d="M5 12h14"></path>
+                                                    <path d="m12 5 7 7-7 7"></path>
+                                                </svg>
+                                            </button>
+                                        </div>
+                                    </td>
+                                </tr>
+                            }
+                        }
+                    </tbody>
+                </table>
+            </div>
+            <div class="table-footer">
+                <div class="pagination-info">
+                    Showing <span>@FilteredTickets.Count</span> of <span>@AllTickets.Count</span> tickets
+                </div>
+            </div>
+        </div>
+    }
+</div>
+
+@if (_showDetailsModal && _selectedTicket != null)
+{
+    <div class="modal-overlay">
+        <div class="modal-content large">
+            <div class="modal-header">
+                <div class="modal-title-group">
+                    <div class="modal-icon-wrapper">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
+                            <circle cx="12" cy="7" r="4"></circle>
+                        </svg>
+                    </div>
+                    <div class="modal-text">
+                        <h3>@GetDisplayName(_selectedTicket)</h3>
+                        <p>ID: <span class="id-text">#VER-@GetTicketDisplayId(_selectedTicket.Id)</span></p>
+                    </div>
+                </div>
+                <div class="header-actions">
+                    <span class="data-chip @GetStatusClass(_selectedTicket.Status)">@GetDisplayStatus(_selectedTicket.Status)</span>
+                    <button class="close-btn" @onclick="CloseDetailsModal">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+                    </button>
+                </div>
+            </div>
+            <div class="modal-body details-grid">
+                <div class="left-column">
+                    <div class="post-summary-card">
+                        <div class="summary-item">
+                            <span class="summary-label">USER ID</span>
+                            <span class="summary-value">@_selectedTicket.UserId</span>
+                        </div>
+                        <div class="summary-item">
+                            <span class="summary-label">EMAIL</span>
+                            <span class="summary-value">@_selectedTicket.UserEmail</span>
+                        </div>
+                        <div class="summary-item">
+                            <span class="summary-label">DATE SUBMITTED</span>
+                            <span class="summary-value">@_selectedTicket.CreatedDate.ToLocalTime().ToString("MMM dd, yyyy • h:mm tt")</span>
+                        </div>
+                        <div class="summary-item full-width">
+                            <span class="summary-label">STATUS</span>
+                            <span class="summary-value">@GetDisplayStatus(_selectedTicket.Status)</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="right-column">
+                    <div class="attachments-section">
+                        <span class="summary-label mb-2" style="display:block;">DOCUMENTS</span>
+                        <div class="image-gallery">
+                            <div class="image-wrapper">
+                                @if (!string.IsNullOrWhiteSpace(_selectedTicket.ValidIdUrl))
+                                {
+                                    <a class="view-details-btn" href="@_selectedTicket.ValidIdUrl" target="_blank" rel="noopener noreferrer">Open Valid ID</a>
+                                }
+                                else
+                                {
+                                    <span class="light-cell">No valid ID uploaded.</span>
+                                }
+                            </div>
+                            <div class="image-wrapper">
+                                @if (!string.IsNullOrWhiteSpace(_selectedTicket.BirthCertificateUrl))
+                                {
+                                    <a class="view-details-btn" href="@_selectedTicket.BirthCertificateUrl" target="_blank" rel="noopener noreferrer">Open Birth Certificate</a>
+                                }
+                                else
+                                {
+                                    <span class="light-cell">No birth certificate uploaded.</span>
+                                }
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="status-selection-group mt-4">
+                        <span class="summary-label mb-2" style="display:block;">UPDATE STATUS</span>
+                        <div class="status-grid">
+                            <div class="status-card-option @(_newStatus == StatusPending ? "active" : "")" @onclick='() => _newStatus = StatusPending'>
+                                <div class="status-card-icon pending">
+                                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline></svg>
+                                </div>
+                                <div class="status-card-info">
+                                    <span class="status-name">Pending</span>
+                                    <span class="status-desc">Needs review</span>
+                                </div>
+                                <div class="status-radio-mock"></div>
+                            </div>
+
+                            <div class="status-card-option @(_newStatus == StatusApproved ? "active" : "")" @onclick='() => _newStatus = StatusApproved'>
+                                <div class="status-card-icon resolved">
+                                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path><polyline points="22 4 12 14.01 9 11.01"></polyline></svg>
+                                </div>
+                                <div class="status-card-info">
+                                    <span class="status-name">Approved</span>
+                                    <span class="status-desc">Mark as verified</span>
+                                </div>
+                                <div class="status-radio-mock"></div>
+                            </div>
+
+                            <div class="status-card-option @(_newStatus == StatusRejected ? "active" : "")" @onclick='() => _newStatus = StatusRejected'>
+                                <div class="status-card-icon rejected">
+                                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><line x1="15" y1="9" x2="9" y2="15"></line><line x1="9" y1="9" x2="15" y2="15"></line></svg>
+                                </div>
+                                <div class="status-card-info">
+                                    <span class="status-name">Rejected</span>
+                                    <span class="status-desc">Deny request</span>
+                                </div>
+                                <div class="status-radio-mock"></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="modal-btn secondary" @onclick="CloseDetailsModal">Cancel</button>
+                <button class="modal-btn primary" disabled="@IsUpdating(_selectedTicket.Id)" @onclick="ConfirmStatusUpdate">
+                    <span>Confirm Update</span>
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 11 12 14 22 4"></polyline><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"></path></svg>
+                </button>
+            </div>
+        </div>
+    </div>
+}
+
+@code {
+    private readonly List<VerificationTicketRecord> _tickets = new();
+    private bool _isLoading = true;
+    private string? _loadError;
+    private string? _updateError;
+    private readonly HashSet<Guid> _updatingTicketIds = new();
+    private bool _showDetailsModal = false;
+    private VerificationTicketRecord? _selectedTicket;
+    private string _newStatus = StatusPending;
+    private string searchQuery = "";
+    private string selectedStatus = "All";
+    private long adminId;
+
+    private const string StatusPending = "Pending";
+    private const string StatusApproved = "Approved";
+    private const string StatusRejected = "Rejected";
+
+    private List<VerificationTicketRecord> AllTickets => _tickets
+        .OrderByDescending(t => t.CreatedDate)
+        .ToList();
+
+    private List<VerificationTicketRecord> FilteredTickets => AllTickets
+        .Where(t => (selectedStatus == "All" || NormalizeStatus(t.Status) == selectedStatus) &&
+                    (string.IsNullOrWhiteSpace(searchQuery) ||
+                     GetDisplayName(t).Contains(searchQuery, StringComparison.OrdinalIgnoreCase) ||
+                     (t.UserEmail?.Contains(searchQuery, StringComparison.OrdinalIgnoreCase) ?? false) ||
+                     t.UserId.Contains(searchQuery, StringComparison.OrdinalIgnoreCase)))
+        .ToList();
+
+    protected override async Task OnInitializedAsync()
+    {
+        adminId = AdminSupabase.GetCurrentAdminId();
+        await LoadTicketsAsync();
+    }
+
+    private async Task LoadTicketsAsync()
+    {
+        _isLoading = true;
+        _loadError = null;
+        _updateError = null;
+
+        try
+        {
+            _tickets.Clear();
+            var tickets = await VerificationManager.GetVerificationTicketsAsync();
+            _tickets.AddRange(tickets);
+        }
+        catch (Exception ex)
+        {
+            _loadError = $"Failed to load tickets: {ex.Message}";
+        }
+        finally
+        {
+            _isLoading = false;
+        }
+    }
+
+    private string NormalizeStatus(string? status)
+    {
+        if (string.IsNullOrWhiteSpace(status)) return StatusPending;
+
+        return status.Equals(StatusApproved, StringComparison.OrdinalIgnoreCase)
+            ? StatusApproved
+            : status.Equals(StatusRejected, StringComparison.OrdinalIgnoreCase)
+                ? StatusRejected
+                : StatusPending;
+    }
+
+    private string GetDisplayStatus(string? status) => NormalizeStatus(status);
+
+    private string GetStatusClass(string? status) => NormalizeStatus(status) switch
+    {
+        StatusApproved => "approved",
+        StatusRejected => "rejected",
+        _ => "pending"
+    };
+
+    private static string GetDisplayName(VerificationTicketRecord ticket)
+    {
+        if (!string.IsNullOrWhiteSpace(ticket.UserFullName))
+            return ticket.UserFullName;
+
+        return string.IsNullOrWhiteSpace(ticket.UserEmail) ? "Unknown User" : ticket.UserEmail;
+    }
+
+    private static string GetTicketDisplayId(Guid ticketId)
+    {
+        var id = ticketId.ToString("N");
+        return id.Length >= 8 ? id[..8].ToUpperInvariant() : ticketId.ToString();
+    }
+
+    private void OpenDetailsModal(VerificationTicketRecord ticket)
+    {
+        _selectedTicket = ticket;
+        _newStatus = NormalizeStatus(ticket.Status);
+        _showDetailsModal = true;
+    }
+
+    private void CloseDetailsModal()
+    {
+        _showDetailsModal = false;
+        _selectedTicket = null;
+    }
+
+    private async Task ConfirmStatusUpdate()
+    {
+        if (_selectedTicket == null || IsUpdating(_selectedTicket.Id))
+            return;
+
+        await UpdateStatusAsync(_selectedTicket, _newStatus);
+        CloseDetailsModal();
+    }
+
+    private async Task UpdateStatusAsync(VerificationTicketRecord ticket, string newStatus)
+    {
+        _updateError = null;
+
+        if (!_updatingTicketIds.Add(ticket.Id))
+            return;
+
+        try
+        {
+            switch (newStatus)
+            {
+                case StatusApproved:
+                    await VerificationManager.ApproveTicketAsync(ticket, adminId);
+                    break;
+                case StatusRejected:
+                    await VerificationManager.RejectTicketAsync(ticket.Id, adminId);
+                    break;
+                default:
+                    await VerificationManager.SetPendingAsync(ticket.Id, adminId);
+                    break;
+            }
+
+            await LoadTicketsAsync();
+        }
+        catch (Exception ex)
+        {
+            _updateError = $"Failed to update ticket: {ex.Message}";
+        }
+        finally
+        {
+            _updatingTicketIds.Remove(ticket.Id);
+        }
+    }
+
+    private bool IsUpdating(Guid ticketId) => _updatingTicketIds.Contains(ticketId);
+
+    private void ResetFilters()
+    {
+        searchQuery = "";
+        selectedStatus = "All";
+    }
+}
+
