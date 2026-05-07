@@ -41,12 +41,6 @@ builder.Services.AddRazorComponents()
 
 builder.Services.AddHttpClient<VerificationService>();
 
-var supabaseUrl = builder.Configuration["Supabase:Url"]!;
-var supabaseAnonKey = builder.Configuration["Supabase:AnonKey"]!;
-
-builder.Services.AddSingleton(_ => new Client(supabaseUrl, supabaseAnonKey));
-
-
 builder.Services.AddSingleton(supabase);
 builder.Services.AddScoped<AuthService>();
 builder.Services.AddScoped<AdminSupabase>();
@@ -72,11 +66,6 @@ builder.Services.AddHttpContextAccessor();
 
 var app = builder.Build();
 
-using (var scope = app.Services.CreateScope())
-{
-    var supabaseClient = scope.ServiceProvider.GetRequiredService<Client>();
-    await supabaseClient.InitializeAsync();
-}
 
 if (!app.Environment.IsDevelopment())
 {

@@ -14,13 +14,19 @@ namespace CBOS.Services
     public class VerificationService
     {
         private readonly HttpClient _httpClient;
-        private const string SupabaseUrl    = "https://rcvroqmhnlavcykviwkf.supabase.co";
-        private const string SupabaseAnonKey = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJjdnJvcW1obmxhdmN5a3Zpd2tmIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzU1NTMzMzIsImV4cCI6MjA5MTEyOTMzMn0.BaXpi731ybZ4WIOAiI3HAs5vEYPIIYooQAKjnjYDqmc"; 
-        private const string StorageBucket  = "verification-documents";  
+        private readonly string _supabaseUrl;
+        private readonly string _supabaseAnonKey;
+        private const string StorageBucket  = "verification-documents";
 
         public VerificationService(HttpClient httpClient)
         {
             _httpClient = httpClient;
+
+            // Read Supabase configuration from environment (.env loaded in Program.cs)
+            _supabaseUrl = Environment.GetEnvironmentVariable("SUPABASE_URL")
+                ?? throw new InvalidOperationException("SUPABASE_URL environment variable must be set.");
+            _supabaseAnonKey = Environment.GetEnvironmentVariable("SUPABASE_KEY")
+                ?? throw new InvalidOperationException("SUPABASE_KEY environment variable must be set.");
         }
 
         // ── Upload a file to Supabase Storage ──────────────────────────────────────
@@ -29,15 +35,15 @@ namespace CBOS.Services
             try
             {
                 var safeFileName = $"{userId}/{folder}/{Guid.NewGuid()}_{file.Name}";
-                var uploadUrl = $"{SupabaseUrl}/storage/v1/object/{StorageBucket}/{safeFileName}";
+                var uploadUrl = $"{_supabaseUrl}/storage/v1/object/{StorageBucket}/{safeFileName}";
 
                 using var stream    = file.OpenReadStream(maxAllowedSize: 10 * 1024 * 1024); // 10 MB
                 using var content   = new StreamContent(stream);
                 content.Headers.ContentType = new MediaTypeHeaderValue(file.ContentType);
 
                 using var request = new HttpRequestMessage(HttpMethod.Post, uploadUrl);
-                request.Headers.Add("apikey",        SupabaseAnonKey);
-                request.Headers.Add("Authorization", $"Bearer {SupabaseAnonKey}");
+                request.Headers.Add("apikey",        _supabaseAnonKey);
+                request.Headers.Add("Authorization", $"Bearer {_supabaseAnonKey}");
                 request.Content = content;
 
                 var response = await _httpClient.SendAsync(request);
@@ -49,7 +55,7 @@ namespace CBOS.Services
                 }
 
                 // Return the public URL
-                var publicUrl = $"{SupabaseUrl}/storage/v1/object/public/{StorageBucket}/{safeFileName}";
+                var publicUrl = $"{_supabaseUrl}/storage/v1/object/public/{StorageBucket}/{safeFileName}";
                 return publicUrl;
             }
             catch (Exception ex)
@@ -64,14 +70,14 @@ namespace CBOS.Services
         {
             try
             {
-                var insertUrl = $"{SupabaseUrl}/rest/v1/verification_tickets";
+                var insertUrl = $"{_supabaseUrl}/rest/v1/verification_tickets";
 
                 var payload = JsonSerializer.Serialize(ticket);
                 using var content = new StringContent(payload, Encoding.UTF8, "application/json");
 
                 using var request = new HttpRequestMessage(HttpMethod.Post, insertUrl);
-                request.Headers.Add("apikey",        SupabaseAnonKey);
-                request.Headers.Add("Authorization", $"Bearer {SupabaseAnonKey}");
+                request.Headers.Add("apikey",        _supabaseAnonKey);
+                request.Headers.Add("Authorization", $"Bearer {_supabaseAnonKey}");
                 request.Headers.Add("Prefer",        "return=representation");
                 request.Content = content;
 
@@ -97,11 +103,11 @@ namespace CBOS.Services
         {
             try
             {
-                var queryUrl = $"{SupabaseUrl}/rest/v1/verification_tickets?user_id=eq.{userId}&select=status&order=created_date.desc&limit=1";
+                var queryUrl = $"{_supabaseUrl}/rest/v1/verification_tickets?user_id=eq.{userId}&select=status&order=created_date.desc&limit=1";
 
                 using var request = new HttpRequestMessage(HttpMethod.Get, queryUrl);
-                request.Headers.Add("apikey",        SupabaseAnonKey);
-                request.Headers.Add("Authorization", $"Bearer {SupabaseAnonKey}");
+                request.Headers.Add("apikey",        _supabaseAnonKey);
+                request.Headers.Add("Authorization", $"Bearer {_supabaseAnonKey}");
 
                 var response = await _httpClient.SendAsync(request);
                 if (!response.IsSuccessStatusCode) return null;
