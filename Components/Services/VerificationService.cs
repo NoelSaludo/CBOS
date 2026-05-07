@@ -1,5 +1,6 @@
 using System;
 using System.IO;
+using System.Net;
 using System.Net.Http;
 using System.Net.Http.Headers;
 using System.Net.Http.Json;
@@ -103,8 +104,41 @@ namespace CBOS.Services
             }
         }
 
+        // ── Lookup user ID by email address ────────────────────────────────────────
+        public async Task<long?> GetUserProfileIdAsync(string email, string? accessToken)
+        {
+            try
+            {
+                if (string.IsNullOrWhiteSpace(email))
+                    return null;
+
+                var encodedEmail = WebUtility.UrlEncode(email);
+                var queryUrl = $"{_supabaseUrl}/rest/v1/users?emailaddress=eq.{encodedEmail}&select=id&limit=1";
+
+                using var request = new HttpRequestMessage(HttpMethod.Get, queryUrl);
+                ApplyAuthHeaders(request, accessToken);
+
+                var response = await _httpClient.SendAsync(request);
+                if (!response.IsSuccessStatusCode)
+                    return null;
+
+                var json = await response.Content.ReadAsStringAsync();
+                using var doc = JsonDocument.Parse(json);
+                if (doc.RootElement.ValueKind != JsonValueKind.Array || doc.RootElement.GetArrayLength() == 0)
+                    return null;
+
+                var idValue = doc.RootElement[0].GetProperty("id").GetInt64();
+                return idValue;
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"[VerificationService] Exception getting user id: {ex.Message}");
+                return null;
+            }
+        }
+
         // ── Check if user already has a pending/approved ticket ────────────────────
-        public async Task<string?> GetUserVerificationStatusAsync(string userId, string? accessToken)
+        public async Task<string?> GetUserVerificationStatusAsync(long userId, string? accessToken)
         {
             try
             {

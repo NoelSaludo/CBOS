@@ -7,10 +7,10 @@ namespace CBOS.Components.Model;
 public class VerificationTicketRecord : BaseModel
 {
     [PrimaryKey("id", false)]
-    public Guid Id { get; set; }
+    public long Id { get; set; }
 
     [Column("user_id")]
-    public string UserId { get; set; } = string.Empty;
+    public long UserId { get; set; }
 
     [Column("user_email")]
     public string UserEmail { get; set; } = string.Empty;
@@ -34,7 +34,7 @@ public class VerificationTicketRecord : BaseModel
     public DateTime? ApprovedDate { get; set; }
 
     [Column("approved_by")]
-    public string? ApprovedBy { get; set; }
+    public long? ApprovedBy { get; set; }
 
     [Column("status")]
     public string? Status { get; set; }
@@ -42,4 +42,3 @@ public class VerificationTicketRecord : BaseModel
     [Column("remarks")]
     public string? Remarks { get; set; }
 }
-

@@ -267,7 +267,7 @@
     private bool _isLoading = true;
     private string? _loadError;
     private string? _updateError;
-    private readonly HashSet<Guid> _updatingTicketIds = new();
+    private readonly HashSet<long> _updatingTicketIds = new();
     private bool _showDetailsModal = false;
     private VerificationTicketRecord? _selectedTicket;
     private string _newStatus = StatusPending;
@@ -288,7 +288,7 @@
                     (string.IsNullOrWhiteSpace(searchQuery) ||
                      GetDisplayName(t).Contains(searchQuery, StringComparison.OrdinalIgnoreCase) ||
                      (t.UserEmail?.Contains(searchQuery, StringComparison.OrdinalIgnoreCase) ?? false) ||
-                     t.UserId.Contains(searchQuery, StringComparison.OrdinalIgnoreCase)))
+                     t.UserId.ToString().Contains(searchQuery, StringComparison.OrdinalIgnoreCase)))
         .ToList();
 
     protected override async Task OnInitializedAsync()
@@ -347,10 +347,9 @@
         return string.IsNullOrWhiteSpace(ticket.UserEmail) ? "Unknown User" : ticket.UserEmail;
     }
 
-    private static string GetTicketDisplayId(Guid ticketId)
+    private static string GetTicketDisplayId(long ticketId)
     {
-        var id = ticketId.ToString("N");
-        return id.Length >= 8 ? id[..8].ToUpperInvariant() : ticketId.ToString();
+        return ticketId.ToString();
     }
 
     private void OpenDetailsModal(VerificationTicketRecord ticket)
@@ -409,7 +408,7 @@
         }
     }
 
-    private bool IsUpdating(Guid ticketId) => _updatingTicketIds.Contains(ticketId);
+    private bool IsUpdating(long ticketId) => _updatingTicketIds.Contains(ticketId);
 
     private void ResetFilters()
     {
@@ -417,4 +416,3 @@
         selectedStatus = "All";
     }
 }
-

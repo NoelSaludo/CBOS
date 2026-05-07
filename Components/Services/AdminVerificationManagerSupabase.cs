@@ -45,25 +45,22 @@ public class AdminVerificationManagerSupabase : ISupabase
         await EnsureVerifiedUserAsync(ticket, adminId);
     }
 
-    public Task RejectTicketAsync(Guid ticketId, long adminId)
+    public Task RejectTicketAsync(long ticketId, long adminId)
     {
         return UpdateTicketStatusAsync(ticketId, StatusRejected, adminId, false);
     }
 
-    public Task SetPendingAsync(Guid ticketId, long adminId)
+    public Task SetPendingAsync(long ticketId, long adminId)
     {
         return UpdateTicketStatusAsync(ticketId, StatusPending, adminId, null, clearApproval: true);
     }
 
-    private async Task UpdateTicketStatusAsync(Guid ticketId, string status, long adminId, bool? isApproved,
+    private async Task UpdateTicketStatusAsync(long ticketId, string status, long adminId, bool? isApproved,
         bool clearApproval = false)
     {
         var update = supabase.From<VerificationTicketRecord>()
             .Where(t => t.Id == ticketId)
-            .Set(t => t.Status, status)
-            .Set(t => t.ApprovedDate, DateTime.UtcNow)
-            .Set(t => t.ApprovedBy, adminId.ToString())
-            .Set(t => t.IsApproved, isApproved);
+            .Set(t => t.Status, status);
 
         if (clearApproval)
         {
@@ -72,13 +69,20 @@ public class AdminVerificationManagerSupabase : ISupabase
                 .Set(t => t.ApprovedDate, null)
                 .Set(t => t.IsApproved, null);
         }
+        else
+        {
+            update = update
+                .Set(t => t.ApprovedDate, DateTime.UtcNow)
+                .Set(t => t.ApprovedBy, adminId)
+                .Set(t => t.IsApproved, isApproved);
+        }
 
         await update.Update();
     }
 
     private async Task EnsureVerifiedUserAsync(VerificationTicketRecord ticket, long adminId)
     {
-        if (string.IsNullOrWhiteSpace(ticket.UserId))
+        if (ticket.UserId <= 0)
             return;
 
         var existing = await supabase.From<VerifiedUserRecord>()
@@ -88,6 +92,16 @@ public class AdminVerificationManagerSupabase : ISupabase
         if (existing.Models.Count > 0)
             return;
 
+        var record = new VerifiedUserRecord
+        {
+            UserId = ticket.UserId,
+            UserEmail = ticket.UserEmail,
+            UserFullName = ticket.UserFullName,
+            VerifiedAt = DateTime.UtcNow,
+            VerifiedBy = adminId
+        };
+
+        await supabase.From<VerifiedUserRecord>().Insert(record);
     }
 
     private static string GetResponseStatus(HttpResponseMessage? responseMessage)

@@ -6,8 +6,9 @@ namespace CBOS.Components.Model;
 [Table("verified_users")]
 public class VerifiedUserRecord : BaseModel
 {
-    [PrimaryKey("user_id", false)]
-    public string UserId { get; set; } = string.Empty;
+    [PrimaryKey("userid", false)]
+    [Column("userid")]
+    public long UserId { get; set; }
 
     [Column("user_email")]
     public string? UserEmail { get; set; }
@@ -19,6 +20,5 @@ public class VerifiedUserRecord : BaseModel
     public DateTime? VerifiedAt { get; set; }
 
     [Column("verified_by")]
-    public string? VerifiedBy { get; set; }
+    public long? VerifiedBy { get; set; }
 }
-

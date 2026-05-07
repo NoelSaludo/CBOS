@@ -262,6 +262,13 @@
 
         try
         {
+            var userProfileId = await VerificationSvc.GetUserProfileIdAsync(CurrentUserEmail, CurrentAccessToken);
+            if (userProfileId == null || userProfileId <= 0)
+            {
+                ShowToast("Could not find your profile record. Please contact support.", "error");
+                return;
+            }
+
             // 1. Upload Valid ID
             ShowToast("Uploading Valid ID…", "info");
             var validIdUrl = await VerificationSvc.UploadFileAsync(
@@ -287,7 +294,7 @@
             // 3. Create the verification ticket
             var ticket = new VerificationTicket
             {
-                UserId              = CurrentUserId,
+                UserId              = userProfileId.Value,
                 UserEmail           = CurrentUserEmail,
                 UserFullName        = CurrentUserName,
                 ValidIdUrl          = validIdUrl,

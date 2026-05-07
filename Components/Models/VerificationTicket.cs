@@ -6,10 +6,11 @@ namespace CBOS.Models
     public class VerificationTicket
     {
         [JsonPropertyName("id")]
-        public Guid Id { get; set; } = Guid.NewGuid();
+        [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingDefault)]
+        public long Id { get; set; }
 
         [JsonPropertyName("user_id")]
-        public string UserId { get; set; } = string.Empty;
+        public long UserId { get; set; }
 
         [JsonPropertyName("user_email")]
         public string UserEmail { get; set; } = string.Empty;
@@ -33,7 +34,7 @@ namespace CBOS.Models
         public DateTime? ApprovedDate { get; set; }
 
         [JsonPropertyName("approved_by")]
-        public string? ApprovedBy { get; set; }
+        public long? ApprovedBy { get; set; }
 
         [JsonPropertyName("status")]
         public string Status { get; set; } = "Pending";

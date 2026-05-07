@@ -58,17 +58,25 @@
             return;
         }
 
-        var userId = AuthSvc.CurrentSession?.User?.Id ?? string.Empty;
+        var userEmail = AuthSvc.UserEmail ?? string.Empty;
         var accessToken = AuthSvc.CurrentSession?.AccessToken ?? string.Empty;
 
-        if (string.IsNullOrWhiteSpace(userId) || string.IsNullOrWhiteSpace(accessToken))
+        if (string.IsNullOrWhiteSpace(userEmail) || string.IsNullOrWhiteSpace(accessToken))
         {
             SetStatus(null);
             _isStatusLoading = false;
             return;
         }
 
-        var status = await VerificationSvc.GetUserVerificationStatusAsync(userId, accessToken);
+        var userId = await VerificationSvc.GetUserProfileIdAsync(userEmail, accessToken);
+        if (userId == null || userId <= 0)
+        {
+            SetStatus(null);
+            _isStatusLoading = false;
+            return;
+        }
+
+        var status = await VerificationSvc.GetUserVerificationStatusAsync(userId.Value, accessToken);
         SetStatus(status);
         _isStatusLoading = false;
     }
