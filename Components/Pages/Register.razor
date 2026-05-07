@@ -732,6 +732,7 @@
         {
             var options = new Supabase.Gotrue.SignUpOptions
             {
+                RedirectTo = Navigation.BaseUri,
                 Data = new Dictionary<string, object>
                 {
                     { "first_name",   firstName },
