@@ -95,10 +95,7 @@ public class AdminVerificationManagerSupabase : ISupabase
         var record = new VerifiedUserRecord
         {
             UserId = ticket.UserId,
-            UserEmail = ticket.UserEmail,
-            UserFullName = ticket.UserFullName,
-            VerifiedAt = DateTime.UtcNow,
-            VerifiedBy = adminId
+            CreatedAt = DateTime.UtcNow
         };
 
         await supabase.From<VerifiedUserRecord>().Insert(record);

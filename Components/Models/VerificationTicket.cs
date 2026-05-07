@@ -9,7 +9,7 @@ namespace CBOS.Models
         [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingDefault)]
         public long Id { get; set; }
 
-        [JsonPropertyName("user_id")]
+        [JsonPropertyName("userid")]
         public long UserId { get; set; }
 
         [JsonPropertyName("user_email")]

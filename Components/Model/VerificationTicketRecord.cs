@@ -9,7 +9,7 @@ public class VerificationTicketRecord : BaseModel
     [PrimaryKey("id", false)]
     public long Id { get; set; }
 
-    [Column("user_id")]
+    [Column("userid")]
     public long UserId { get; set; }
 
     [Column("user_email")]

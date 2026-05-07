@@ -142,7 +142,7 @@ namespace CBOS.Services
         {
             try
             {
-                var queryUrl = $"{_supabaseUrl}/rest/v1/verification_tickets?user_id=eq.{userId}&select=status&order=created_date.desc&limit=1";
+                var queryUrl = $"{_supabaseUrl}/rest/v1/verification_tickets?userid=eq.{userId}&select=status&order=created_date.desc&limit=1";
 
                 using var request = new HttpRequestMessage(HttpMethod.Get, queryUrl);
                 ApplyAuthHeaders(request, accessToken);
