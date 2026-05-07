@@ -1,6 +1,26 @@
 body {
-    background: linear-gradient(to bottom, #00baf9, #0347ad);
-    font-family: 'Inter', sans-serif;
+    --primary: #0d0a2d;
+    --primary-hover: #1a164d;
+    --accent: #153871;
+    --accent-subtle: #eff6ff;
+    --secondary: #64748b;
+    --surface: #f1f5f9;
+    --surface-card: #ffffff;
+    --surface-hover: #e2e8f0;
+    --on-surface: #0d0a2d;
+    --outline: #e2e8f0;
+    --outline-light: #f1f5f9;
+    --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.04);
+    --shadow-md: 0 4px 16px rgba(0, 0, 0, 0.06);
+    --shadow-lg: 0 8px 32px rgba(0, 0, 0, 0.08);
+    --radius-sm: 0.5rem;
+    --radius-md: 0.75rem;
+    --radius-lg: 1rem;
+    --radius-xl: 1.25rem;
+    --radius-full: 9999px;
+    background: radial-gradient(circle at top, #1b1452 0%, var(--primary) 55%, #09071a 100%);
+    color: var(--on-surface);
+    font-family: 'Inter', system-ui, -apple-system, sans-serif;
 }
 
 .login {
@@ -32,6 +52,17 @@ body {
 
 .login-header .header-text h2 {
     font-size: 1.25rem;
-    color: #ffffff;
+    color: var(--secondary);
     margin: 0;
+}
+
+@media (max-width: 768px) {
+    .login-header {
+        margin-left: 2rem;
+        align-items: center;
+    }
+
+    .login-header .header-text h1 {
+        font-size: 2rem;
+    }
 }
