@@ -1,4 +1,4 @@
-﻿namespace CBOS.Components.Services;
+namespace CBOS.Components.Services;
 public class LayoutService
 {
     public bool IsSidebarCollapsed { get; private set; }

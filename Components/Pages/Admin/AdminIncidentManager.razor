@@ -1,0 +1,634 @@
+@page "/admin/incidents"
+@layout AdminDashboardLayout
+@rendermode InteractiveServer
+@using CBOS.Components.Layout
+@using CBOS.Components.Shared
+@using CBOS.Components.Services
+@using Microsoft.AspNetCore.Components.Server.ProtectedBrowserStorage
+
+@inject IncidentManagementService IncidentService
+
+@if (!_isAuthorized)
+{
+    <div class="auth-loading">
+        <div class="spinner"></div>
+        <p>Verifying session…</p>
+    </div>
+}
+else
+{
+    <div class="management-container">
+        <div class="welcome-section">
+            <div class="welcome-orb orb-1"></div>
+            <div class="welcome-orb orb-2"></div>
+            <div class="welcome-text-group">
+                <h1>Incident Management</h1>
+                <p>Monitor, review, and respond to community incident reports.</p>
+            </div>
+            <div class="welcome-actions">
+                <button class="quick-action-btn" @onclick="ToggleExportComingSoon">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="17 8 12 3 7 8"></polyline><line x1="12" y1="3" x2="12" y2="15"></line></svg>
+                    Export Data
+                </button>
+            </div>
+        </div>
+
+        <div class="analytics-grid">
+            <div class="stat-card">
+                <div class="stat-card-top">
+                    <div class="stat-icon-wrapper blue">
+                        <span class="stat-icon">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
+                                <polyline points="14 2 14 8 20 8"></polyline>
+                                <line x1="16" y1="13" x2="8" y2="13"></line>
+                                <line x1="16" y1="17" x2="8" y2="17"></line>
+                                <polyline points="10 9 9 9 8 9"></polyline>
+                            </svg>
+                        </span>
+                    </div>
+                    <div class="stat-badge today">Total</div>
+                </div>
+                <div class="stat-info">
+                    <div class="stat-number-wrapper">
+                        <p class="stat-number">@TotalIncidents</p>
+                    </div>
+                    <h3>TOTAL INCIDENTS</h3>
+                </div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-card-top">
+                    <div class="stat-icon-wrapper orange">
+                        <span class="stat-icon">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                <circle cx="12" cy="12" r="10"></circle>
+                                <polyline points="12 6 12 12 16 14"></polyline>
+                            </svg>
+                        </span>
+                    </div>
+                    <div class="stat-badge today">Pending</div>
+                </div>
+                <div class="stat-info">
+                    <div class="stat-number-wrapper">
+                        <p class="stat-number">@PendingIncidents</p>
+                    </div>
+                    <h3>PENDING REVIEW</h3>
+                </div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-card-top">
+                    <div class="stat-icon-wrapper green">
+                        <span class="stat-icon">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path>
+                                <polyline points="22 4 12 14.01 9 11.01"></polyline>
+                            </svg>
+                        </span>
+                    </div>
+                    <div class="stat-badge today">Resolved</div>
+                </div>
+                <div class="stat-info">
+                    <div class="stat-number-wrapper">
+                        <p class="stat-number">@ResolvedIncidents</p>
+                    </div>
+                    <h3>RESOLVED CASES</h3>
+                </div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-card-top">
+                    <div class="stat-icon-wrapper red">
+                        <span class="stat-icon">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"></path>
+                                <line x1="12" y1="9" x2="12" y2="13"></line>
+                                <line x1="12" y1="17" x2="12.01" y2="17"></line>
+                            </svg>
+                        </span>
+                    </div>
+                    <div class="stat-badge urgent">Urgent</div>
+                </div>
+                <div class="stat-info">
+                    <div class="stat-number-wrapper">
+                        <p class="stat-number">@EmergencyIncidents</p>
+                    </div>
+                    <h3>EMERGENCY REPORTS</h3>
+                </div>
+            </div>
+        </div>
+
+        <div class="section-divider">
+            <p class="section-label">MANAGEMENT CONSOLE</p>
+            <div class="section-line"></div>
+        </div>
+
+        <div class="filters-card architectural-card">
+            <div class="search-box">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
+                <input type="text" placeholder="Search by ID, complainant, or title..." @bind="searchQuery" @bind:event="oninput" />
+            </div>
+            <div class="filter-groups">
+                <select @bind="selectedCategory" class="filter-select">
+                    <option value="All">All Categories</option>
+                    <option value="SUGGESTION">Suggestion</option>
+                    <option value="COMPLAINT">Complaint</option>
+                    <option value="EMERGENCY">Emergency</option>
+                    <option value="OTHER">Other</option>
+                </select>
+                <select @bind="selectedStatus" class="filter-select">
+                    <option value="All">All Status</option>
+                    <option value="PENDING">Pending</option>
+                    <option value="RESOLVED">Resolved</option>
+                    <option value="REJECTED">Rejected</option>
+                </select>
+                <button class="icon-action reset-btn" @onclick="ResetFilters" title="Reset Filters">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M23 4v6h-6"></path><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"></path></svg>
+                </button>
+            </div>
+        </div>
+
+        <div class="table-card architectural-card">
+            <div class="table-container">
+                <table class="data-table">
+                    <thead>
+                        <tr>
+                            <th>ID</th>
+                            <th>COMPLAINANT</th>
+                            <th>TITLE</th>
+                            <th>CATEGORY</th>
+                            <th>DATE</th>
+                            <th>STATUS</th>
+                            <th class="actions-header" style="text-align: center;">ACTIONS</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @if (_isLoading)
+                        {
+                            @for (int i = 0; i < 6; i++)
+                            {
+                                <tr>
+                                    <td><div class="skeleton skeleton-text" style="width: 70px;"></div></td>
+                                    <td><div class="skeleton skeleton-text"></div></td>
+                                    <td><div class="skeleton skeleton-text"></div></td>
+                                    <td><div class="skeleton skeleton-text" style="width: 60px;"></div></td>
+                                    <td><div class="skeleton skeleton-text" style="width: 80px;"></div></td>
+                                    <td><div class="skeleton skeleton-text" style="width: 70px;"></div></td>
+                                    <td><div class="skeleton skeleton-text" style="width: 80px;"></div></td>
+                                </tr>
+                            }
+                        }
+                        else if (!FilteredReports.Any())
+                        {
+                            <tr>
+                                <td colspan="7">
+                                    <div class="empty-state">
+                                        <div class="empty-state-icon">
+                                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                                <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"></path>
+                                                <line x1="12" y1="9" x2="12" y2="13"></line>
+                                                <line x1="12" y1="17" x2="12.01" y2="17"></line>
+                                            </svg>
+                                        </div>
+                                        <p class="empty-state-text">No incident reports found matching your criteria.</p>
+                                        <button class="btn-link" @onclick="ResetFilters">Clear all filters</button>
+                                    </div>
+                                </td>
+                            </tr>
+                        }
+                        else
+                        {
+                            @foreach (var report in PaginatedReports)
+                            {
+                                <tr class="clickable-row" @onclick="() => OpenDetailsModal(report)">
+                                    <td class="id-cell">@report.FormattedId</td>
+                                    <td class="bold-cell">
+                                        <div class="user-avatar-group">
+                                            <div class="avatar-circle">@report.Complainant[0]</div>
+                                            <div class="name-details">
+                                                <span>@report.Complainant</span>
+                                                <span class="sub-text">Complainant</span>
+                                            </div>
+                                        </div>
+                                    </td>
+                                    <td class="light-cell">@report.Title</td>
+                                    <td><span class="data-chip @report.CategoryClass">@report.Category</span></td>
+                                    <td class="light-cell">@report.Date.ToString("MMM dd, yyyy")</td>
+                                    <td><span class="data-chip @report.StatusClass">@report.Status</span></td>
+                                    <td>
+                                        <div class="row-actions" style="justify-content: center;">
+                                            <button class="view-details-btn" @onclick="() => OpenDetailsModal(report)" @onclick:stopPropagation title="Manage Incident">
+                                                <span>Manage</span>
+                                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                                    <path d="M5 12h14"></path>
+                                                    <path d="m12 5 7 7-7 7"></path>
+                                                </svg>
+                                            </button>
+                                        </div>
+                                    </td>
+                                </tr>
+                            }
+                        }
+                    </tbody>
+                </table>
+            </div>
+            <div class="table-footer">
+                <div class="pagination-info">
+                    Showing <span>@PaginatedReports.Count</span> of <span>@FilteredReports.Count</span> reports
+                </div>
+                <div class="pagination-controls">
+                    <button class="page-btn" disabled="@(_currentPage <= 1)" @onclick="PrevPage">&lt;</button>
+                    @for (int i = 1; i <= TotalPages; i++)
+                    {
+                        var pageNum = i;
+                        <button class="page-btn @(pageNum == _currentPage ? "active" : "")" @onclick="() => GoToPage(pageNum)">@pageNum</button>
+                    }
+                    <button class="page-btn" disabled="@(_currentPage >= TotalPages)" @onclick="NextPage">&gt;</button>
+                </div>
+            </div>
+        </div>
+    </div>
+}
+
+@if (_showDetailsModal && _selectedReport != null)
+{
+    <div class="modal-overlay">
+        <div class="modal-content large">
+            <div class="modal-header">
+                <div class="modal-title-group">
+                    <div class="modal-icon-wrapper">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="16" y1="13" x2="8" y2="13"></line><line x1="16" y1="17" x2="8" y2="17"></line><polyline points="10 9 9 9 8 9"></polyline></svg>
+                    </div>
+                    <div class="modal-text">
+                        <h3>@_selectedReport.Title</h3>
+                        <p>ID: <span class="id-text">@_selectedReport.FormattedId</span></p>
+                    </div>
+                </div>
+                <div class="header-actions">
+                    <span class="data-chip @_selectedReport.StatusClass">@_selectedReport.Status</span>
+                    <button class="close-btn" @onclick="CloseDetailsModal">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+                    </button>
+                </div>
+            </div>
+            <div class="modal-body details-grid">
+                <div class="left-column">
+                    <div class="complainant-card">
+                        <div class="avatar-circle large-avatar">@_selectedReport.Complainant[0]</div>
+                        <div class="name-details">
+                            <span class="complainant-name">@_selectedReport.Complainant</span>
+                            <span class="sub-text">Complainant</span>
+                        </div>
+                    </div>
+
+                    <div class="incident-details-box">
+                        <div class="detail-row">
+                            <div class="detail-item">
+                                <span class="summary-label">CATEGORY</span>
+                                <span class="data-chip @_selectedReport.CategoryClass mt-1">@_selectedReport.Category</span>
+                            </div>
+                            <div class="detail-item">
+                                <span class="summary-label">DATE SUBMITTED</span>
+                                <span class="summary-value mt-1">@_selectedReport.Date.ToString("MMM dd, yyyy")</span>
+                            </div>
+                        </div>
+                        <div class="detail-item full-width mt-3">
+                            <span class="summary-label">DESCRIPTION</span>
+                            <p class="description-text">@_selectedReport.Description</p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="right-column">
+                    <div class="attachments-section">
+                        <span class="summary-label mb-2" style="display:block;">ATTACHED EVIDENCE</span>
+                        
+                        @if (_selectedReport.AttachedImages != null && _selectedReport.AttachedImages.Any())
+                        {
+                            <div class="image-gallery">
+                                @foreach (var img in _selectedReport.AttachedImages)
+                                {
+                                    <div class="image-wrapper">
+                                        <img src="@img" class="attachment-thumbnail" alt="Attached evidence" />
+                                    </div>
+                                }
+                            </div>
+                        }
+                        else
+                        {
+                            <div class="empty-attachments">
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect><circle cx="8.5" cy="8.5" r="1.5"></circle><polyline points="21 15 16 10 5 21"></polyline></svg>
+                                <p>No images attached.</p>
+                            </div>
+                        }
+                    </div>
+
+                    <div class="status-selection-group mt-4">
+                        <span class="summary-label mb-2" style="display:block;">UPDATE STATUS</span>
+                        <div class="status-grid">
+                            <div class="status-card-option @(_newStatus == "PENDING" ? "active" : "")" @onclick='() => _newStatus = "PENDING"'>
+                                <div class="status-card-icon pending">
+                                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline></svg>
+                                </div>
+                                <div class="status-card-info">
+                                    <span class="status-name">Pending</span>
+                                    <span class="status-desc">Investigation</span>
+                                </div>
+                                <div class="status-radio-mock"></div>
+                            </div>
+
+                            <div class="status-card-option @(_newStatus == "RESOLVED" ? "active" : "")" @onclick='() => _newStatus = "RESOLVED"'>
+                                <div class="status-card-icon resolved">
+                                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path><polyline points="22 4 12 14.01 9 11.01"></polyline></svg>
+                                </div>
+                                <div class="status-card-info">
+                                    <span class="status-name">Resolved</span>
+                                    <span class="status-desc">Completed</span>
+                                </div>
+                                <div class="status-radio-mock"></div>
+                            </div>
+
+                            <div class="status-card-option @(_newStatus == "REJECTED" ? "active" : "")" @onclick='() => _newStatus = "REJECTED"'>
+                                <div class="status-card-icon rejected">
+                                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><line x1="15" y1="9" x2="9" y2="15"></line><line x1="9" y1="9" x2="15" y2="15"></line></svg>
+                                </div>
+                                <div class="status-card-info">
+                                    <span class="status-name">Rejected</span>
+                                    <span class="status-desc">Invalid</span>
+                                </div>
+                                <div class="status-radio-mock"></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="modal-btn secondary" @onclick="CloseDetailsModal">Cancel</button>
+                <button class="modal-btn primary" @onclick="ConfirmStatusUpdate">
+                    <span>Confirm Update</span>
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 11 12 14 22 4"></polyline><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"></path></svg>
+                </button>
+            </div>
+        </div>
+    </div>
+}
+
+@if (_showExportComingSoon)
+{
+    <div class="modal-overlay">
+        <div class="modal-content" style="max-width: 340px; text-align: center;">
+            <div class="modal-header" style="padding: 1rem 1.25rem;">
+                <div class="modal-title-group">
+                    <div class="modal-text">
+                        <h3 style="font-size: 1.1rem;">Coming Soon</h3>
+                    </div>
+                </div>
+                <div class="header-actions">
+                    <button class="close-btn" @onclick="ToggleExportComingSoon" style="width: 28px; height: 28px;">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+                    </button>
+                </div>
+            </div>
+            <div class="modal-body pt-3 pb-3" style="padding: 1rem 1.25rem;">
+                <div class="empty-state" style="padding: 1.5rem 0; margin: 0; border: none; background: transparent;">
+                    <div class="empty-state-icon construction-anim" style="color: var(--accent); margin-bottom: 1rem; width: 56px; height: 56px; opacity: 1;">
+                        <svg width="100%" height="100%" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <path d="m20.9 18.55-8-15.98a1 1 0 0 0-1.8 0l-8 15.98"></path>
+                            <ellipse cx="12" cy="19" rx="9" ry="3"></ellipse>
+                            <path d="M5.2 14h13.6"></path>
+                            <path d="M8.2 8h7.6"></path>
+                        </svg>
+                    </div>
+                    <p class="empty-state-text" style="font-size: 0.85rem; line-height: 1.5;">The Export Data feature is currently under construction and will be available soon.</p>
+                </div>
+            </div>
+            <div class="modal-footer" style="justify-content: center; padding: 1rem;">
+                <button class="modal-btn primary" @onclick="ToggleExportComingSoon" style="padding: 0.5rem 1.5rem; font-size: 0.85rem;">Got it</button>
+            </div>
+        </div>
+    </div>
+}
+
+
+@code {
+    private bool _isLoading = true;
+    private bool _isAuthorized = false;
+    private string searchQuery = "";
+    private string selectedCategory = "All";
+    private string selectedStatus = "All";
+    private List<IncidentReport> incidentReports = new();
+
+    // Pagination
+    private int _currentPage = 1;
+    private int _pageSize = 10;
+
+    // Analytics computed properties
+    private int TotalIncidents => incidentReports.Count;
+    private int PendingIncidents => incidentReports.Count(r => string.Equals(r.Status, "PENDING", StringComparison.OrdinalIgnoreCase));
+    private int ResolvedIncidents => incidentReports.Count(r => string.Equals(r.Status, "RESOLVED", StringComparison.OrdinalIgnoreCase));
+    private int EmergencyIncidents => incidentReports.Count(r => string.Equals(r.Category, "EMERGENCY", StringComparison.OrdinalIgnoreCase));
+
+    // Modal State
+    private bool _showDetailsModal = false;
+    private IncidentReport? _selectedReport;
+    private string _newStatus = "";
+    private bool _isUpdatingStatus = false;
+    
+    // Export Data Coming Soon State
+    private bool _showExportComingSoon = false;
+
+    private void ToggleExportComingSoon()
+    {
+        _showExportComingSoon = !_showExportComingSoon;
+    }
+    
+    // Auth State
+    private long? _currentAdminId;
+
+    private List<IncidentReport> FilteredReports => incidentReports
+        .Where(r => (selectedCategory == "All" || string.Equals(r.Category, selectedCategory, StringComparison.OrdinalIgnoreCase)) &&
+                    (selectedStatus == "All" || string.Equals(r.Status, selectedStatus, StringComparison.OrdinalIgnoreCase)) &&
+                    (string.IsNullOrWhiteSpace(searchQuery) ||
+                     r.Complainant.Contains(searchQuery, StringComparison.OrdinalIgnoreCase) ||
+                     r.Title.Contains(searchQuery, StringComparison.OrdinalIgnoreCase) ||
+                     r.FormattedId.Contains(searchQuery, StringComparison.OrdinalIgnoreCase)))
+        .ToList();
+
+    private List<IncidentReport> PaginatedReports => FilteredReports
+        .Skip((_currentPage - 1) * _pageSize)
+        .Take(_pageSize)
+        .ToList();
+
+    private int TotalPages => Math.Max(1, (int)Math.Ceiling((double)FilteredReports.Count / _pageSize));
+
+    [Inject] private ProtectedSessionStorage ProtectedSessionStorage { get; set; } = default!;
+    [Inject] private NavigationManager Navigation { get; set; } = default!;
+    [Inject] private AdminSupabase AdminSupabase { get; set; } = default!;
+    [Inject] private ILogger<AdminIncidentManager> Logger { get; set; } = default!;
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (!firstRender) return;
+
+        try
+        {
+            var result = await ProtectedSessionStorage.GetAsync<string>("adminSessionKey");
+
+            if (!result.Success || string.IsNullOrWhiteSpace(result.Value))
+            {
+                Logger.LogWarning("No adminSessionKey found in ProtectedSessionStorage.");
+                Navigation.NavigateTo("/admin/access-denied");
+                return;
+            }
+
+            var isValid = await AdminSupabase.CheckSessionKey(result.Value);
+
+            if (!isValid)
+            {
+                Logger.LogWarning("adminSessionKey exists but is invalid or expired.");
+                Navigation.NavigateTo("/admin/access-denied");
+                return;
+            }
+
+            var admin = await AdminSupabase.GetAdminBySessionKey(result.Value);
+            if (admin != null)
+            {
+                _currentAdminId = admin.Id;
+            }
+
+            _isAuthorized = true;
+            await LoadData();
+            StateHasChanged();
+        }
+        catch (Exception ex)
+        {
+            Logger.LogError(ex, "Error validating admin session.");
+            Navigation.NavigateTo("/admin/access-denied");
+        }
+    }
+
+    private async Task LoadData()
+    {
+        _isLoading = true;
+
+        try
+        {
+            var dtos = await IncidentService.GetIncidentReportsAsync();
+
+            incidentReports = dtos.Select(dto => new IncidentReport
+            {
+                ReportId = dto.ReportId,
+                TicketId = dto.TicketId,
+                FormattedId = dto.FormattedId,
+                Complainant = dto.Complainant,
+                Title = dto.Title,
+                Description = dto.Description,
+                Category = dto.Category,
+                Date = dto.Date,
+                Status = dto.Status,
+                AttachedImages = dto.MediaLinks.ToList()
+            }).ToList();
+        }
+        catch (Exception ex)
+        {
+            Logger.LogError(ex, "Failed to load incident reports from database.");
+            incidentReports = new List<IncidentReport>();
+        }
+
+        _isLoading = false;
+    }
+
+    private void OpenDetailsModal(IncidentReport report)
+    {
+        _selectedReport = report;
+        _newStatus = report.Status;
+        _showDetailsModal = true;
+    }
+
+    private void CloseDetailsModal()
+    {
+        _showDetailsModal = false;
+        _selectedReport = null;
+        _isUpdatingStatus = false;
+    }
+
+    private async Task ConfirmStatusUpdate()
+    {
+        if (_selectedReport != null && !_isUpdatingStatus)
+        {
+            _isUpdatingStatus = true;
+            StateHasChanged();
+
+            try
+            {
+                await IncidentService.UpdateTicketStatusAsync(
+                    _selectedReport.TicketId, 
+                    _newStatus, 
+                    _currentAdminId
+                );
+
+                string formattedStatus = string.IsNullOrEmpty(_newStatus) ? "" : char.ToUpper(_newStatus[0]) + _newStatus.Substring(1).ToLower();
+                _selectedReport.Status = formattedStatus;
+                
+                Logger.LogInformation(
+                    "Ticket {TicketId} status updated to {Status} by admin {AdminId}",
+                    _selectedReport.TicketId, formattedStatus, _currentAdminId);
+            }
+            catch (Exception ex)
+            {
+                Logger.LogError(ex, "Failed to update ticket {TicketId} status.",
+                    _selectedReport.TicketId);
+            }
+
+            _isUpdatingStatus = false;
+            CloseDetailsModal();
+            StateHasChanged();
+        }
+    }
+
+    private void ResetFilters()
+    {
+        searchQuery = "";
+        selectedCategory = "All";
+        selectedStatus = "All";
+        _currentPage = 1;
+    }
+
+    // Pagination helpers
+    private void GoToPage(int page)
+    {
+        _currentPage = Math.Clamp(page, 1, TotalPages);
+    }
+
+    private void PrevPage() => GoToPage(_currentPage - 1);
+    private void NextPage() => GoToPage(_currentPage + 1);
+
+    public class IncidentReport
+    {
+        public long ReportId { get; set; }
+        public long TicketId { get; set; }
+        public string FormattedId { get; set; } = string.Empty;
+        public string Complainant { get; set; } = string.Empty;
+        public string Title { get; set; } = string.Empty;
+        public string Category { get; set; } = string.Empty;
+        public DateTime Date { get; set; }
+        public string Status { get; set; } = string.Empty;
+        public string Description { get; set; } = string.Empty;
+        public List<string> AttachedImages { get; set; } = new();
+
+        public string CategoryClass => Category.ToUpper() switch
+        {
+            "SUGGESTION" => "review",
+            "COMPLAINT" => "yellow",
+            "EMERGENCY" => "red",
+            "OTHER" => "gray",
+            _ => "gray"
+        };
+
+        public string StatusClass => Status.ToUpper() switch
+        {
+            "PENDING" => "pending",
+            "RESOLVED" => "resolved",
+            "REJECTED" => "rejected",
+            _ => "gray"
+        };
+    }
+}
