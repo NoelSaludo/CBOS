@@ -29,8 +29,15 @@ namespace CBOS.Services
                 ?? throw new InvalidOperationException("SUPABASE_KEY environment variable must be set.");
         }
 
+        private void ApplyAuthHeaders(HttpRequestMessage request, string? accessToken)
+        {
+            var token = string.IsNullOrWhiteSpace(accessToken) ? _supabaseAnonKey : accessToken;
+            request.Headers.Add("apikey", _supabaseAnonKey);
+            request.Headers.Add("Authorization", $"Bearer {token}");
+        }
+
         // ── Upload a file to Supabase Storage ──────────────────────────────────────
-        public async Task<string?> UploadFileAsync(IBrowserFile file, string folder, string userId)
+        public async Task<string?> UploadFileAsync(IBrowserFile file, string folder, string userId, string? accessToken)
         {
             try
             {
@@ -42,8 +49,7 @@ namespace CBOS.Services
                 content.Headers.ContentType = new MediaTypeHeaderValue(file.ContentType);
 
                 using var request = new HttpRequestMessage(HttpMethod.Post, uploadUrl);
-                request.Headers.Add("apikey",        _supabaseAnonKey);
-                request.Headers.Add("Authorization", $"Bearer {_supabaseAnonKey}");
+                ApplyAuthHeaders(request, accessToken);
                 request.Content = content;
 
                 var response = await _httpClient.SendAsync(request);
@@ -66,7 +72,7 @@ namespace CBOS.Services
         }
 
         // ── Create a verification ticket in the DB ─────────────────────────────────
-        public async Task<bool> CreateTicketAsync(VerificationTicket ticket)
+        public async Task<bool> CreateTicketAsync(VerificationTicket ticket, string? accessToken)
         {
             try
             {
@@ -76,9 +82,8 @@ namespace CBOS.Services
                 using var content = new StringContent(payload, Encoding.UTF8, "application/json");
 
                 using var request = new HttpRequestMessage(HttpMethod.Post, insertUrl);
-                request.Headers.Add("apikey",        _supabaseAnonKey);
-                request.Headers.Add("Authorization", $"Bearer {_supabaseAnonKey}");
-                request.Headers.Add("Prefer",        "return=representation");
+                ApplyAuthHeaders(request, accessToken);
+                request.Headers.Add("Prefer", "return=representation");
                 request.Content = content;
 
                 var response = await _httpClient.SendAsync(request);
@@ -99,15 +104,14 @@ namespace CBOS.Services
         }
 
         // ── Check if user already has a pending/approved ticket ────────────────────
-        public async Task<string?> GetUserVerificationStatusAsync(string userId)
+        public async Task<string?> GetUserVerificationStatusAsync(string userId, string? accessToken)
         {
             try
             {
                 var queryUrl = $"{_supabaseUrl}/rest/v1/verification_tickets?user_id=eq.{userId}&select=status&order=created_date.desc&limit=1";
 
                 using var request = new HttpRequestMessage(HttpMethod.Get, queryUrl);
-                request.Headers.Add("apikey",        _supabaseAnonKey);
-                request.Headers.Add("Authorization", $"Bearer {_supabaseAnonKey}");
+                ApplyAuthHeaders(request, accessToken);
 
                 var response = await _httpClient.SendAsync(request);
                 if (!response.IsSuccessStatusCode) return null;

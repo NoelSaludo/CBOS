@@ -1,13 +1,20 @@
+:global(.content) {
+    padding: 0;
+}
+
 .verify-wrapper {
     min-height: 100vh;
     display: flex;
     align-items: center;
     justify-content: center;
     padding: 2rem;
-    background: url('/images/BG.png') center / cover no-repeat;
+    background: url('/images/city-bg.png') center / cover no-repeat;
     font-family: 'Segoe UI', system-ui, sans-serif;
     position: relative;
     overflow: hidden;
+    margin: 0 -1.5rem;
+    width: calc(100% + 3rem);
+    margin-top: -1.1rem;
 }
 
 .verify-wrapper::before,
@@ -307,5 +314,3 @@
         padding: 3rem 2rem 2rem;
     }
 }
-
-

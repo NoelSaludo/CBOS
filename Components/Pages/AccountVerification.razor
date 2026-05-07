@@ -1,11 +1,12 @@
 @page "/user/verify"
 @rendermode InteractiveServer
-@layout EmptyLayout
+@layout MainLayout
 @using CBOS.Models
 @using CBOS.Services
+@using CBOS.Components.Services
 @using Microsoft.AspNetCore.Components.Forms
 @inject VerificationService VerificationSvc
-@inject Supabase.Client SupabaseClient
+@inject AuthService AuthSvc
 @inject NavigationManager Nav
 
 <PageTitle>Account Verification – CBOS</PageTitle>
@@ -197,32 +198,17 @@
     private string _toastType    = "info"; // "success" | "error" | "info"
     private bool HasAllRequiredFiles => _validIdFile != null && _birthCertFile != null;
 
-    // Not sure pa on how to verify the accounts (waiting pa sa login/registration)
-    private string CurrentUserId => SupabaseClient.Auth.CurrentUser?.Id ?? string.Empty;
-    private string CurrentUserEmail => SupabaseClient.Auth.CurrentUser?.Email ?? string.Empty;
-    private string CurrentUserName => !string.IsNullOrWhiteSpace(CurrentUserEmail)
-        ? CurrentUserEmail.Split('@')[0]
-        : "Unknown User";
+    private string CurrentUserId => AuthSvc.CurrentSession?.User?.Id ?? string.Empty;
+    private string CurrentUserEmail => AuthSvc.UserEmail ?? string.Empty;
+    private string CurrentUserName => !string.IsNullOrWhiteSpace(AuthSvc.FirstName)
+        ? AuthSvc.FirstName
+        : (!string.IsNullOrWhiteSpace(CurrentUserEmail)
+            ? CurrentUserEmail.Split('@')[0]
+            : "User");
 
-    // Temporary local testing toggle. Set to false when done testing.
-    private const bool TestModeNoAuth = true;
+    private string CurrentAccessToken => AuthSvc.CurrentSession?.AccessToken ?? string.Empty;
 
-    private string EffectiveUserId =>
-        !string.IsNullOrWhiteSpace(CurrentUserId)
-            ? CurrentUserId
-            : (TestModeNoAuth ? "TEST_NOAUTH_USER" : string.Empty);
-
-    private string EffectiveUserEmail =>
-        !string.IsNullOrWhiteSpace(CurrentUserEmail)
-            ? CurrentUserEmail
-            : (TestModeNoAuth ? "test@local.dev" : string.Empty);
-
-    private string EffectiveUserName =>
-        CurrentUserName != "Unknown User"
-            ? CurrentUserName
-            : (TestModeNoAuth ? "Test User" : "Unknown User");
-    
-    private const string VerificationLogoPath = "/images/CBOS_LOGO.png";
+    private const string VerificationLogoPath = "/images/cbos-logo-blue.png";
 
     // ── File selection callbacks ────────────────────────────────────
     private void OnValidIdSelected(InputFileChangeEventArgs e)
@@ -242,15 +228,23 @@
     
     private async Task SubmitVerificationRequest()
     {
-        if (!TestModeNoAuth && string.IsNullOrWhiteSpace(CurrentUserId))
+        if (!AuthSvc.IsAuthenticated)
         {
-            ShowToast("You must be signed in before submitting verification.", "error");
+            ShowToast("Please sign in before submitting verification.", "error");
+            Nav.NavigateTo("/login");
             return;
         }
 
-        if (string.IsNullOrWhiteSpace(EffectiveUserId))
+        if (string.IsNullOrWhiteSpace(CurrentUserId) || string.IsNullOrWhiteSpace(CurrentUserEmail))
         {
             ShowToast("No user identity available for upload.", "error");
+            return;
+        }
+
+        if (string.IsNullOrWhiteSpace(CurrentAccessToken))
+        {
+            ShowToast("Your session expired. Please sign in again.", "error");
+            Nav.NavigateTo("/login");
             return;
         }
 
@@ -271,7 +265,7 @@
             // 1. Upload Valid ID
             ShowToast("Uploading Valid ID…", "info");
             var validIdUrl = await VerificationSvc.UploadFileAsync(
-                validIdFile, "valid-id", EffectiveUserId);
+                validIdFile, "valid-id", CurrentUserId, CurrentAccessToken);
 
             if (validIdUrl == null)
             {
@@ -282,7 +276,7 @@
             // 2. Upload Birth Certificate
             ShowToast("Uploading Birth Certificate…", "info");
             var birthCertUrl = await VerificationSvc.UploadFileAsync(
-                birthCertFile, "birth-certificate", EffectiveUserId);
+                birthCertFile, "birth-certificate", CurrentUserId, CurrentAccessToken);
 
             if (birthCertUrl == null)
             {
@@ -293,9 +287,9 @@
             // 3. Create the verification ticket
             var ticket = new VerificationTicket
             {
-                UserId              = EffectiveUserId,
-                UserEmail           = EffectiveUserEmail,
-                UserFullName        = EffectiveUserName,
+                UserId              = CurrentUserId,
+                UserEmail           = CurrentUserEmail,
+                UserFullName        = CurrentUserName,
                 ValidIdUrl          = validIdUrl,
                 BirthCertificateUrl = birthCertUrl,
                 CreatedDate         = DateTime.UtcNow,
@@ -305,13 +299,13 @@
                 Status              = "Pending"
             };
 
-            var success = await VerificationSvc.CreateTicketAsync(ticket);
+            var success = await VerificationSvc.CreateTicketAsync(ticket, CurrentAccessToken);
 
             if (success)
             {
                 ShowToast("Verification request submitted! You'll be notified within 2–3 business days.", "success");
                 await Task.Delay(2800);
-                Nav.NavigateTo("/dashboard"); // pa-adjust target route as needed
+                Nav.NavigateTo("/app/profile");
             }
             else
             {
@@ -330,7 +324,7 @@
         }
     }
 
-    private void GoBack() => Nav.NavigateTo("/");
+    private void GoBack() => Nav.NavigateTo("/app/profile");
 
     private void ShowToast(string message, string type)
     {
