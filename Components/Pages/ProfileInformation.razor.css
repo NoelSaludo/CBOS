@@ -1,46 +1,68 @@
 ﻿/* Container to give the slight off-white/gray background of the page */
 .profile-page-wrapper {
-    padding: 2rem 4rem;
+    padding: 2rem;
     min-height: calc(100vh - 80px); /* Adjust based on your MainLayout header height */
-    background-color: #f2f3f5;
+    background-color: #f0f4ff;
     font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
+    color: #212529;
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+}
+
+@media (min-width: 641px) {
+    .profile-page-wrapper {
+        padding: 2rem 4rem;
+    }
 }
 
 /* Big blue header */
 .profile-header {
     color: #0066ff;
-    font-weight: 700;
+    font-weight: 800;
     font-size: 2.4rem;
     letter-spacing: -1px;
-    margin-bottom: 2rem;
+    margin-bottom: 1rem;
 }
 
 /* The white outer wrapper for the card */
 .status-container-white {
     background-color: #ffffff;
     border-radius: 16px;
-    padding: 12px;
+    padding: 1rem;
     width: 100%;
     max-width: 900px; /* Constrains width so it doesn't stretch too far */
-    margin-bottom: 1.5rem;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
 }
 
 /* The inner gray rectangle */
 .status-card-gray {
-    background-color: #e6e6e6;
+    background-color: #e8eef8;
     border-radius: 12px;
-    padding: 12px 24px;
+    padding: 1rem 1.5rem;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 1rem;
 }
 
 .account-status-text {
     font-size: 1rem;
-    color: #1a1a1a;
-    font-weight: 500;
+    color: #212529;
+    font-weight: 600;
 }
 
 .status-label-text {
     font-size: 1rem;
-    color: #1a1a1a;
+    color: #6c757d;
+}
+
+.status-description-text {
+    font-size: 0.95rem;
+    color: #6c757d;
+    margin-bottom: 0.5rem;
+    padding: 0 0.5rem;
 }
 
 /* Customizing the bootstrap badge */
@@ -51,7 +73,7 @@
 }
 
 .custom-badge.bg-secondary {
-    background-color: #707070 !important; /* Overrides bg-secondary to match the specific gray in your mockup */
+    background-color: #6c757d !important; 
 }
 
 /* The blue Verify Account button */
@@ -63,17 +85,27 @@
     font-weight: 500;
     font-size: 1rem;
     border-radius: 50rem;
-    transition: background-color 0.2s ease-in-out, transform 0.2s ease-in-out;
+    transition: background-color 0.2s ease-in-out, transform 0.2s ease-in-out, box-shadow 0.2s ease-in-out;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    width: fit-content;
+    text-decoration: none;
 }
 
 .btn-verify:hover {
     background-color: #1861ac;
     color: white;
     transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(24, 97, 172, 0.3);
+    text-decoration: none;
 }
 
 .btn-verify:active {
     transform: translateY(0);
+    background-color: #1861ac;
+    box-shadow: none;
 }
 
 .btn-verify:focus {

@@ -120,15 +120,23 @@ namespace CBOS.Services
 
                 var response = await _httpClient.SendAsync(request);
                 if (!response.IsSuccessStatusCode)
+                {
+                    var err = await response.Content.ReadAsStringAsync();
+                    Console.WriteLine($"[VerificationService] Get user id failed: {err}");
                     return null;
+                }
 
                 var json = await response.Content.ReadAsStringAsync();
                 using var doc = JsonDocument.Parse(json);
-                if (doc.RootElement.ValueKind != JsonValueKind.Array || doc.RootElement.GetArrayLength() == 0)
-                    return null;
-
-                var idValue = doc.RootElement[0].GetProperty("id").GetInt64();
-                return idValue;
+                if (doc.RootElement.ValueKind == JsonValueKind.Array && doc.RootElement.GetArrayLength() > 0)
+                {
+                    var firstElement = doc.RootElement[0];
+                    if (firstElement.TryGetProperty("id", out var idProp) && idProp.ValueKind == JsonValueKind.Number)
+                    {
+                        return idProp.GetInt64();
+                    }
+                }
+                return null;
             }
             catch (Exception ex)
             {
@@ -148,11 +156,28 @@ namespace CBOS.Services
                 ApplyAuthHeaders(request, accessToken);
 
                 var response = await _httpClient.SendAsync(request);
-                if (!response.IsSuccessStatusCode) return null;
+                if (!response.IsSuccessStatusCode)
+                {
+                    var err = await response.Content.ReadAsStringAsync();
+                    Console.WriteLine($"[VerificationService] Get status failed: {err}");
+                    return null;
+                }
 
-                var json    = await response.Content.ReadAsStringAsync();
-                var tickets = JsonSerializer.Deserialize<VerificationTicket[]>(json);
-                return tickets?.Length > 0 ? tickets[0].Status : null;
+                var json = await response.Content.ReadAsStringAsync();
+                using var doc = JsonDocument.Parse(json);
+                if (doc.RootElement.ValueKind == JsonValueKind.Array && doc.RootElement.GetArrayLength() > 0)
+                {
+                    var firstElement = doc.RootElement[0];
+                    if (firstElement.TryGetProperty("status", out var statusProp) && statusProp.ValueKind == JsonValueKind.String)
+                    {
+                        return statusProp.GetString();
+                    }
+                    if (firstElement.TryGetProperty("Status", out var statusPropUpper) && statusPropUpper.ValueKind == JsonValueKind.String)
+                    {
+                        return statusPropUpper.GetString();
+                    }
+                }
+                return null;
             }
             catch (Exception ex)
             {
