@@ -13,7 +13,7 @@
 @inject IncidentManagementService IncidentService
 @inject ProtectedSessionStorage ProtectedSessionStorage
 @inject LayoutService LayoutService
-@inject TicketSupabase TicketService
+@inject AppointmentTicketSupabase TicketService
 @inject AdminCommunityManagerSupabase CommunityService
 
 @inject IJSRuntime JS
@@ -409,8 +409,8 @@ else
                 .Select(app => new Appointment
                 {
                     Id = $"#TKT-{app.TicketId}",
-                    Name = $"{app.FirstName} {app.LastName}".Trim(),
-                    Category = app.AppointmentType,
+                    Name = string.IsNullOrWhiteSpace(app.FullName) ? "Unknown" : app.FullName,
+                    Category = string.IsNullOrWhiteSpace(app.AppointmentType) ? "General" : app.AppointmentType,
                     Service = app.Description.Length > 30 ? app.Description.Substring(0, 30) + "..." : app.Description,
                     Status = app.Status.ToUpperInvariant(),
                     StatusClass = GetAppointmentStatusClass(app.Status)
@@ -457,9 +457,9 @@ else
                 .Select(report => new IncidentReport
                 {
                     Id = report.FormattedId,
-                    Complainant = report.Complainant,
-                    Title = report.Title,
-                    Category = report.Category,
+                    Complainant = string.IsNullOrWhiteSpace(report.Complainant) ? "Unknown" : report.Complainant,
+                    Title = string.IsNullOrWhiteSpace(report.Title) ? "No Title" : report.Title,
+                    Category = string.IsNullOrWhiteSpace(report.Category) ? "OTHER" : report.Category,
                     CategoryClass = GetIncidentCategoryClass(report.Category),
                     Date = report.Date.ToString("MMM dd, yyyy"),
                     Status = report.Status,
@@ -518,8 +518,8 @@ else
                 .Select(p => new CommunityPost
                 {
                     Id = $"#PST-{p.TicketId}",
-                    Author = p.Author,
-                    Topic = p.Title,
+                    Author = string.IsNullOrWhiteSpace(p.Author) ? "Unknown" : p.Author,
+                    Topic = string.IsNullOrWhiteSpace(p.Title) ? "Untitled" : p.Title,
                     Date = p.CreatedAt.ToString("MMM dd, yyyy"),
                     Status = p.Status.ToUpperInvariant(),
                     StatusClass = GetPostStatusClass(p.Status)

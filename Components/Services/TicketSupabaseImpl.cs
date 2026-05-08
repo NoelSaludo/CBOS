@@ -7,6 +7,12 @@ namespace CBOS.Components.Services;
 
 public class AppointmentTicketSupabase : ISupabase
 {
+    // Raised whenever appointment data changes so subscribers can refresh.
+    public event Action? OnAppointmentsChanged;
+
+    // Notifies all listeners that appointment data has been updated.
+    public void NotifyAppointmentsChanged() => OnAppointmentsChanged?.Invoke();
+
     public AppointmentTicketSupabase(Client supabase) : base(supabase)
     {
     }
