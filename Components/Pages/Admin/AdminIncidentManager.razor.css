@@ -1007,8 +1007,28 @@
 }
 
 .skeleton-text {
-    height: 0.8rem;
+    height: 0.75rem;
     width: 100%;
+    border-radius: 4px;
+}
+
+.skeleton-avatar {
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    flex-shrink: 0;
+}
+
+.skeleton-chip {
+    height: 1.25rem;
+    width: 60px;
+    border-radius: 12px;
+}
+
+.skeleton-id {
+    height: 0.75rem;
+    width: 50px;
+    border-radius: 4px;
 }
 
 @keyframes skeleton-loading {

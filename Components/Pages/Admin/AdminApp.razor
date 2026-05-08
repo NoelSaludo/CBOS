@@ -558,8 +558,8 @@ else
         _isLoading = true;
         StateHasChanged();
 
-        // Simulate API delay
-        await Task.Delay(1500);
+        // Simulated API delay removed for better performance
+        // await Task.Delay(1500);
 
         await RefreshIncidentDataAsync(redrawChart: false, clearOnFailure: true);
         await RefreshAppointmentDataAsync(redrawChart: false, clearOnFailure: true);

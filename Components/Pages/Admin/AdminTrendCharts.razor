@@ -9,7 +9,21 @@
         <div class="chart-placeholder">
             @if (IsLoading)
             {
-                <div class="skeleton skeleton-chart"></div>
+                <div class="chart-skeleton-group">
+                    <div class="chart-skeleton-body">
+                        <div class="skeleton skeleton-wave-line" style="height: 3px; width: 80%; margin-bottom: 1.75rem;"></div>
+                        <div class="skeleton skeleton-wave-line" style="height: 3px; width: 65%; margin-bottom: 1.75rem;"></div>
+                        <div class="skeleton skeleton-wave-line" style="height: 3px; width: 90%; margin-bottom: 1.75rem;"></div>
+                        <div class="skeleton skeleton-wave-line" style="height: 3px; width: 55%; margin-bottom: 1.75rem;"></div>
+                        <div class="skeleton skeleton-wave-line" style="height: 3px; width: 72%;"></div>
+                    </div>
+                    <div class="chart-skeleton-axis">
+                        @for (var i = 0; i < 6; i++)
+                        {
+                            <div class="skeleton skeleton-axis-label"></div>
+                        }
+                    </div>
+                </div>
             }
             else if (IncidentTrendData == null || !IncidentTrendData.Any())
             {
@@ -59,7 +73,21 @@
         <div class="chart-placeholder">
             @if (IsLoading)
             {
-                <div class="skeleton skeleton-chart"></div>
+                <div class="chart-skeleton-group">
+                    <div class="chart-skeleton-body">
+                        <div class="skeleton skeleton-wave-line" style="height: 3px; width: 75%; margin-bottom: 1.75rem;"></div>
+                        <div class="skeleton skeleton-wave-line" style="height: 3px; width: 88%; margin-bottom: 1.75rem;"></div>
+                        <div class="skeleton skeleton-wave-line" style="height: 3px; width: 60%; margin-bottom: 1.75rem;"></div>
+                        <div class="skeleton skeleton-wave-line" style="height: 3px; width: 82%; margin-bottom: 1.75rem;"></div>
+                        <div class="skeleton skeleton-wave-line" style="height: 3px; width: 68%;"></div>
+                    </div>
+                    <div class="chart-skeleton-axis">
+                        @for (var i = 0; i < 6; i++)
+                        {
+                            <div class="skeleton skeleton-axis-label"></div>
+                        }
+                    </div>
+                </div>
             }
             else if (AppointmentTrendData == null || !AppointmentTrendData.Any())
             {

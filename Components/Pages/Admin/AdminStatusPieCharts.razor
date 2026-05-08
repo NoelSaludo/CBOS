@@ -9,7 +9,13 @@
         <div class="pie-chart-container">
             @if (IsLoading)
             {
-                <div class="skeleton skeleton-chart" style="border-radius: 50%; width: 200px; height: 200px; margin: 0 auto;"></div>
+                <div class="pie-skeleton-group">
+                    <div class="skeleton skeleton-donut"></div>
+                    <div class="skeleton-legend">
+                        <div class="skeleton skeleton-legend-item" style="width: 80px;"></div>
+                        <div class="skeleton skeleton-legend-item" style="width: 65px;"></div>
+                    </div>
+                </div>
             }
             else if (VerificationStatusData == null || !VerificationStatusData.Any())
             {
@@ -41,7 +47,14 @@
         <div class="pie-chart-container">
             @if (IsLoading)
             {
-                <div class="skeleton skeleton-chart" style="border-radius: 50%; width: 200px; height: 200px; margin: 0 auto;"></div>
+                <div class="pie-skeleton-group">
+                    <div class="skeleton skeleton-donut"></div>
+                    <div class="skeleton-legend">
+                        <div class="skeleton skeleton-legend-item" style="width: 75px;"></div>
+                        <div class="skeleton skeleton-legend-item" style="width: 70px;"></div>
+                        <div class="skeleton skeleton-legend-item" style="width: 60px;"></div>
+                    </div>
+                </div>
             }
             else if (PostStatusData == null || !PostStatusData.Any())
             {
@@ -73,7 +86,14 @@
         <div class="pie-chart-container">
             @if (IsLoading)
             {
-                <div class="skeleton skeleton-chart" style="border-radius: 50%; width: 200px; height: 200px; margin: 0 auto;"></div>
+                <div class="pie-skeleton-group">
+                    <div class="skeleton skeleton-donut"></div>
+                    <div class="skeleton-legend">
+                        <div class="skeleton skeleton-legend-item" style="width: 70px;"></div>
+                        <div class="skeleton skeleton-legend-item" style="width: 75px;"></div>
+                        <div class="skeleton skeleton-legend-item" style="width: 60px;"></div>
+                    </div>
+                </div>
             }
             else if (IncidentStatusData == null || !IncidentStatusData.Any())
             {

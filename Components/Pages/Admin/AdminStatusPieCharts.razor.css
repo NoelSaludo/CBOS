@@ -19,6 +19,8 @@
     box-shadow: var(--shadow-md);
     padding: 1.5rem;
     transition: all 0.3s var(--ease-out);
+    min-width: 0;
+    overflow: hidden;
 }
 
 .architectural-card:hover {
@@ -53,18 +55,102 @@
 
 /* Skeleton Loading */
 .skeleton {
-    background: linear-gradient(90deg, var(--surface) 25%, #e2e8f0 50%, var(--surface) 75%);
-    background-size: 200% 100%;
-    animation: shimmer 1.5s infinite linear;
+    position: relative;
+    background: #e2e8f0;
     border-radius: var(--radius-md);
+    overflow: hidden;
+    isolation: isolate;
 }
 
-@keyframes shimmer {
-    from { background-position: 200% 0; }
-    to { background-position: -200% 0; }
+.skeleton::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(
+        90deg,
+        transparent 0%,
+        rgba(255, 255, 255, 0.5) 35%,
+        rgba(255, 255, 255, 0.8) 50%,
+        rgba(255, 255, 255, 0.5) 65%,
+        transparent 100%
+    );
+    transform: translateX(-100%);
+    animation: skeleton-wave 1.6s cubic-bezier(0.4, 0, 0.2, 1) infinite;
+}
+
+@keyframes skeleton-wave {
+    0%   { transform: translateX(-100%); }
+    100% { transform: translateX(100%); }
 }
 
 .skeleton-chart { height: 250px; width: 100%; }
+
+/* Donut ring skeleton */
+.pie-skeleton-group {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 1.25rem;
+    width: 100%;
+}
+
+.skeleton-donut {
+    width: 180px;
+    height: 180px;
+    border-radius: 50%;
+    background: #e2e8f0;
+    position: relative;
+    overflow: hidden;
+    isolation: isolate;
+}
+
+/* Hollow centre to mimic a donut */
+.skeleton-donut::before {
+    content: '';
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: 65%;
+    height: 65%;
+    transform: translate(-50%, -50%);
+    border-radius: 50%;
+    background: var(--surface-card, #fff);
+    z-index: 2;
+}
+
+.skeleton-donut::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    z-index: 1;
+    background: linear-gradient(
+        90deg,
+        transparent 0%,
+        rgba(255, 255, 255, 0.5) 35%,
+        rgba(255, 255, 255, 0.8) 50%,
+        rgba(255, 255, 255, 0.5) 65%,
+        transparent 100%
+    );
+    transform: translateX(-100%);
+    animation: skeleton-wave 1.6s cubic-bezier(0.4, 0, 0.2, 1) infinite;
+}
+
+.skeleton-legend {
+    display: flex;
+    gap: 0.75rem;
+    justify-content: center;
+    flex-wrap: wrap;
+}
+
+.skeleton-legend-item {
+    height: 12px;
+    border-radius: 6px;
+}
+
+/* Stagger the three pie chart skeletons */
+.architectural-card:nth-child(1) .skeleton::after { animation-delay: 0s; }
+.architectural-card:nth-child(2) .skeleton::after { animation-delay: 0.12s; }
+.architectural-card:nth-child(3) .skeleton::after { animation-delay: 0.24s; }
 
 /* Empty States */
 .empty-state {

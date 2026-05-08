@@ -166,12 +166,33 @@ else
                             @for (int i = 0; i < 6; i++)
                             {
                                 <tr>
-                                    <td><div class="skeleton skeleton-text" style="width: 70px;"></div></td>
-                                    <td><div class="skeleton skeleton-text"></div></td>
-                                    <td><div class="skeleton skeleton-text"></div></td>
-                                    <td><div class="skeleton skeleton-text" style="width: 60px;"></div></td>
+                                    @* ID Column *@
+                                    <td class="id-cell"><div class="skeleton skeleton-id"></div></td>
+                                    
+                                    @* Complainant Column (Avatar + Name) *@
+                                    <td class="bold-cell">
+                                        <div class="user-avatar-group">
+                                            <div class="skeleton skeleton-avatar"></div>
+                                            <div class="name-details" style="gap: 4px;">
+                                                <div class="skeleton skeleton-text" style="width: 100px;"></div>
+                                                <div class="skeleton skeleton-text" style="width: 60px; height: 0.6rem;"></div>
+                                            </div>
+                                        </div>
+                                    </td>
+
+                                    @* Title Column *@
+                                    <td><div class="skeleton skeleton-text" style="width: 150px;"></div></td>
+
+                                    @* Category Column *@
+                                    <td><div class="skeleton skeleton-chip"></div></td>
+
+                                    @* Date Column *@
                                     <td><div class="skeleton skeleton-text" style="width: 80px;"></div></td>
-                                    <td><div class="skeleton skeleton-text" style="width: 70px;"></div></td>
+
+                                    @* Status Column *@
+                                    <td><div class="skeleton skeleton-chip"></div></td>
+
+                                    @* Actions Column *@
                                     <td><div class="skeleton skeleton-text" style="width: 80px;"></div></td>
                                 </tr>
                             }
