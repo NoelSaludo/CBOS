@@ -15,6 +15,7 @@
 @inject LayoutService LayoutService
 @inject AppointmentTicketSupabase TicketService
 @inject AdminCommunityManagerSupabase CommunityService
+@inject AdminVerificationManagerSupabase VerificationService
 
 @inject IJSRuntime JS
 
@@ -56,6 +57,8 @@ else
                         IncidentsTodayCount="IncidentsTodayCount"
                         TotalAppointmentsCount="TotalAppointmentsCount"
                         AppointmentsTodayCount="AppointmentsTodayCount"
+                        VerifiedUsersCount="VerifiedUsersCount"
+                        UnverifiedUsersCount="UnverifiedUsersCount"
                         IsLoading="_isLoading" />
 
 
@@ -167,6 +170,8 @@ else
     private int IncidentsTodayCount = 0;
     private int TotalAppointmentsCount = 0;
     private int AppointmentsTodayCount = 0;
+    private int VerifiedUsersCount = 0;
+    private int UnverifiedUsersCount = 0;
 
 
     private string _fontFamily = "'Inter', system-ui, -apple-system, sans-serif";
@@ -292,24 +297,14 @@ else
         IncidentService.OnIncidentsChanged += HandleIncidentsChanged;
         TicketService.OnAppointmentsChanged += HandleAppointmentsChanged;
         CommunityService.OnCommunityPostsChanged += HandleCommunityPostsChanged;
+        VerificationService.OnVerificationChanged += HandleVerificationChanged;
 
 
         chartOptions = GetDefaultOptions<RegistrationData>();
-        chartOptions.Stroke = new Stroke { Curve = Curve.Smooth, Width = 3, Colors = new List<string> { _primaryColor } };
-        chartOptions.Fill = new Fill
-        {
-            Type = new List<FillType> { FillType.Gradient },
-            Gradient = new FillGradient
-            {
-                ShadeIntensity = 1,
-                OpacityFrom = 0.45,
-                OpacityTo = 0.05,
-                Stops = new List<double> { 0, 100 }
-            }
-        };
-        chartOptions.Colors = new List<string> { _primaryColor };
-        chartOptions.Markers = new Markers { Size = 5, Colors = new List<string> { _primaryColor }, StrokeColors = new List<string> { "#ffffff" }, StrokeWidth = 2, Hover = new MarkersHover { Size = 7 } };
-        chartOptions.Tooltip.Y = new TooltipY { Title = new TooltipYTitle { Formatter = @"function(seriesName) { return 'Registrations'; }" } };
+        chartOptions.Stroke = new Stroke { Curve = Curve.Smooth, Width = 3 };
+        chartOptions.Colors = new List<string> { "#3b82f6", "#10b981", "#f59e0b" }; // All, Verified, Unverified
+        chartOptions.Markers = new Markers { Size = 4, StrokeColors = new List<string> { "#ffffff" }, StrokeWidth = 2, Hover = new MarkersHover { Size = 6 } };
+        chartOptions.Tooltip.Y = new TooltipY { Title = new TooltipYTitle { Formatter = @"function(seriesName) { return seriesName; }" } };
 
         pieChartOptions = GetDefaultOptions<CategoryData>();
             pieChartOptions.Colors = new List<string> { "#f59e0b", "#10b981", "#ef4444" };
@@ -570,57 +565,12 @@ else
         // Simulate API delay
         await Task.Delay(1500);
 
-        trendData = new List<RegistrationData>
-        {
-            new RegistrationData { Month = "JAN", Count = 120 },
-            new RegistrationData { Month = "FEB", Count = 230 },
-            new RegistrationData { Month = "MAR", Count = 310 },
-            new RegistrationData { Month = "APR", Count = 480 },
-            new RegistrationData { Month = "MAY", Count = 550 },
-            new RegistrationData { Month = "JUN", Count = 820 }
-        };
-
-        verificationUsers = new List<VerificationUser>
-        {
-            new VerificationUser { Id = "#USR-3001", Name = "Ana Patricia Reyes", DateRegistered = "Oct 22, 2023", Status = "FULLY VERIFIED", StatusClass = "approved" },
-            new VerificationUser { Id = "#USR-3002", Name = "Carlos Miguel Torres", DateRegistered = "Oct 23, 2023", Status = "PARTIALLY VERIFIED", StatusClass = "yellow" },
-            new VerificationUser { Id = "#USR-3003", Name = "Diana Rose Lim", DateRegistered = "Oct 24, 2023", Status = "FULLY VERIFIED", StatusClass = "approved" },
-            new VerificationUser { Id = "#USR-3004", Name = "Roberto Santos Jr.", DateRegistered = "Oct 24, 2023", Status = "PARTIALLY VERIFIED", StatusClass = "yellow" },
-            new VerificationUser { Id = "#USR-3005", Name = "Elena Garcia", DateRegistered = "Oct 25, 2023", Status = "FULLY VERIFIED", StatusClass = "approved" }
-        };
-
         await RefreshIncidentDataAsync(redrawChart: false, clearOnFailure: true);
         await RefreshAppointmentDataAsync(redrawChart: false, clearOnFailure: true);
         await RefreshCommunityPostDataAsync(redrawChart: false, clearOnFailure: true);
+        await RefreshVerificationDataAsync(redrawChart: false, clearOnFailure: true);
 
-        // appTrendData is now populated in RefreshAppointmentDataAsync
-        // postStatusData and communityPosts are now populated in RefreshCommunityPostDataAsync
-
-        var vTrend = new List<UserVerificationTrendData>
-        {
-            new UserVerificationTrendData { Month = "JAN", Status = "Verified", Count = 80 },
-            new UserVerificationTrendData { Month = "FEB", Status = "Verified", Count = 150 },
-            new UserVerificationTrendData { Month = "MAR", Status = "Verified", Count = 220 },
-            new UserVerificationTrendData { Month = "APR", Status = "Verified", Count = 350 },
-            new UserVerificationTrendData { Month = "MAY", Status = "Verified", Count = 410 },
-            new UserVerificationTrendData { Month = "JUN", Status = "Verified", Count = 600 },
-
-            new UserVerificationTrendData { Month = "JAN", Status = "Partial", Count = 40 },
-            new UserVerificationTrendData { Month = "FEB", Status = "Partial", Count = 80 },
-            new UserVerificationTrendData { Month = "MAR", Status = "Partial", Count = 90 },
-            new UserVerificationTrendData { Month = "APR", Status = "Partial", Count = 130 },
-            new UserVerificationTrendData { Month = "MAY", Status = "Partial", Count = 140 },
-            new UserVerificationTrendData { Month = "JUN", Status = "Partial", Count = 220 }
-        };
-
-        verificationStatusData = vTrend
-            .GroupBy(x => x.Status)
-            .Select(g => new CategoryData
-            {
-                Name = g.Key == "Verified" ? "FULLY VERIFIED" : "PARTIALLY VERIFIED",
-                Value = g.Sum(x => x.Count)
-            })
-            .ToList();
+        // verificationUsers and verificationStatusData are now populated in RefreshVerificationDataAsync
 
         _isLoading = false;
         StateHasChanged();
@@ -675,6 +625,7 @@ else
         IncidentService.OnIncidentsChanged -= HandleIncidentsChanged;
         TicketService.OnAppointmentsChanged -= HandleAppointmentsChanged;
         CommunityService.OnCommunityPostsChanged -= HandleCommunityPostsChanged;
+        VerificationService.OnVerificationChanged -= HandleVerificationChanged;
     }
 
 
@@ -711,6 +662,83 @@ else
         catch (Exception ex)
         {
             Logger.LogWarning(ex, "Error refreshing community post dashboard data after a post update.");
+        }
+    }
+
+    private async void HandleVerificationChanged()
+    {
+        try
+        {
+            await InvokeAsync(() => RefreshVerificationDataAsync(redrawChart: true, clearOnFailure: false));
+        }
+        catch (Exception ex)
+        {
+            Logger.LogWarning(ex, "Error refreshing verification dashboard data after a verification update.");
+        }
+    }
+
+    private async Task RefreshVerificationDataAsync(bool redrawChart, bool clearOnFailure)
+    {
+        try
+        {
+            var ticketData = await VerificationService.GetVerificationTicketsAsync();
+            
+            verificationUsers = ticketData
+                .OrderByDescending(t => t.CreatedDate)
+                .Take(5)
+                .Select(t => new VerificationUser
+                {
+                    Id = $"#USR-{t.UserId}",
+                    Name = string.IsNullOrWhiteSpace(t.UserFullName) ? "Unknown" : t.UserFullName,
+                    DateRegistered = t.CreatedDate.ToString("MMM dd, yyyy"),
+                    Status = (t.Status ?? "Pending").ToUpperInvariant(),
+                    StatusClass = GetVerificationStatusClass(t.Status)
+                })
+                .ToList();
+
+            verificationStatusData = BuildVerificationStatuses(ticketData);
+
+            VerifiedUsersCount = ticketData.Count(t => string.Equals(t.Status, "Approved", StringComparison.OrdinalIgnoreCase));
+            UnverifiedUsersCount = ticketData.Count(t => !string.Equals(t.Status, "Approved", StringComparison.OrdinalIgnoreCase));
+
+            var statusColors = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase)
+            {
+                { "APPROVED", "#10b981" },
+                { "PENDING", "#f59e0b" },
+                { "REJECTED", "#ef4444" }
+            };
+            
+            if (verificationStatusData.Any())
+            {
+                verificationStatusPieOptions.Colors = verificationStatusData
+                    .Select(s => statusColors.TryGetValue(s.Name, out var c) ? c : "#64748b")
+                    .ToList();
+            }
+
+            trendData = BuildUserGrowthTrends(ticketData, ActiveTimeRange);
+
+            StateHasChanged();
+
+            if (redrawChart && statusPieChartsComponent != null)
+            {
+                await statusPieChartsComponent.RenderAllAsync();
+            }
+
+            if (redrawChart && userGrowthChartComponent != null)
+            {
+                await userGrowthChartComponent.RenderAsync();
+            }
+        }
+        catch (Exception ex)
+        {
+            Logger.LogWarning(ex, "Failed to refresh verification dashboard data.");
+
+            if (clearOnFailure)
+            {
+                verificationUsers = new List<VerificationUser>();
+                verificationStatusData = new List<CategoryData>();
+                StateHasChanged();
+            }
         }
     }
 
@@ -860,6 +888,32 @@ else
                 }
             }
         }
+        else if (timeRange == "1M")
+        {
+            var daysToGenerate = 30;
+            var endDate = DateTime.UtcNow.Date;
+            var days = new List<DateTime>();
+            for (int i = 0; i < daysToGenerate; i++)
+            {
+                days.Add(endDate.AddDays(-(daysToGenerate - 1 - i)));
+            }
+
+            foreach (var category in categories)
+            {
+                foreach (var dayDate in days)
+                {
+                    var dayStr = dayDate.ToString("MMM dd");
+                    var count = incidentData.Count(d => d.Category == category && d.Date.Date == dayDate);
+                    
+                    result.Add(new IncidentTrendData 
+                    {
+                        Month = dayStr,
+                        Category = category,
+                        Count = count
+                    });
+                }
+            }
+        }
         else
         {
             var monthsToGenerate = timeRange == "1Y" ? 12 : 6;
@@ -884,6 +938,79 @@ else
                         Count = count
                     });
                 }
+            }
+        }
+
+        return result;
+    }
+
+    private static List<RegistrationData> BuildUserGrowthTrends(IEnumerable<VerificationTicketRecord> ticketData, string timeRange)
+    {
+        var result = new List<RegistrationData>();
+
+        if (timeRange == "ALL")
+        {
+            var years = ticketData.Select(d => d.CreatedDate.Year).Distinct().OrderBy(y => y).ToList();
+            if (!years.Any()) years = new List<int> { DateTime.UtcNow.Year };
+
+            foreach (var year in years)
+            {
+                var yearTickets = ticketData.Where(d => d.CreatedDate.Year == year).ToList();
+                result.Add(new RegistrationData
+                {
+                    Month = year.ToString(),
+                    AllCount = yearTickets.Count,
+                    VerifiedCount = yearTickets.Count(t => string.Equals(t.Status, "Approved", StringComparison.OrdinalIgnoreCase)),
+                    UnverifiedCount = yearTickets.Count(t => !string.Equals(t.Status, "Approved", StringComparison.OrdinalIgnoreCase))
+                });
+            }
+        }
+        else if (timeRange == "1M")
+        {
+            var daysToGenerate = 30;
+            var endDate = DateTime.UtcNow.Date;
+            var days = new List<DateTime>();
+            for (int i = 0; i < daysToGenerate; i++)
+            {
+                days.Add(endDate.AddDays(-(daysToGenerate - 1 - i)));
+            }
+
+            foreach (var dayDate in days)
+            {
+                var dayStr = dayDate.ToString("MMM dd");
+                var dayTickets = ticketData.Where(d => d.CreatedDate.Date == dayDate).ToList();
+                
+                result.Add(new RegistrationData 
+                {
+                    Month = dayStr,
+                    AllCount = dayTickets.Count,
+                    VerifiedCount = dayTickets.Count(t => string.Equals(t.Status, "Approved", StringComparison.OrdinalIgnoreCase)),
+                    UnverifiedCount = dayTickets.Count(t => !string.Equals(t.Status, "Approved", StringComparison.OrdinalIgnoreCase))
+                });
+            }
+        }
+        else
+        {
+            var monthsToGenerate = timeRange == "1Y" ? 12 : 6;
+            var endDate = DateTime.UtcNow;
+            var months = new List<DateTime>();
+            for (int i = 0; i < monthsToGenerate; i++)
+            {
+                months.Add(endDate.AddMonths(-(monthsToGenerate - 1 - i)));
+            }
+
+            foreach (var monthDate in months)
+            {
+                var monthStr = monthDate.ToString("MMM").ToUpperInvariant();
+                var monthTickets = ticketData.Where(d => d.CreatedDate.Year == monthDate.Year && d.CreatedDate.Month == monthDate.Month).ToList();
+                
+                result.Add(new RegistrationData 
+                {
+                    Month = monthStr,
+                    AllCount = monthTickets.Count,
+                    VerifiedCount = monthTickets.Count(t => string.Equals(t.Status, "Approved", StringComparison.OrdinalIgnoreCase)),
+                    UnverifiedCount = monthTickets.Count(t => !string.Equals(t.Status, "Approved", StringComparison.OrdinalIgnoreCase))
+                });
             }
         }
 
@@ -915,6 +1042,32 @@ else
                     result.Add(new AppointmentTrendData
                     {
                         Month = year.ToString(),
+                        Category = category.ToUpperInvariant(),
+                        Count = count
+                    });
+                }
+            }
+        }
+        else if (timeRange == "1M")
+        {
+            var daysToGenerate = 30;
+            var endDate = DateTime.UtcNow.Date;
+            var days = new List<DateTime>();
+            for (int i = 0; i < daysToGenerate; i++)
+            {
+                days.Add(endDate.AddDays(-(daysToGenerate - 1 - i)));
+            }
+
+            foreach (var category in categories)
+            {
+                foreach (var dayDate in days)
+                {
+                    var dayStr = dayDate.ToString("MMM dd");
+                    var count = appointmentData.Count(d => (d.AppointmentType?.StartsWith(category, StringComparison.OrdinalIgnoreCase) ?? false) && d.ScheduledDate.Date == dayDate);
+                    
+                    result.Add(new AppointmentTrendData 
+                    {
+                        Month = dayStr,
                         Category = category.ToUpperInvariant(),
                         Count = count
                     });
@@ -983,54 +1136,46 @@ else
             .ToList();
     }
 
+    private static List<CategoryData> BuildVerificationStatuses(IEnumerable<VerificationTicketRecord> ticketData)
+    {
+        var counts = ticketData
+            .GroupBy(t => (t.Status ?? "Pending").ToUpperInvariant())
+            .ToDictionary(group => group.Key, group => group.Count());
+
+        var orderedStatuses = new[] { "APPROVED", "PENDING", "REJECTED" };
+
+        return orderedStatuses
+            .Select(status => new CategoryData
+            {
+                Name = status,
+                Value = counts.TryGetValue(status, out var count) ? count : 0
+            })
+            .ToList();
+    }
+
+    private static string GetVerificationStatusClass(string? status)
+    {
+        var normalizedStatus = status?.ToUpperInvariant() ?? "PENDING";
+
+        return normalizedStatus switch
+        {
+            "PENDING" => "yellow",
+            "APPROVED" => "approved",
+            "REJECTED" => "rejected",
+            _ => "gray"
+        };
+    }
+
     private async Task SetTimeRange(string range)
     {
         ActiveTimeRange = range;
         _isLoading = true;
         StateHasChanged();
         
-        await Task.Delay(800); // Simulate data fetch for different range
+        await Task.Delay(500); 
 
-        if (range == "1Y")
-        {
-            trendData = new List<RegistrationData>
-            {
-                new RegistrationData { Month = "JUL", Count = 100 },
-                new RegistrationData { Month = "AUG", Count = 150 },
-                new RegistrationData { Month = "SEP", Count = 180 },
-                new RegistrationData { Month = "OCT", Count = 220 },
-                new RegistrationData { Month = "NOV", Count = 280 },
-                new RegistrationData { Month = "DEC", Count = 350 },
-                new RegistrationData { Month = "JAN", Count = 380 },
-                new RegistrationData { Month = "FEB", Count = 420 },
-                new RegistrationData { Month = "MAR", Count = 500 },
-                new RegistrationData { Month = "APR", Count = 580 },
-                new RegistrationData { Month = "MAY", Count = 650 },
-                new RegistrationData { Month = "JUN", Count = 820 }
-            };
-        }
-        else if (range == "ALL")
-        {
-             trendData = new List<RegistrationData>
-            {
-                new RegistrationData { Month = "2023", Count = 1200 },
-                new RegistrationData { Month = "2024", Count = 2800 },
-                new RegistrationData { Month = "2025", Count = 4500 },
-                new RegistrationData { Month = "2026", Count = 5800 }
-            };
-        }
-        else
-        {
-            trendData = new List<RegistrationData>
-            {
-                new RegistrationData { Month = "JAN", Count = 120 },
-                new RegistrationData { Month = "FEB", Count = 230 },
-                new RegistrationData { Month = "MAR", Count = 310 },
-                new RegistrationData { Month = "APR", Count = 480 },
-                new RegistrationData { Month = "MAY", Count = 550 },
-                new RegistrationData { Month = "JUN", Count = 820 }
-            };
-        }
+        // User Growth is now driven by RefreshVerificationDataAsync which handles all ranges
+        await RefreshVerificationDataAsync(redrawChart: false, clearOnFailure: false);
 
         incidentTrendData = BuildIncidentTrends(_allIncidentData, ActiveTimeRange);
         

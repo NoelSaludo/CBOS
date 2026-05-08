@@ -6,10 +6,11 @@
         <div class="card-header-split">
             <div class="chart-title-left">
                 <h2 class="card-title">User Growth Analytics</h2>
-                <p class="card-subtitle">@(ActiveTimeRange == "6M" ? "Resident registration trends over the last 6 months" : ActiveTimeRange == "1Y" ? "Resident registration trends over the last year" : "Overall resident registration trends")</p>
+                <p class="card-subtitle">@(ActiveTimeRange == "1M" ? "Resident registration trends over the last month" : ActiveTimeRange == "6M" ? "Resident registration trends over the last 6 months" : ActiveTimeRange == "1Y" ? "Resident registration trends over the last year" : "Overall resident registration trends")</p>
             </div>
             <div class="chart-actions">
                 <div class="time-filter">
+                    <button class="filter-btn @(ActiveTimeRange == "1M" ? "active" : "")" @onclick='() => OnTimeRangeChanged.InvokeAsync("1M")'>1M</button>
                     <button class="filter-btn @(ActiveTimeRange == "6M" ? "active" : "")" @onclick='() => OnTimeRangeChanged.InvokeAsync("6M")'>6M</button>
                     <button class="filter-btn @(ActiveTimeRange == "1Y" ? "active" : "")" @onclick='() => OnTimeRangeChanged.InvokeAsync("1Y")'>1Y</button>
                     <button class="filter-btn @(ActiveTimeRange == "ALL" ? "active" : "")" @onclick='() => OnTimeRangeChanged.InvokeAsync("ALL")'>ALL</button>
@@ -39,14 +40,26 @@
             {
                 <ApexChart TItem="RegistrationData"
                            @ref="registrationChart"
-                           Height="@("250")"
+                           Height="@("280")"
                            Options="ChartOptions">
                     <ApexPointSeries TItem="RegistrationData"
                                      Items="TrendData"
-                                     Name="Registrations"
-                                     SeriesType="SeriesType.Area"
+                                     Name="All Residents"
+                                     SeriesType="SeriesType.Line"
                                      XValue="@(e => e.Month)"
-                                     YValue="@(e => e.Count)" />
+                                     YValue="@(e => e.AllCount)" />
+                    <ApexPointSeries TItem="RegistrationData"
+                                     Items="TrendData"
+                                     Name="Verified"
+                                     SeriesType="SeriesType.Line"
+                                     XValue="@(e => e.Month)"
+                                     YValue="@(e => e.VerifiedCount)" />
+                    <ApexPointSeries TItem="RegistrationData"
+                                     Items="TrendData"
+                                     Name="Unverified"
+                                     SeriesType="SeriesType.Line"
+                                     XValue="@(e => e.Month)"
+                                     YValue="@(e => e.UnverifiedCount)" />
                 </ApexChart>
             }
         </div>

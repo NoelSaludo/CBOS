@@ -24,7 +24,7 @@
                 </div>
                 <div class="stat-trend up">
                     <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="23 6 13.5 15.5 8.5 10.5 1 18"></polyline><polyline points="17 6 23 6 23 12"></polyline></svg>
-                    <span>+12%</span>
+                    <span>Total</span>
                 </div>
             </div>
             <div class="stat-info">
@@ -58,9 +58,9 @@
                         </svg>
                     </span>
                 </div>
-                <div class="stat-trend down">
-                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="23 18 13.5 8.5 8.5 13.5 1 6"></polyline><polyline points="17 18 23 18 23 12"></polyline></svg>
-                    <span>-5%</span>
+                <div class="stat-trend neutral">
+                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><line x1="8" y1="12" x2="16" y2="12"></line></svg>
+                    <span>Registered</span>
                 </div>
             </div>
             <div class="stat-info">
@@ -149,8 +149,8 @@
 </div>
 
 @code {
-    [Parameter] public int VerifiedUsersCount { get; set; } = 1024;
-    [Parameter] public int UnverifiedUsersCount { get; set; } = 45;
+    [Parameter] public int VerifiedUsersCount { get; set; }
+    [Parameter] public int UnverifiedUsersCount { get; set; }
     [Parameter] public int TotalIncidentsCount { get; set; }
     [Parameter] public int IncidentsTodayCount { get; set; }
     [Parameter] public int TotalAppointmentsCount { get; set; }

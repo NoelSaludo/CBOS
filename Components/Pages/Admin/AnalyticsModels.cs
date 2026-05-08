@@ -3,7 +3,9 @@ namespace CBOS.Components.Pages.Admin
     public class RegistrationData
     {
         public string Month { get; set; } = "";
-        public int Count { get; set; }
+        public int AllCount { get; set; }
+        public int VerifiedCount { get; set; }
+        public int UnverifiedCount { get; set; }
     }
 
     public class CategoryData
