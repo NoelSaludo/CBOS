@@ -1,0 +1,154 @@
+/* ═══════════════════════════════════════════════════════
+   Admin Settings — Simplified 'Coming Soon'
+   ═══════════════════════════════════════════════════════ */
+
+.coming-soon-wrapper {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-height: calc(100vh - 160px);
+    position: relative;
+    overflow: hidden;
+    animation: fade-in 0.8s var(--ease-out);
+}
+
+@keyframes fade-in {
+    from { opacity: 0; transform: scale(0.98); }
+    to   { opacity: 1; transform: scale(1); }
+}
+
+.coming-soon-card {
+    background: var(--surface-card);
+    padding: 4rem;
+    border-radius: 24px;
+    border: 1px solid var(--outline);
+    box-shadow: var(--shadow-lg);
+    text-align: center;
+    max-width: 500px;
+    width: 90%;
+    position: relative;
+    z-index: 2;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 2rem;
+}
+
+/* ─── Icon Portal ─── */
+.icon-portal {
+    position: relative;
+    width: 120px;
+    height: 120px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.portal-ring {
+    position: absolute;
+    border: 2px solid var(--accent-subtle);
+    border-radius: 50%;
+}
+
+.ring-1 { width: 100%; height: 100%; border-style: dashed; animation: rotate 20s linear infinite; }
+.ring-2 { width: 80%; height: 80%; border-color: rgba(59, 130, 246, 0.2); animation: rotate 15s linear infinite reverse; }
+.ring-3 { width: 60%; height: 60%; border-color: rgba(59, 130, 246, 0.4); }
+
+@keyframes rotate {
+    from { transform: rotate(0deg); }
+    to   { transform: rotate(360deg); }
+}
+
+.main-icon {
+    position: relative;
+    z-index: 2;
+    color: var(--accent);
+    width: 56px;
+    height: 56px;
+    animation: pulse-gear 4s ease-in-out infinite;
+}
+
+@keyframes pulse-gear {
+    0%, 100% { transform: scale(1) rotate(0deg); filter: drop-shadow(0 0 0px transparent); }
+    50%      { transform: scale(1.1) rotate(45deg); filter: drop-shadow(0 0 15px rgba(21, 56, 113, 0.3)); }
+}
+
+/* ─── Content ─── */
+.status-badge {
+    display: inline-block;
+    padding: 0.35rem 0.75rem;
+    background: var(--accent-subtle);
+    color: var(--accent);
+    font-size: 0.65rem;
+    font-weight: 800;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    border-radius: var(--radius-full);
+    margin-bottom: 1rem;
+}
+
+.shimmer-text {
+    font-size: 2.5rem;
+    font-weight: 800;
+    color: var(--primary);
+    margin: 0 0 1rem 0;
+    letter-spacing: -0.03em;
+    background: linear-gradient(90deg, var(--primary) 0%, var(--accent) 50%, var(--primary) 100%);
+    background-size: 200% auto;
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    animation: shimmer 5s linear infinite;
+}
+
+@keyframes shimmer {
+    to { background-position: 200% center; }
+}
+
+.content-text p {
+    color: var(--secondary);
+    line-height: 1.6;
+    margin: 0;
+    font-size: 0.95rem;
+}
+
+/* ─── Button ─── */
+.minimal-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.75rem;
+    padding: 0.85rem 1.75rem;
+    background: var(--surface);
+    color: var(--primary);
+    border: 1px solid var(--outline);
+    border-radius: var(--radius-lg);
+    font-weight: 700;
+    font-size: 0.9rem;
+    cursor: pointer;
+    transition: all 0.3s var(--ease-out);
+}
+
+.minimal-btn:hover {
+    background: var(--surface-hover);
+    border-color: var(--accent);
+    color: var(--accent);
+    transform: translateY(-2px);
+}
+
+/* ─── Ambient Glow ─── */
+.ambient-glow {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    width: 600px;
+    height: 600px;
+    background: radial-gradient(circle, rgba(59, 130, 246, 0.08) 0%, transparent 70%);
+    filter: blur(60px);
+    z-index: 1;
+}
+
+@media (max-width: 600px) {
+    .coming-soon-card {
+        padding: 2.5rem;
+    }
+}
