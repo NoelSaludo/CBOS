@@ -3,13 +3,14 @@
     padding: 2rem 4rem;
     min-height: calc(100vh - 80px); /* Adjust based on your MainLayout header height */
     background-color: #f2f3f5;
+    font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
 }
 
 /* Big blue header */
 .profile-header {
-    color: #009dff;
+    color: #0066ff;
     font-weight: 700;
-    font-size: 3.5rem;
+    font-size: 2.4rem;
     letter-spacing: -1px;
     margin-bottom: 2rem;
 }
@@ -32,12 +33,13 @@
 }
 
 .account-status-text {
-    font-size: 1.1rem;
+    font-size: 1rem;
     color: #1a1a1a;
+    font-weight: 500;
 }
 
 .status-label-text {
-    font-size: 1.1rem;
+    font-size: 1rem;
     color: #1a1a1a;
 }
 
@@ -46,21 +48,35 @@
     font-weight: 500;
     font-size: 0.9rem;
     padding: 8px 16px;
+}
+
+.custom-badge.bg-secondary {
     background-color: #707070 !important; /* Overrides bg-secondary to match the specific gray in your mockup */
 }
 
 /* The blue Verify Account button */
 .btn-verify {
-    background-color: #4a8df8;
+    background-color: #0066ff;
     color: white;
     border: none;
     padding: 10px 24px;
     font-weight: 500;
     font-size: 1rem;
-    transition: background-color 0.2s ease-in-out;
+    border-radius: 50rem;
+    transition: background-color 0.2s ease-in-out, transform 0.2s ease-in-out;
 }
 
 .btn-verify:hover {
-    background-color: #3b74d6;
+    background-color: #1861ac;
     color: white;
+    transform: translateY(-2px);
+}
+
+.btn-verify:active {
+    transform: translateY(0);
+}
+
+.btn-verify:focus {
+    outline: 2px solid #258cfb;
+    outline-offset: 2px;
 }

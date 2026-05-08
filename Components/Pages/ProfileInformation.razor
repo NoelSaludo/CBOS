@@ -32,7 +32,7 @@
         <div class="text-muted mb-3 px-2">@_statusDescription</div>
     }
 
-    <NavLink class="btn btn-verify rounded-pill mt-2" href="/user/verify">
+    <NavLink class="btn btn-verify mt-2" href="/user/verify">
         Verify account
     </NavLink>
 </div>
@@ -86,7 +86,7 @@
         if (string.IsNullOrWhiteSpace(status))
         {
             _statusLabel = "No Submission";
-            _statusDescription = "";
+            _statusDescription = "No submission yet";
             _statusToneClass = "bg-secondary";
             return;
         }
@@ -94,15 +94,15 @@
         if (string.Equals(status, "Pending", StringComparison.OrdinalIgnoreCase))
         {
             _statusLabel = "Pending";
-            _statusDescription = "Your request is under review.";
+            _statusDescription = "Submitted a ticket for admin review";
             _statusToneClass = "bg-warning text-dark"; // Added text-dark for better contrast on yellow
             return;
         }
 
-        if (string.Equals(status, "Approved", StringComparison.OrdinalIgnoreCase))
+        if (string.Equals(status, "Approved", StringComparison.OrdinalIgnoreCase) || string.Equals(status, "Verified", StringComparison.OrdinalIgnoreCase))
         {
-            _statusLabel = "Approved";
-            _statusDescription = "Your account has been verified.";
+            _statusLabel = "Verified";
+            _statusDescription = "Admin approved";
             _statusToneClass = "bg-success";
             return;
         }
@@ -111,7 +111,7 @@
             string.Equals(status, "Declined", StringComparison.OrdinalIgnoreCase))
         {
             _statusLabel = "Rejected";
-            _statusDescription = "Your request was not approved.";
+            _statusDescription = "Admin rejected";
             _statusToneClass = "bg-danger";
             return;
         }

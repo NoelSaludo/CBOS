@@ -1,4 +1,4 @@
-﻿@page "/admin/verification"
+@page "/admin/verification"
 @layout AdminDashboardLayout
 @rendermode InteractiveServer
 @using CBOS.Components.Model
@@ -192,7 +192,18 @@
                             <div class="image-wrapper">
                                 @if (!string.IsNullOrWhiteSpace(_selectedTicket.ValidIdUrl))
                                 {
-                                    <a class="view-details-btn" href="@_selectedTicket.ValidIdUrl" target="_blank" rel="noopener noreferrer">Open Valid ID</a>
+                                    <button class="@GetDocumentButtonCssClass(ValidIdDocumentTitle)"
+                                            type="button"
+                                            disabled="@_isDocumentPreviewLoading"
+                                            @onclick="() => OpenDocumentPreviewAsync(ValidIdDocumentTitle, _selectedTicket.ValidIdUrl)">
+                                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                            <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
+                                            <path d="M14 2v6h6"></path>
+                                            <path d="M10 13a2 2 0 1 0 4 0 2 2 0 0 0-4 0"></path>
+                                            <path d="M8 18l2.2-2.2a1 1 0 0 1 1.4 0L13 17l1.2-1.2a1 1 0 0 1 1.4 0L18 18"></path>
+                                        </svg>
+                                        <span>Open Valid ID</span>
+                                    </button>
                                 }
                                 else
                                 {
@@ -202,7 +213,18 @@
                             <div class="image-wrapper">
                                 @if (!string.IsNullOrWhiteSpace(_selectedTicket.BirthCertificateUrl))
                                 {
-                                    <a class="view-details-btn" href="@_selectedTicket.BirthCertificateUrl" target="_blank" rel="noopener noreferrer">Open Birth Certificate</a>
+                                    <button class="@GetDocumentButtonCssClass(BirthCertificateDocumentTitle)"
+                                            type="button"
+                                            disabled="@_isDocumentPreviewLoading"
+                                            @onclick="() => OpenDocumentPreviewAsync(BirthCertificateDocumentTitle, _selectedTicket.BirthCertificateUrl)">
+                                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                            <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
+                                            <path d="M14 2v6h6"></path>
+                                            <path d="M10 13a2 2 0 1 0 4 0 2 2 0 0 0-4 0"></path>
+                                            <path d="M8 18l2.2-2.2a1 1 0 0 1 1.4 0L13 17l1.2-1.2a1 1 0 0 1 1.4 0L18 18"></path>
+                                        </svg>
+                                        <span>Open Birth Certificate</span>
+                                    </button>
                                 }
                                 else
                                 {
@@ -210,6 +232,45 @@
                                 }
                             </div>
                         </div>
+
+                        @if (_isDocumentPreviewLoading)
+                        {
+                            <div class="document-preview-state">
+                                <span class="preview-spinner"></span>
+                                <span>Loading document preview...</span>
+                            </div>
+                        }
+                        else if (!string.IsNullOrWhiteSpace(_documentPreviewError))
+                        {
+                            <div class="document-preview-error" role="alert">@_documentPreviewError</div>
+                        }
+                        else if (!string.IsNullOrWhiteSpace(_documentPreviewUrl))
+                        {
+                            <div class="document-preview-panel">
+                                <div class="document-preview-header">
+                                    <span>@_documentPreviewTitle</span>
+                                    <button class="icon-action" type="button" title="Close Preview" @onclick="ClearDocumentPreview">
+                                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                            <line x1="18" y1="6" x2="6" y2="18"></line>
+                                            <line x1="6" y1="6" x2="18" y2="18"></line>
+                                        </svg>
+                                    </button>
+                                </div>
+
+                                @if (IsPdfDocument(_documentPreviewSourceUrl))
+                                {
+                                    <iframe class="document-preview-frame"
+                                            title="@_documentPreviewTitle"
+                                            src="@_documentPreviewUrl"></iframe>
+                                }
+                                else
+                                {
+                                    <img class="document-preview-image"
+                                         src="@_documentPreviewUrl"
+                                         alt="@_documentPreviewTitle" />
+                                }
+                            </div>
+                        }
                     </div>
 
                     <div class="status-selection-group mt-4">
@@ -270,6 +331,11 @@
     private readonly HashSet<long> _updatingTicketIds = new();
     private bool _showDetailsModal = false;
     private VerificationTicketRecord? _selectedTicket;
+    private bool _isDocumentPreviewLoading;
+    private string? _documentPreviewUrl;
+    private string? _documentPreviewSourceUrl;
+    private string? _documentPreviewTitle;
+    private string? _documentPreviewError;
     private string _newStatus = StatusPending;
     private string searchQuery = "";
     private string selectedStatus = "All";
@@ -278,6 +344,8 @@
     private const string StatusPending = "Pending";
     private const string StatusApproved = "Approved";
     private const string StatusRejected = "Rejected";
+    private const string ValidIdDocumentTitle = "Valid ID";
+    private const string BirthCertificateDocumentTitle = "Birth Certificate";
 
     private List<VerificationTicketRecord> AllTickets => _tickets
         .OrderByDescending(t => t.CreatedDate)
@@ -356,6 +424,7 @@
     {
         _selectedTicket = ticket;
         _newStatus = NormalizeStatus(ticket.Status);
+        ClearDocumentPreview();
         _showDetailsModal = true;
     }
 
@@ -363,6 +432,67 @@
     {
         _showDetailsModal = false;
         _selectedTicket = null;
+        ClearDocumentPreview();
+    }
+
+    private async Task OpenDocumentPreviewAsync(string title, string? storedDocumentUrl)
+    {
+        if (string.IsNullOrWhiteSpace(storedDocumentUrl))
+            return;
+
+        _documentPreviewTitle = title;
+        _documentPreviewSourceUrl = storedDocumentUrl;
+        _documentPreviewUrl = null;
+        _documentPreviewError = null;
+        _isDocumentPreviewLoading = true;
+
+        try
+        {
+            var signedUrl = await VerificationManager.CreateSignedDocumentUrlAsync(storedDocumentUrl);
+            if (string.IsNullOrWhiteSpace(signedUrl))
+            {
+                _documentPreviewError = $"Unable to load {title}. Check that the file exists in the verification-documents bucket.";
+                return;
+            }
+
+            _documentPreviewUrl = signedUrl;
+        }
+        catch (Exception ex)
+        {
+            _documentPreviewError = $"Unable to load {title}: {ex.Message}";
+        }
+        finally
+        {
+            _isDocumentPreviewLoading = false;
+        }
+    }
+
+    private void ClearDocumentPreview()
+    {
+        _isDocumentPreviewLoading = false;
+        _documentPreviewUrl = null;
+        _documentPreviewSourceUrl = null;
+        _documentPreviewTitle = null;
+        _documentPreviewError = null;
+    }
+
+    private string GetDocumentButtonCssClass(string title)
+    {
+        var activeClass = string.Equals(_documentPreviewTitle, title, StringComparison.OrdinalIgnoreCase) &&
+                          !string.IsNullOrWhiteSpace(_documentPreviewUrl)
+            ? " active"
+            : string.Empty;
+
+        return $"document-preview-btn{activeClass}";
+    }
+
+    private static bool IsPdfDocument(string? storedDocumentUrl)
+    {
+        if (string.IsNullOrWhiteSpace(storedDocumentUrl))
+            return false;
+
+        var cleanUrl = storedDocumentUrl.Split('?', 2)[0];
+        return cleanUrl.EndsWith(".pdf", StringComparison.OrdinalIgnoreCase);
     }
 
     private async Task ConfirmStatusUpdate()
