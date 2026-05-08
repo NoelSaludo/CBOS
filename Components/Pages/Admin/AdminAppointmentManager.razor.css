@@ -149,6 +149,106 @@
     background: linear-gradient(90deg, var(--outline), transparent);
 }
 
+/* ─── Filters ─── */
+.filters-card {
+    display: flex;
+    gap: 1rem;
+    justify-content: space-between;
+    align-items: center;
+    padding: 1rem 1.25rem;
+    animation: stagger-in 0.6s var(--ease-out) 0.35s both;
+}
+
+.search-box {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    flex: 1;
+    min-width: 0;
+    padding: 0.8rem 1rem;
+    background: var(--surface);
+    border: 1px solid var(--outline);
+    border-radius: 14px;
+    transition: all 0.25s var(--ease-out);
+}
+
+.search-box svg {
+    width: 18px;
+    height: 18px;
+    color: var(--secondary);
+    flex-shrink: 0;
+}
+
+.search-box input {
+    width: 100%;
+    border: none;
+    outline: none;
+    background: transparent;
+    color: var(--on-surface);
+    font-size: 0.9rem;
+    font-family: inherit;
+}
+
+.search-box input::placeholder {
+    color: var(--secondary);
+}
+
+.search-box:focus-within {
+    border-color: var(--accent);
+    box-shadow: 0 0 0 4px var(--accent-subtle);
+}
+
+.filter-groups {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+}
+
+.filter-select {
+    min-width: 160px;
+    padding: 0.8rem 1rem;
+    border-radius: 14px;
+    border: 1px solid var(--outline);
+    background: var(--surface);
+    color: var(--on-surface);
+    font: inherit;
+    cursor: pointer;
+    transition: all 0.25s var(--ease-out);
+}
+
+.filter-select:focus {
+    outline: none;
+    border-color: var(--accent);
+    box-shadow: 0 0 0 4px var(--accent-subtle);
+}
+
+.icon-action {
+    width: 42px;
+    height: 42px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 14px;
+    border: 1px solid var(--outline);
+    background: var(--surface);
+    color: var(--secondary);
+    cursor: pointer;
+    transition: all 0.25s var(--ease-out);
+    flex-shrink: 0;
+}
+
+.icon-action svg {
+    width: 16px;
+    height: 16px;
+}
+
+.icon-action:hover {
+    border-color: var(--accent);
+    color: var(--accent);
+    transform: translateY(-1px);
+    box-shadow: var(--shadow-sm);
+}
+
 @keyframes stagger-in {
     from { opacity: 0; transform: translateY(10px); }
     to   { opacity: 1; transform: translateY(0); }
@@ -699,5 +799,19 @@
         flex-direction: column;
         align-items: flex-start;
         gap: 1.25rem;
+    }
+
+    .filters-card {
+        flex-direction: column;
+        align-items: stretch;
+    }
+
+    .filter-groups {
+        width: 100%;
+    }
+
+    .filter-select {
+        width: 100%;
+        min-width: 0;
     }
 }

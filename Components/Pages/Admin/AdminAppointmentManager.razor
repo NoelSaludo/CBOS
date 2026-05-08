@@ -33,6 +33,30 @@
         <div class="section-line"></div>
     </div>
 
+    <div class="filters-card architectural-card">
+        <div class="search-box">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <circle cx="11" cy="11" r="8"></circle>
+                <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+            </svg>
+            <input type="text" placeholder="Search by resident name..." @bind="searchQuery" @bind:event="oninput" />
+        </div>
+        <div class="filter-groups">
+            <select @bind="selectedStatus" class="filter-select" aria-label="Filter by appointment status">
+                <option value="All">All Status</option>
+                <option value="Pending">Pending</option>
+                <option value="Accepted">Accepted</option>
+                <option value="Rejected">Rejected</option>
+            </select>
+            <button class="icon-action reset-btn" type="button" @onclick="ResetFilters" title="Reset Filters" aria-label="Reset filters">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M23 4v6h-6"></path>
+                    <path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"></path>
+                </svg>
+            </button>
+        </div>
+    </div>
+
     @if (_isLoading)
     {
         <div class="architectural-card">
@@ -69,7 +93,7 @@
                         </tr>
                     </thead>
                     <tbody>
-                        @if (!_items.Any())
+                        @if (!FilteredTickets.Any())
                         {
                             <tr>
                                 <td colspan="6">
@@ -82,14 +106,14 @@
                                                 <line x1="16" y1="17" x2="8" y2="17"></line>
                                             </svg>
                                         </div>
-                                        <p class="empty-state-text">No appointments found.</p>
+                                        <p class="empty-state-text">@EmptyStateMessage</p>
                                     </div>
                                 </td>
                             </tr>
                         }
                         else
                         {
-                            @foreach (var ticket in SortedTickets)
+                            @foreach (var ticket in FilteredTickets)
                             {
                                 <tr class="clickable-row" @onclick="() => OpenDetailsModal(ticket)">
                                     <td class="id-cell">#TKT-@ticket.TicketId</td>
@@ -116,7 +140,7 @@
             </div>
             <div class="table-footer">
                 <div class="pagination-info">
-                    Showing <span>@SortedTickets.Count</span> appointments
+                    Showing <span>@FilteredTickets.Count</span> of <span>@AllTickets.Count</span> appointments
                 </div>
             </div>
         </div>
@@ -223,6 +247,8 @@
     private bool _showDetailsModal = false;
     private AppointmentTicketModel? _selectedTicket;
     private string _newStatus = StatusPending;
+    private string searchQuery = string.Empty;
+    private string selectedStatus = "All";
 
     private const string StatusPending = "Pending";
     private const string StatusAccepted = "Accepted";
@@ -233,8 +259,18 @@
         await LoadTicketsAsync();
     }
 
-    private List<AppointmentTicketModel> SortedTickets =>
+    private List<AppointmentTicketModel> AllTickets =>
         _items.OrderByDescending(i => i.ScheduledDate).ToList();
+
+    private List<AppointmentTicketModel> FilteredTickets => AllTickets
+        .Where(ticket => (selectedStatus == "All" || NormalizeStatus(ticket.Status) == selectedStatus) &&
+                         (string.IsNullOrWhiteSpace(searchQuery) ||
+                          ticket.FullName.Contains(searchQuery, StringComparison.OrdinalIgnoreCase)))
+        .ToList();
+
+    private string EmptyStateMessage => _items.Count == 0
+        ? "No appointments found."
+        : "No appointments match your search or status filter.";
 
     private static string NormalizeStatus(string? status)
     {
@@ -269,6 +305,12 @@
     }
 
     private bool IsUpdating(long ticketId) => _updatingTicketIds.Contains(ticketId);
+
+    private void ResetFilters()
+    {
+        searchQuery = string.Empty;
+        selectedStatus = "All";
+    }
 
     private string GetStatusClass(string? status) => NormalizeStatus(status) switch
     {
