@@ -13,8 +13,6 @@ public class AdminCommunityManagerSupabase : ISupabase
     private const string StatusRejected = "Rejected";
     private const string StatusApproved = "Approved";
     private const string StatusAccepted = "Accepted";
-    
-    public event Action? OnCommunityPostsChanged;
 
     // Creates the Supabase-backed community manager.
     public AdminCommunityManagerSupabase(Client supabase) : base(supabase)
@@ -39,26 +37,60 @@ public class AdminCommunityManagerSupabase : ISupabase
         return GetPostTicketsByStatusesAsync(new[] { StatusRejected });
     }
 
-    // Gets all community post tickets.
-    public Task<List<CommunityPostTicket>> GetAllCommunityPostTicketsAsync()
+    // Updates the status of a post ticket with admin info.
+    public async Task UpdatePostTicketStatusAsync(long ticketId, string status, long AdminId)
     {
-        return GetPostTicketsByStatusesAsync(new[] { StatusPending, StatusApproved, StatusRejected });
-    }
-
-    // Updates the ticket status for a community post.
-    public async Task UpdatePostTicketStatusAsync(CommunityPostTicket ticket, string status, long AdminId)
-    {
-        if (ticket == null)
-            throw new ArgumentNullException(nameof(ticket));
+        if (ticketId <= 0)
+            throw new ArgumentException("Invalid ticket ID.", nameof(ticketId));
 
         await supabase.From<Ticket>()
-            .Where(t => t.Id == ticket.TicketId)
+            .Where(t => t.Id == ticketId)
             .Set(t => t.Status, status)
             .Set(t => t.ApprovedBy, AdminId)
             .Set(t => t.ApprovedAt, DateTime.UtcNow)
             .Update();
+    }
 
-        OnCommunityPostsChanged?.Invoke();
+    // Updates the status of a post ticket to rejected with admin info. 
+    public async Task UpdatePostTicketStatusToApprovedAsync(long ticketId, long adminId)
+    {
+        if (ticketId <= 0)
+            throw new ArgumentException("Invalid ticket ID.", nameof(ticketId));
+
+        await supabase.From<Ticket>()
+            .Where(t => t.Id == ticketId)
+            .Set(t => t.Status, StatusApproved)
+            .Set(t => t.ApprovedBy, adminId)
+            .Set(t => t.ApprovedAt, DateTime.UtcNow)
+            .Update();
+    }
+
+    // Updates the status of a post ticket to rejected with admin info.
+    public async Task UpdatePostTicketStatusToRejectedAsync(long ticketId, long adminId)
+    {
+        if (ticketId <= 0)
+            throw new ArgumentException("Invalid ticket ID.", nameof(ticketId));
+
+        await supabase.From<Ticket>()
+            .Where(t => t.Id == ticketId)
+            .Set(t => t.Status, StatusRejected)
+            .Set(t => t.ApprovedBy, adminId)
+            .Set(t => t.ApprovedAt, DateTime.UtcNow)
+            .Update();
+    }
+
+    // Updates the status of a post ticket to pending with admin info.
+    public async Task UpdatePostTicketStatusToPendingAsync(long ticketId, long adminId)
+    {
+        if (ticketId <= 0)
+            throw new ArgumentException("Invalid ticket ID.", nameof(ticketId));
+
+        await supabase.From<Ticket>()
+            .Where(t => t.Id == ticketId)
+            .Set(t => t.Status, StatusPending)
+            .Set(t => t.ApprovedBy, null)
+            .Set(t => t.ApprovedAt, null)
+            .Update();
     }
 
     // Loads post tickets filtered by a normalized status set.
@@ -94,7 +126,6 @@ public class AdminCommunityManagerSupabase : ISupabase
                 Title = string.IsNullOrWhiteSpace(post.Title) ? "Untitled" : post.Title,
                 Description = post.Description ?? string.Empty,
                 PrimaryImageUrl = GetPrimaryImageUrl(post.MediaLink),
-                Author = string.IsNullOrWhiteSpace(post.Author) ? "Resident" : post.Author,
                 Status = NormalizeStatus(ticket.Status),
                 CreatedAt = post.CreatedAt
             });

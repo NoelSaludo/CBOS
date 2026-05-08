@@ -16,7 +16,10 @@
   <ItemGroup>
     <Folder Include="Components\Pages\User\" />
     <Folder Include="wwwroot\css\" />
-    <Folder Include="wwwroot\images\" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Folder Include="Components\Models\" />
   </ItemGroup>
 
 </Project>

@@ -1,20 +1,20 @@
 .login-card {
     min-width: 200px;
-    width: 600px;
+    width: min(90vw, 560px);
     margin: 0 auto;
     margin-top: 3rem;
-    padding: 20px 5rem;
-    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-    border-radius: 8px;
-    background: linear-gradient(145deg, #ffffff, #cacaca);
+    padding: 2.25rem 4rem;
+    box-shadow: var(--shadow-lg);
+    border-radius: var(--radius-xl);
+    background: var(--surface-card);
     align-content: center;
-    border-color:black;
-    border-width: 2px;
+    border: 1px solid var(--outline-light);
 }
 
-.login-card-header h3, h6 {
-    color: #0a53be;
-    font-weight: bolder;
+.login-card-header h3,
+.login-card-header h6 {
+    color: var(--primary);
+    font-weight: 800;
 }
 
 .login-card-header {
@@ -22,28 +22,116 @@
     margin-bottom: 2rem;
 }
 
+.login-card-header h6 {
+    color: var(--secondary);
+    font-weight: 600;
+}
+
 .password-field {
     position: relative;
 }
 
+.password-input-wrap {
+    position: relative;
+}
+
 .password-input {
-    padding-right: 2.5rem;
+    padding-right: 3.25rem;
+}
+
+.password-toggle-input {
+    position: absolute;
+    top: 50%;
+    right: 0.9rem;
+    transform: translateY(-50%);
+    width: 0;
+    height: 0;
+    opacity: 0;
+    pointer-events: none;
+    appearance: none;
+    margin: 0;
+    padding: 0;
+    border: 0;
 }
 
 .password-toggle {
     position: absolute;
-    top: 50%;
+    top: 30%;
     right: 0.75rem;
     transform: translateY(-50%);
     margin: 0;
     z-index: 2;
     cursor: pointer;
+    width: 32px;
+    height: 32px;
+    border-radius: 10px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    background: var(--surface-hover);
+    border: 1px solid var(--outline-light);
+    color: var(--secondary);
+    transition: var(--transition-fast);
 }
 
 .capsule {
-    border-radius: 9999px;
+    border-radius: var(--radius-full);
 }
 
 .submit-btn {
     position: relative;
+    background: var(--accent);
+    border-color: var(--accent);
+    font-weight: 700;
+    box-shadow: var(--shadow-sm);
+}
+
+.submit-btn:hover,
+.submit-btn:focus {
+    background: var(--primary-hover);
+    border-color: var(--primary-hover);
+    box-shadow: var(--shadow-md);
+}
+
+.login-card .form-control {
+    background: var(--surface);
+    border: 1px solid var(--outline);
+    color: var(--on-surface);
+    padding: 0.7rem 1rem;
+}
+
+.login-card .form-control:focus {
+    border-color: var(--accent);
+    box-shadow: 0 0 0 4px rgba(21, 56, 113, 0.15);
+}
+
+.password-toggle svg {
+    width: 18px;
+    height: 18px;
+}
+
+.password-toggle .eye-open {
+    display: none;
+}
+
+.password-toggle-input:checked + .password-toggle .eye-open {
+    display: block;
+}
+
+.password-toggle-input:checked + .password-toggle .eye-closed {
+    display: none;
+}
+
+.password-toggle-input:focus-visible + .password-toggle,
+.password-toggle:hover {
+    border-color: var(--accent);
+    color: var(--accent);
+    box-shadow: 0 0 0 4px rgba(21, 56, 113, 0.15);
+}
+
+@media (max-width: 768px) {
+    .login-card {
+        padding: 2rem;
+        margin-top: 2rem;
+    }
 }

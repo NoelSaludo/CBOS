@@ -5,11 +5,9 @@ using Supabase;
 
 namespace CBOS.Components.Services;
 
-public class TicketSupabase : ISupabase
+public class AppointmentTicketSupabase : ISupabase
 {
-    public event Action? OnAppointmentsChanged;
-
-    public TicketSupabase(Client supabase) : base(supabase)
+    public AppointmentTicketSupabase(Client supabase) : base(supabase)
     {
     }
 
@@ -64,7 +62,6 @@ public class TicketSupabase : ISupabase
             if (!appointmentMap.TryGetValue(t.SourceId, out var ap))
                 continue;
 
-            var userFound = userMap.TryGetValue(t.SubmittedBy, out var user);
             var model = new AppointmentTicketModel
             {
                 TicketId = t.Id,
@@ -73,11 +70,9 @@ public class TicketSupabase : ISupabase
                 ScheduledDate = ap.ScheduledDate,
                 Description = ap.Description ?? string.Empty,
                 Status = t.Status ?? "Pending",
-                FullName = userFound
-                    ? string.Join(" ", new[] { user!.FirstName, user.MiddleName, user.LastName }.Where(s => !string.IsNullOrWhiteSpace(s)))
-                    : "Unknown",
-                FirstName = user?.FirstName ?? "Unknown",
-                LastName = user?.LastName ?? ""
+                FullName = userMap.TryGetValue(t.SubmittedBy, out var user)
+                    ? string.Join(" ", new[] { user.FirstName, user.MiddleName, user.LastName }.Where(s => !string.IsNullOrWhiteSpace(s)))
+                    : "Unknown"
             };
 
             result.Add(model);
@@ -88,17 +83,21 @@ public class TicketSupabase : ISupabase
         return result;
     }
 
-    public async Task UpdateAppointmentTicketStatusAsync(AppointmentTicketModel ticket, string status)
+
+
+    public async Task UpdateAppointmentTicketStatusAsync(long ticketId, string status, long adminId)
     {
-        if (ticket == null)
-            throw new ArgumentNullException(nameof(ticket));
+        if (ticketId <= 0)
+            throw new ArgumentException("Invalid ticket ID.", nameof(ticketId));
 
         // Keep the ticket and appointment statuses aligned.
         await supabase.From<Ticket>()
-            .Where(t => t.Id == ticket.TicketId)
+            .Where(t => t.Id == ticketId)
             .Set(t => t.Status, status)
+            .Set(t => t.ApprovedBy, adminId)
+            .Set(t => t.ApprovedAt, DateTime.UtcNow)
             .Update();
-
-        OnAppointmentsChanged?.Invoke();
     }
-}
+
+    
+}
