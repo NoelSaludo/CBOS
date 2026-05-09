@@ -7,6 +7,12 @@ namespace CBOS.Components.Services;
 
 public class AppointmentTicketSupabase : ISupabase
 {
+    // Raised whenever appointment data changes so subscribers can refresh.
+    public event Action? OnAppointmentsChanged;
+
+    // Notifies all listeners that appointment data has been updated.
+    public void NotifyAppointmentsChanged() => OnAppointmentsChanged?.Invoke();
+
     public AppointmentTicketSupabase(Client supabase) : base(supabase)
     {
     }
@@ -16,7 +22,6 @@ public class AppointmentTicketSupabase : ISupabase
         var response = await supabase.From<Ticket>()
             .Where(t => t.Type == "appointment")
             .Get();
-        Console.WriteLine($"Fetched {response.Models.Count} appointment tickets from Supabase.");
         return response.Models;
     }
 
@@ -27,7 +32,6 @@ public class AppointmentTicketSupabase : ISupabase
 
         var response = await supabase.From<Appointment>().Get();
         var filtered = response.Models.Where(a => appointmentIds.Contains(a.Id)).ToList();
-        Console.WriteLine($"Fetched {filtered.Count} appointments from Supabase for ticket source IDs.");
         return filtered;
     }
 
@@ -78,7 +82,6 @@ public class AppointmentTicketSupabase : ISupabase
             result.Add(model);
         }
 
-        Console.WriteLine($"Constructed {result.Count} appointment ticket models for admin board.");
 
         return result;
     }

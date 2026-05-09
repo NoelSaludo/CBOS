@@ -1,0 +1,99 @@
+@using CBOS.Components.Model
+@using ApexCharts
+
+<div class="analytics-chart-container">
+    <div class="architectural-card">
+        <div class="card-header-split">
+            <div class="chart-title-left">
+                <h2 class="card-title">User Growth Analytics</h2>
+                <p class="card-subtitle">@(ActiveTimeRange == "1M" ? "Resident registration trends over the last month" : ActiveTimeRange == "6M" ? "Resident registration trends over the last 6 months" : ActiveTimeRange == "1Y" ? "Resident registration trends over the last year" : "Overall resident registration trends")</p>
+            </div>
+            <div class="chart-actions">
+                <div class="time-filter">
+                    <button class="filter-btn @(ActiveTimeRange == "1M" ? "active" : "")" @onclick='() => OnTimeRangeChanged.InvokeAsync("1M")'>1M</button>
+                    <button class="filter-btn @(ActiveTimeRange == "6M" ? "active" : "")" @onclick='() => OnTimeRangeChanged.InvokeAsync("6M")'>6M</button>
+                    <button class="filter-btn @(ActiveTimeRange == "1Y" ? "active" : "")" @onclick='() => OnTimeRangeChanged.InvokeAsync("1Y")'>1Y</button>
+                    <button class="filter-btn @(ActiveTimeRange == "ALL" ? "active" : "")" @onclick='() => OnTimeRangeChanged.InvokeAsync("ALL")'>ALL</button>
+                </div>
+                <span class="stat-badge live">LIVE</span>
+            </div>
+        </div>
+        <div class="chart-placeholder">
+            @if (IsLoading)
+            {
+                <div class="chart-skeleton-group">
+                    <div class="chart-skeleton-body">
+                        <div class="skeleton skeleton-wave-line" style="height: 3px; width: 85%; margin-bottom: 2rem;"></div>
+                        <div class="skeleton skeleton-wave-line" style="height: 3px; width: 70%; margin-bottom: 2rem;"></div>
+                        <div class="skeleton skeleton-wave-line" style="height: 3px; width: 90%; margin-bottom: 2rem;"></div>
+                        <div class="skeleton skeleton-wave-line" style="height: 3px; width: 60%; margin-bottom: 2rem;"></div>
+                        <div class="skeleton skeleton-wave-line" style="height: 3px; width: 75%;"></div>
+                    </div>
+                    <div class="chart-skeleton-axis">
+                        @for (var i = 0; i < 6; i++)
+                        {
+                            <div class="skeleton skeleton-axis-label"></div>
+                        }
+                    </div>
+                </div>
+            }
+            else if (TrendData == null || !TrendData.Any())
+            {
+                <div class="empty-state">
+                    <div class="empty-state-icon">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <line x1="18" y1="20" x2="18" y2="10"></line>
+                            <line x1="12" y1="20" x2="12" y2="4"></line>
+                            <line x1="6" y1="20" x2="6" y2="14"></line>
+                        </svg>
+                    </div>
+                    <p class="empty-state-text">No registration data available for this period.</p>
+                </div>
+            }
+            else
+            {
+                <ApexChart TItem="RegistrationData"
+                           @ref="registrationChart"
+                           Height="@("280")"
+                           Options="ChartOptions">
+                    <ApexPointSeries TItem="RegistrationData"
+                                     Items="TrendData"
+                                     Name="All Residents"
+                                     SeriesType="SeriesType.Line"
+                                     XValue="@(e => e.Month)"
+                                     YValue="@(e => e.AllCount)" />
+                    <ApexPointSeries TItem="RegistrationData"
+                                     Items="TrendData"
+                                     Name="Verified"
+                                     SeriesType="SeriesType.Line"
+                                     XValue="@(e => e.Month)"
+                                     YValue="@(e => e.VerifiedCount)" />
+                    <ApexPointSeries TItem="RegistrationData"
+                                     Items="TrendData"
+                                     Name="Unverified"
+                                     SeriesType="SeriesType.Line"
+                                     XValue="@(e => e.Month)"
+                                     YValue="@(e => e.UnverifiedCount)" />
+                </ApexChart>
+            }
+        </div>
+    </div>
+</div>
+
+@code {
+    [Parameter] public List<RegistrationData> TrendData { get; set; } = new();
+    [Parameter] public string ActiveTimeRange { get; set; } = "6M";
+    [Parameter] public bool IsLoading { get; set; }
+    [Parameter] public EventCallback<string> OnTimeRangeChanged { get; set; }
+    [Parameter] public ApexChartOptions<RegistrationData> ChartOptions { get; set; } = new();
+
+    private ApexChart<RegistrationData> registrationChart = default!;
+
+    public async Task RenderAsync()
+    {
+        if (registrationChart != null)
+        {
+            await registrationChart.RenderAsync();
+        }
+    }
+}

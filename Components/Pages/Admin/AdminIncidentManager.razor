@@ -26,9 +26,9 @@ else
                 <p>Monitor, review, and respond to community incident reports.</p>
             </div>
             <div class="welcome-actions">
-                <button class="quick-action-btn" @onclick="ToggleExportComingSoon">
-                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="17 8 12 3 7 8"></polyline><line x1="12" y1="3" x2="12" y2="15"></line></svg>
-                    Export Data
+                <button class="quick-action-btn" @onclick="LoadData">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M23 4v6h-6"/><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"/></svg>
+                    Refresh Data
                 </button>
             </div>
         </div>
@@ -166,12 +166,33 @@ else
                             @for (int i = 0; i < 6; i++)
                             {
                                 <tr>
-                                    <td><div class="skeleton skeleton-text" style="width: 70px;"></div></td>
-                                    <td><div class="skeleton skeleton-text"></div></td>
-                                    <td><div class="skeleton skeleton-text"></div></td>
-                                    <td><div class="skeleton skeleton-text" style="width: 60px;"></div></td>
+                                    @* ID Column *@
+                                    <td class="id-cell"><div class="skeleton skeleton-id"></div></td>
+                                    
+                                    @* Complainant Column (Avatar + Name) *@
+                                    <td class="bold-cell">
+                                        <div class="user-avatar-group">
+                                            <div class="skeleton skeleton-avatar"></div>
+                                            <div class="name-details" style="gap: 4px;">
+                                                <div class="skeleton skeleton-text" style="width: 100px;"></div>
+                                                <div class="skeleton skeleton-text" style="width: 60px; height: 0.6rem;"></div>
+                                            </div>
+                                        </div>
+                                    </td>
+
+                                    @* Title Column *@
+                                    <td><div class="skeleton skeleton-text" style="width: 150px;"></div></td>
+
+                                    @* Category Column *@
+                                    <td><div class="skeleton skeleton-chip"></div></td>
+
+                                    @* Date Column *@
                                     <td><div class="skeleton skeleton-text" style="width: 80px;"></div></td>
-                                    <td><div class="skeleton skeleton-text" style="width: 70px;"></div></td>
+
+                                    @* Status Column *@
+                                    <td><div class="skeleton skeleton-chip"></div></td>
+
+                                    @* Actions Column *@
                                     <td><div class="skeleton skeleton-text" style="width: 80px;"></div></td>
                                 </tr>
                             }
@@ -371,41 +392,6 @@ else
     </div>
 }
 
-@if (_showExportComingSoon)
-{
-    <div class="modal-overlay">
-        <div class="modal-content" style="max-width: 340px; text-align: center;">
-            <div class="modal-header" style="padding: 1rem 1.25rem;">
-                <div class="modal-title-group">
-                    <div class="modal-text">
-                        <h3 style="font-size: 1.1rem;">Coming Soon</h3>
-                    </div>
-                </div>
-                <div class="header-actions">
-                    <button class="close-btn" @onclick="ToggleExportComingSoon" style="width: 28px; height: 28px;">
-                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
-                    </button>
-                </div>
-            </div>
-            <div class="modal-body pt-3 pb-3" style="padding: 1rem 1.25rem;">
-                <div class="empty-state" style="padding: 1.5rem 0; margin: 0; border: none; background: transparent;">
-                    <div class="empty-state-icon construction-anim" style="color: var(--accent); margin-bottom: 1rem; width: 56px; height: 56px; opacity: 1;">
-                        <svg width="100%" height="100%" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                            <path d="m20.9 18.55-8-15.98a1 1 0 0 0-1.8 0l-8 15.98"></path>
-                            <ellipse cx="12" cy="19" rx="9" ry="3"></ellipse>
-                            <path d="M5.2 14h13.6"></path>
-                            <path d="M8.2 8h7.6"></path>
-                        </svg>
-                    </div>
-                    <p class="empty-state-text" style="font-size: 0.85rem; line-height: 1.5;">The Export Data feature is currently under construction and will be available soon.</p>
-                </div>
-            </div>
-            <div class="modal-footer" style="justify-content: center; padding: 1rem;">
-                <button class="modal-btn primary" @onclick="ToggleExportComingSoon" style="padding: 0.5rem 1.5rem; font-size: 0.85rem;">Got it</button>
-            </div>
-        </div>
-    </div>
-}
 
 
 @code {
@@ -432,13 +418,6 @@ else
     private string _newStatus = "";
     private bool _isUpdatingStatus = false;
     
-    // Export Data Coming Soon State
-    private bool _showExportComingSoon = false;
-
-    private void ToggleExportComingSoon()
-    {
-        _showExportComingSoon = !_showExportComingSoon;
-    }
     
     // Auth State
     private long? _currentAdminId;

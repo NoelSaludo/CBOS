@@ -14,6 +14,10 @@ public class AdminVerificationManagerSupabase : ISupabase
     private const string StatusRejected = "Rejected";
     private const string VerificationDocumentsBucket = "verification-documents";
     private const int SignedUrlExpiresInSeconds = 600;
+    
+    public event Action? OnVerificationChanged;
+
+    public void NotifyVerificationChanged() => OnVerificationChanged?.Invoke();
 
     private readonly HttpClient _httpClient;
     private readonly string _supabaseUrl;
@@ -44,7 +48,6 @@ public class AdminVerificationManagerSupabase : ISupabase
                 Console.WriteLine($"[AdminVerification] Get tickets failed ({status}). {body}");
             }
 
-            Console.WriteLine($"[AdminVerification] Get tickets OK ({status}). Count: {response.Models.Count}.");
             return response.Models;
         }
         catch (Exception ex)
@@ -122,6 +125,7 @@ public class AdminVerificationManagerSupabase : ISupabase
         }
 
         await update.Update();
+        NotifyVerificationChanged();
     }
 
     private async Task EnsureVerifiedUserAsync(VerificationTicketRecord ticket, long adminId)
