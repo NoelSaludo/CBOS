@@ -27,15 +27,72 @@ body {
     display: flex;
     flex-direction: column;
     min-height: 100vh;
+    align-items: center;
+    justify-content: center;
+    background: linear-gradient(135deg, #0d0a2d 0%, #1a164d 100%);
+    padding: 2rem;
+    position: relative;
+    overflow: hidden;
+}
+
+.login::before,
+.login::after {
+    content: '';
+    position: absolute;
+    width: 300px;
+    height: 300px;
+    border-radius: 50%;
+    filter: blur(80px);
+    z-index: 0;
+}
+
+.login::before {
+    background: rgba(99, 102, 241, 0.15);
+    top: -100px;
+    left: -100px;
+}
+
+.login::after {
+    background: rgba(239, 68, 68, 0.1);
+    bottom: -100px;
+    right: -100px;
+}
+
+.admin-login-background-logo {
+    position: absolute;
+    top: 60%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    width: 100vw;
+    height: 100vh;
+    max-width: none;
+    opacity: 0.5;
+    z-index: 0;
+    pointer-events: none;
+    user-select: none;
+    filter: brightness(0) invert(1);
+    mix-blend-mode: overlay;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.admin-login-background-logo img {
+    width: 85%;
+    height: auto;
+    object-fit: contain;
+    display: block;
 }
 
 .login-header {
     display: flex;
     align-items: stretch;
     justify-content: start;
-    margin-top: 20px;
-    margin-left: 5rem;
     gap: 20px;
+    position: absolute;
+    top: 2rem;
+    left: 2.5rem;
+    z-index: 1;
 }
 
 .login-header .logo {
@@ -58,8 +115,13 @@ body {
 
 @media (max-width: 768px) {
     .login-header {
-        margin-left: 2rem;
         align-items: center;
+        right: 1.5rem;
+        top: 1.5rem;
+    }
+
+    .login {
+        padding: 1.5rem;
     }
 
     .login-header .header-text h1 {
