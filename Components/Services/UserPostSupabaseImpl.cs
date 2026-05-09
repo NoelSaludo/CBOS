@@ -196,7 +196,7 @@ public class UserPostSupabaseImpl : ISupabase
         {
             var appointmentResponse = await supabase.From<Appointment>().Get();
             var appointments = appointmentResponse.Models
-                .OrderByDescending(a => a.CreatedAt)
+                .OrderByDescending(a => a.ScheduledDate)
                 .ToList();
 
             if (appointments.Count == 0)
@@ -228,7 +228,7 @@ public class UserPostSupabaseImpl : ISupabase
                     Title = $"{appointment.ScheduledDate:MMMM dd, yyyy} - {appointment.AppointmentType}",
                     Type = appointment.AppointmentType,
                     ScheduledDate = appointment.ScheduledDate,
-                    CreatedAt = appointment.CreatedAt
+                    CreatedAt = appointment.ScheduledDate
                 });
             }
 
