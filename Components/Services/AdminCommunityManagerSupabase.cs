@@ -14,9 +14,21 @@ public class AdminCommunityManagerSupabase : ISupabase
     private const string StatusApproved = "Approved";
     private const string StatusAccepted = "Accepted";
 
+    // Raised whenever community post data changes so subscribers can refresh.
+    public event Action? OnCommunityPostsChanged;
+
+    // Notifies all listeners that community post data has been updated.
+    public void NotifyCommunityPostsChanged() => OnCommunityPostsChanged?.Invoke();
+
     // Creates the Supabase-backed community manager.
     public AdminCommunityManagerSupabase(Client supabase) : base(supabase)
     {
+    }
+
+    // Gets all community post tickets across all statuses (for dashboard analytics).
+    public Task<List<CommunityPostTicket>> GetAllCommunityPostTicketsAsync()
+    {
+        return GetPostTicketsByStatusesAsync(new[] { StatusPending, StatusApproved, StatusRejected });
     }
 
     // Gets approved community post tickets.
@@ -124,6 +136,7 @@ public class AdminCommunityManagerSupabase : ISupabase
                 TicketId = ticket.Id,
                 PostId = post.Id,
                 Title = string.IsNullOrWhiteSpace(post.Title) ? "Untitled" : post.Title,
+                Author = string.IsNullOrWhiteSpace(post.Author) ? "Unknown" : post.Author,
                 Description = post.Description ?? string.Empty,
                 PrimaryImageUrl = GetPrimaryImageUrl(post.MediaLink),
                 Status = NormalizeStatus(ticket.Status),

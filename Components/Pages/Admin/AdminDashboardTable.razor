@@ -1,0 +1,243 @@
+@inject NavigationManager Navigation
+
+<div class="architectural-card admin-dashboard-table-card">
+    <div class="card-header-split">
+        <h2 class="card-title">@Title</h2>
+        <a href="#" class="card-link" @onclick="OnViewAllClicked" @onclick:preventDefault>VIEW ALL</a>
+    </div>
+
+    <div class="table-container">
+        <table class="data-table">
+            <thead>
+                <tr>
+                    @foreach (var header in Headers)
+                    {
+                        <th>@header</th>
+                    }
+                </tr>
+            </thead>
+            <tbody>
+                @if (IsLoading)
+                {
+                    @for (var i = 0; i < SkeletonRows; i++)
+                    {
+                        <tr>
+                            @* ID Column *@
+                            <td class="id-cell"><div class="skeleton skeleton-id"></div></td>
+                            
+                            @* Avatar/Name Column *@
+                            <td class="bold-cell">
+                                <div class="user-avatar-group">
+                                    <div class="skeleton skeleton-avatar"></div>
+                                    <div class="name-details" style="gap: 4px;">
+                                        <div class="skeleton skeleton-text" style="width: 80px;"></div>
+                                        <div class="skeleton skeleton-text" style="width: 50px; height: 0.6rem;"></div>
+                                    </div>
+                                </div>
+                            </td>
+
+                            @* Remaining Columns based on header count *@
+                            @for (var j = 2; j < Headers.Count; j++)
+                            {
+                                var isLast = j == Headers.Count - 1;
+                                <td>
+                                    @if (isLast)
+                                    {
+                                        <div class="skeleton skeleton-chip"></div>
+                                    }
+                                    else
+                                    {
+                                        <div class="skeleton skeleton-text" style="width: @(60 + (j % 3) * 20)px;"></div>
+                                    }
+                                </td>
+                            }
+                        </tr>
+                    }
+                }
+                else if (HasNoData())
+                {
+                    <tr>
+                        <td colspan="@Headers.Count">
+                            <div class="empty-state">
+                                <div class="empty-state-icon">
+                                    @GetEmptyStateIcon()
+                                </div>
+                                <p class="empty-state-text">@GetEmptyStateText()</p>
+                            </div>
+                        </td>
+                    </tr>
+                }
+                else
+                {
+                    @if (TableType == DashboardTableType.Incident && IncidentReports != null)
+                    {
+                        @foreach (var report in IncidentReports)
+                        {
+                            <tr class="clickable-row" role="button" tabindex="0" @onclick="OnRowClicked">
+                                <td class="id-cell">@report.Id</td>
+                                <td class="bold-cell">
+                                    <div class="user-avatar-group">
+                                        <div class="avatar-circle">@report.Complainant[0]</div>
+                                        <div class="name-details">
+                                            <span>@report.Complainant</span>
+                                            <span class="sub-text">Complainant</span>
+                                        </div>
+                                    </div>
+                                </td>
+                                <td class="light-cell">@report.Title</td>
+                                <td><span class="data-chip @report.CategoryClass">@report.Category</span></td>
+                                <td class="light-cell">@report.Date</td>
+                                <td><span class="data-chip @report.StatusClass">@report.Status</span></td>
+                            </tr>
+                        }
+                    }
+                    else if (TableType == DashboardTableType.Verification && VerificationUsers != null)
+                    {
+                        @foreach (var user in VerificationUsers)
+                        {
+                            <tr class="clickable-row" role="button" tabindex="0" @onclick="OnRowClicked">
+
+                                <td class="id-cell">@user.Id</td>
+                                <td class="bold-cell">
+                                    <div class="user-avatar-group">
+                                        <div class="avatar-circle">@user.Name[0]</div>
+                                        <div class="name-details">
+                                            <span>@user.Name</span>
+                                            <span class="sub-text">Resident</span>
+                                        </div>
+                                    </div>
+                                </td>
+                                <td class="light-cell">@user.DateRegistered</td>
+                                <td><span class="data-chip @user.StatusClass">@user.Status</span></td>
+                            </tr>
+                        }
+                    }
+                    else if (TableType == DashboardTableType.CommunityPost && CommunityPosts != null)
+                    {
+                        @foreach (var post in CommunityPosts)
+                        {
+                            <tr class="clickable-row" role="button" tabindex="0" @onclick="OnRowClicked">
+
+                                <td class="id-cell">@post.Id</td>
+                                <td class="bold-cell">
+                                    <div class="user-avatar-group">
+                                        <div class="avatar-circle">@post.Author[0]</div>
+                                        <div class="name-details">
+                                            <span>@post.Author</span>
+                                            <span class="sub-text">Resident</span>
+                                        </div>
+                                    </div>
+                                </td>
+                                <td class="light-cell">@post.Topic</td>
+                                <td class="light-cell">@post.Date</td>
+                                <td><span class="data-chip @post.StatusClass">@post.Status</span></td>
+                            </tr>
+                        }
+                    }
+                    else if (TableType == DashboardTableType.Appointment && Appointments != null)
+                    {
+                        @foreach (var app in Appointments)
+                        {
+                            <tr class="clickable-row" role="button" tabindex="0" @onclick="OnRowClicked">
+
+                                <td class="id-cell">@app.Id</td>
+                                <td class="bold-cell">
+                                    <div class="user-avatar-group">
+                                        <div class="avatar-circle">@app.Name[0]</div>
+                                        <div class="name-details">
+                                            <span>@app.Name</span>
+                                            <span class="sub-text">Resident</span>
+                                        </div>
+                                    </div>
+                                </td>
+                                <td class="light-cell">@app.Category</td>
+                                <td class="light-cell">@app.Service</td>
+                                <td><span class="data-chip @app.StatusClass">@app.Status</span></td>
+                            </tr>
+                        }
+                    }
+                }
+            </tbody>
+        </table>
+    </div>
+</div>
+
+@code {
+    public enum DashboardTableType { Incident, Verification, CommunityPost, Appointment }
+
+    [Parameter] public DashboardTableType TableType { get; set; } = DashboardTableType.Incident;
+    [Parameter] public string Title { get; set; } = "Dashboard Table";
+    [Parameter] public List<string> Headers { get; set; } = new();
+    [Parameter] public bool IsLoading { get; set; }
+    [Parameter] public int SkeletonRows { get; set; } = 4;
+
+    [Parameter] public IReadOnlyList<AdminApp.IncidentReport>? IncidentReports { get; set; }
+    [Parameter] public IReadOnlyList<AdminApp.VerificationUser>? VerificationUsers { get; set; }
+    [Parameter] public IReadOnlyList<AdminApp.CommunityPost>? CommunityPosts { get; set; }
+    [Parameter] public IReadOnlyList<AdminApp.Appointment>? Appointments { get; set; }
+
+    [Parameter] public EventCallback OnViewAll { get; set; }
+
+    private async Task OnViewAllClicked()
+    {
+        await OnViewAll.InvokeAsync();
+    }
+
+    private void OnRowClicked()
+    {
+        var target = TableType switch
+        {
+            DashboardTableType.Incident => "/admin/incidents",
+            DashboardTableType.Verification => "/admin/verification",
+            DashboardTableType.CommunityPost => "/admin/community-posts",
+            DashboardTableType.Appointment => "/admin/appointments",
+            _ => "/admin/app"
+        };
+        Navigation.NavigateTo(target);
+    }
+
+
+    private bool HasNoData()
+    {
+        return TableType switch
+        {
+            DashboardTableType.Incident => IncidentReports == null || IncidentReports.Count == 0,
+            DashboardTableType.Verification => VerificationUsers == null || VerificationUsers.Count == 0,
+            DashboardTableType.CommunityPost => CommunityPosts == null || CommunityPosts.Count == 0,
+            DashboardTableType.Appointment => Appointments == null || Appointments.Count == 0,
+            _ => true
+        };
+    }
+
+    private string GetEmptyStateText()
+    {
+        return TableType switch
+        {
+            DashboardTableType.Incident => "No incident reports recorded.",
+            DashboardTableType.Verification => "No pending verifications found.",
+            DashboardTableType.CommunityPost => "No community posts found.",
+            DashboardTableType.Appointment => "No scheduled appointments.",
+            _ => "No data available."
+        };
+    }
+
+    private RenderFragment GetEmptyStateIcon() => builder =>
+    {
+        if (TableType == DashboardTableType.Incident)
+        {
+            builder.AddMarkupContent(0, @"<svg viewBox=""0 0 24 24"" fill=""none"" stroke=""currentColor"" stroke-width=""2"" stroke-linecap=""round"" stroke-linejoin=""round""><path d=""M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z""></path><line x1=""12"" y1=""9"" x2=""12"" y2=""13""></line><line x1=""12"" y1=""17"" x2=""12.01"" y2=""17""></line></svg>");
+        }
+        else if (TableType == DashboardTableType.Verification)
+        {
+            builder.AddMarkupContent(0, @"<svg viewBox=""0 0 24 24"" fill=""none"" stroke=""currentColor"" stroke-width=""2"" stroke-linecap=""round"" stroke-linejoin=""round""><path d=""M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2""></path><circle cx=""12"" cy=""7"" r=""4""></circle></svg>");
+        }
+        else if (TableType == DashboardTableType.CommunityPost)
+        {
+            builder.AddMarkupContent(0, @"<svg viewBox=""0 0 24 24"" fill=""none"" stroke=""currentColor"" stroke-width=""2"" stroke-linecap=""round"" stroke-linejoin=""round""><path d=""M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7""></path><path d=""M18.5 2.5a2.121 2.121 0 1 1 3 3L12 15l-4 1 1-4 9.5-9.5z""></path></svg>");
+        }
+        else if (TableType == DashboardTableType.Appointment)
+        {
+            builder.AddMarkupContent(0, @"<svg viewBox=""0 0 24 24"" fill=""none"" stroke=""currentColor"" stroke-width=""2"" stroke-linecap=""round"" stroke-linejoin=""round""><rect x=""3"" y=""4"" width=""18"" height=""18"" rx=""2"" ry=""2""></rect><line x1=""16"" y1=""2"" x2=""16"" y2=""6""></line><line x1=""8"" y1=""2"" x2=""8"" y2=""6""></line><line x1=""3"" y1=""10"" x2=""21"" y2=""10""></line></svg>");
+        }
+    };
+}
