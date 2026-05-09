@@ -52,6 +52,7 @@ if (!string.IsNullOrWhiteSpace(adminKey) && !string.Equals(adminKey, key, String
 
 var builder = WebApplication.CreateBuilder(args);
 
+// Add services to the container.
 builder.Services.AddRazorComponents()
     .AddInteractiveServerComponents();
 
@@ -66,6 +67,7 @@ builder.Services.AddScoped<AdminCommunityManagerSupabase>();
 builder.Services.AddScoped<AdminVerificationManagerSupabase>();
 builder.Services.AddScoped<LayoutService>();
 builder.Services.AddScoped<IncidentManagementService>();
+builder.Services.AddScoped<UserPostSupabaseImpl>();
 builder.Services.AddScoped<LayoutService>();
 
 // ── MISSING: Cookie authentication config ──────────────────────────────────
@@ -86,7 +88,7 @@ builder.Services.AddHttpContextAccessor();
 
 var app = builder.Build();
 
-
+// Configure the HTTP request pipeline.
 if (!app.Environment.IsDevelopment())
 {
     app.UseExceptionHandler("/Error", createScopeForErrors: true);

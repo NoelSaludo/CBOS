@@ -2,9 +2,8 @@
 @layout MainLayout
 @rendermode InteractiveServer
 @inject NavigationManager Navigation
-@inject Supabase.Client Supabase
-@inject CBOS.Components.Services.AuthService AuthService
-@using CBOS.Components.Model
+@inject UserPostSupabaseImpl PostService
+@inject AuthService AuthService
 
 @* Community Feed Component *@
 <div class="community-feed-container">
@@ -13,9 +12,18 @@
         <div class="profile-card">
             <div class="profile-header"></div>
             <div class="profile-avatar">[PROFILE AVATAR]</div>
-            <h3 class="profile-name">@(currentUserName ?? "Loading...")</h3>
-            <p class="profile-subtitle">Barangay Resident</p>
-            <p class="profile-location">@(currentUserAddress ?? "")</p>
+            @if (currentUser != null)
+            {
+                <h3 class="profile-name">@GetFullName()</h3>
+                @if (!string.IsNullOrEmpty(currentUser.PhysicalAddress))
+                {
+                    <p class="profile-location">@currentUser.PhysicalAddress</p>
+                }
+            }
+            else
+            {
+                <p class="profile-location" style="text-align: center; color: #999;">Loading profile...</p>
+            }
         </div>
     </div>
 
@@ -39,44 +47,34 @@
 
         <!-- Posts Feed -->
         <div class="posts-feed">
-            @if (isLoading)
+            @if (posts == null)
             {
-                <div class="feed-message">Loading posts...</div>
+                <div class="loading-spinner">Loading posts...</div>
             }
-            else if (feedPosts.Count == 0)
+            else if (posts.Count == 0)
             {
-                <div class="feed-message">No approved posts in your barangay yet.</div>
+                <div class="no-posts">No posts available yet. Be the first to share!</div>
             }
             else
             {
-                @foreach (var post in feedPosts)
+                @foreach (var post in posts)
                 {
                     <div class="post">
                         <div class="post-header">
                             <div class="post-avatar">[AVATAR]</div>
                             <div class="post-info">
-                                <h4 class="post-author">
-                                    @post.Author
-                                    @if (post.IsVerified)
-                                    {
-                                        <span class="verified">✓</span>
-                                    }
-                                    else
-                                    {
-                                        <span class="unverified-badge">Unverified</span>
-                                    }
-                                </h4>
-                                <span class="post-time">@FormatTime(post.CreatedAt)</span>
+                                <h4 class="post-author">@post.Author</h4>
+                                <span class="post-time">@post.GetRelativeTime() · @post.CreatedAt.ToString("dd/M/yyyy")</span>
                             </div>
                             <button class="post-menu">⋯</button>
                         </div>
                         <div class="post-content">
                             <p>@post.Description</p>
                         </div>
-                        @if (!string.IsNullOrEmpty(post.MediaLink))
+                        @if (!string.IsNullOrEmpty(post.PrimaryImageUrl))
                         {
                             <div class="post-image">
-                                <img src="@post.MediaLink" alt="Post media" style="width:100%;height:100%;object-fit:cover;border-radius:8px;" />
+                                <img src="@post.PrimaryImageUrl" alt="Post image" style="width: 100%; height: 100%; object-fit: cover; border-radius: 8px;" />
                             </div>
                         }
                         <div class="post-stats">
@@ -390,6 +388,24 @@
         border-top: 1px solid #f0f0f0;
     }
 
+    /* Loading and empty states */
+    .loading-spinner {
+        text-align: center;
+        padding: 40px 20px;
+        color: #999;
+        font-size: 14px;
+    }
+
+    .no-posts {
+        text-align: center;
+        padding: 40px 20px;
+        color: #999;
+        font-size: 14px;
+        background: white;
+        border-radius: 12px;
+        box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+    }
+
     /* Bulletin */
     .bulletin-title {
         font-size: 16px;
@@ -479,99 +495,39 @@
 </style>
 
 @code {
-    private List<FeedPost> feedPosts = new();
-    private bool isLoading = true;
-    private string? currentUserName;
-    private string? currentUserAddress;
-
-    private class FeedPost
-    {
-        public long PostId { get; set; }
-        public string Author { get; set; } = "";
-        public string Description { get; set; } = "";
-        public string? MediaLink { get; set; }
-        public DateTime CreatedAt { get; set; }
-        public bool IsVerified { get; set; }
-    }
+    private List<CommunityPostViewModel>? posts;
+    private UserProfile? currentUser;
 
     protected override async Task OnInitializedAsync()
     {
-        if (!AuthService.IsAuthenticated || string.IsNullOrEmpty(AuthService.UserEmail))
-        {
-            Navigation.NavigateTo("/login");
-            return;
-        }
-
-        await LoadFeedAsync();
-    }
-
-    private async Task LoadFeedAsync()
-    {
-        isLoading = true;
-
         try
         {
-            var profile = await Supabase
-                .From<UserProfile>()
-                .Match(new Dictionary<string, string> { { "emailaddress", AuthService.UserEmail } })
-                .Single();
-
-            if (profile?.BarangayId == null)
-                return;
-
-            currentUserName = $"{profile.FirstName} {profile.LastName}".Trim();
-            currentUserAddress = profile.PhysicalAddress ?? "";
-
-            long barangayId = profile.BarangayId.Value;
-
-            // Fetch all post-type tickets and keep only approved ones
-            var ticketResponse = await Supabase.From<Ticket>()
-                .Where(t => t.Type == "post")
-                .Get();
-
-            var approvedSourceIds = ticketResponse.Models
-                .Where(t => t.Status.Equals("Approved", StringComparison.OrdinalIgnoreCase) ||
-                            t.Status.Equals("Accepted", StringComparison.OrdinalIgnoreCase))
-                .Select(t => t.SourceId)
-                .ToHashSet();
-
-            if (!approvedSourceIds.Any())
-                return;
-
-            // Fetch posts belonging to this barangay that are approved
-            var postResponse = await Supabase.From<UserPost>().Get();
-            var posts = postResponse.Models
-                .Where(p => approvedSourceIds.Contains(p.Id) && p.BarangayId == barangayId)
-                .OrderByDescending(p => p.CreatedAt)
-                .ToList();
-
-            // Build a set of verified user IDs
-            var verifiedResponse = await Supabase.From<VerifiedUserRecord>().Get();
-            var verifiedUserIds = verifiedResponse.Models.Select(v => v.UserId).ToHashSet();
-
-            feedPosts = posts.Select(p => new FeedPost
+            // Fetch current user profile
+            if (AuthService.IsAuthenticated && AuthService.UserEmail != null)
             {
-                PostId = p.Id,
-                Author = string.IsNullOrWhiteSpace(p.Author) ? "Unknown" : p.Author,
-                Description = p.Description ?? "",
-                MediaLink = p.MediaLink?.FirstOrDefault(url => !string.IsNullOrWhiteSpace(url)),
-                CreatedAt = p.CreatedAt,
-                IsVerified = verifiedUserIds.Contains(p.UserId)
-            }).ToList();
+                currentUser = await PostService.GetUserByEmailAsync(AuthService.UserEmail);
+            }
+
+            // Fetch community posts
+            posts = await PostService.GetApprovedPostsWithAuthorsAsync();
         }
-        finally
+        catch (Exception ex)
         {
-            isLoading = false;
+            Console.WriteLine($"Error loading data: {ex.Message}");
+            posts = new List<CommunityPostViewModel>();
         }
     }
 
-    private static string FormatTime(DateTime createdAt)
+    private string GetFullName()
     {
-        var diff = DateTime.UtcNow - createdAt.ToUniversalTime();
-        if (diff.TotalMinutes < 60) return $"{(int)diff.TotalMinutes}m ago";
-        if (diff.TotalHours < 24) return $"{(int)diff.TotalHours}h ago";
-        if (diff.TotalDays < 7) return $"{(int)diff.TotalDays}d ago";
-        return createdAt.ToString("dd/MM/yyyy");
+        if (currentUser == null)
+            return "Unknown User";
+
+        var nameParts = new[] { currentUser.FirstName, currentUser.MiddleName, currentUser.LastName }
+            .Where(s => !string.IsNullOrWhiteSpace(s))
+            .ToList();
+
+        return string.Join(" ", nameParts);
     }
 
     private void GoToCreatePost()
