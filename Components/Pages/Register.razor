@@ -456,7 +456,6 @@
                     Please check your inbox and click the link to verify your account.
                 </div>
                 <a class="btn-login" href="/">Go to Login</a>
-                <button class="btn-register-again" @onclick="ResetForm">Register Another</button>
             </div>
         }
 
@@ -465,7 +464,7 @@
             <a class="lp-back" href="/">&larr;</a>
 
             <div class="lp-logo">
-                <img src="cbos-logo-blue.png" alt="CBOS Logo" />
+                <img src="images/cbos-logo-blue.png" alt="CBOS Logo" />
             </div>
 
             <div class="lp-title">REGISTRATION<br/>FORM</div>
@@ -732,6 +731,7 @@
         {
             var options = new Supabase.Gotrue.SignUpOptions
             {
+                RedirectTo = Navigation.BaseUri,
                 Data = new Dictionary<string, object>
                 {
                     { "first_name",   firstName },

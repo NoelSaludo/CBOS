@@ -14,9 +14,21 @@ public class AdminCommunityManagerSupabase : ISupabase
     private const string StatusApproved = "Approved";
     private const string StatusAccepted = "Accepted";
 
+    // Raised whenever community post data changes so subscribers can refresh.
+    public event Action? OnCommunityPostsChanged;
+
+    // Notifies all listeners that community post data has been updated.
+    public void NotifyCommunityPostsChanged() => OnCommunityPostsChanged?.Invoke();
+
     // Creates the Supabase-backed community manager.
     public AdminCommunityManagerSupabase(Client supabase) : base(supabase)
     {
+    }
+
+    // Gets all community post tickets across all statuses (for dashboard analytics).
+    public Task<List<CommunityPostTicket>> GetAllCommunityPostTicketsAsync()
+    {
+        return GetPostTicketsByStatusesAsync(new[] { StatusPending, StatusApproved, StatusRejected });
     }
 
     // Gets approved community post tickets.
@@ -37,17 +49,59 @@ public class AdminCommunityManagerSupabase : ISupabase
         return GetPostTicketsByStatusesAsync(new[] { StatusRejected });
     }
 
-    // Updates the ticket status for a community post.
-    public async Task UpdatePostTicketStatusAsync(CommunityPostTicket ticket, string status, long AdminId)
+    // Updates the status of a post ticket with admin info.
+    public async Task UpdatePostTicketStatusAsync(long ticketId, string status, long AdminId)
     {
-        if (ticket == null)
-            throw new ArgumentNullException(nameof(ticket));
+        if (ticketId <= 0)
+            throw new ArgumentException("Invalid ticket ID.", nameof(ticketId));
 
         await supabase.From<Ticket>()
-            .Where(t => t.Id == ticket.TicketId)
+            .Where(t => t.Id == ticketId)
             .Set(t => t.Status, status)
             .Set(t => t.ApprovedBy, AdminId)
             .Set(t => t.ApprovedAt, DateTime.UtcNow)
+            .Update();
+    }
+
+    // Updates the status of a post ticket to rejected with admin info. 
+    public async Task UpdatePostTicketStatusToApprovedAsync(long ticketId, long adminId)
+    {
+        if (ticketId <= 0)
+            throw new ArgumentException("Invalid ticket ID.", nameof(ticketId));
+
+        await supabase.From<Ticket>()
+            .Where(t => t.Id == ticketId)
+            .Set(t => t.Status, StatusApproved)
+            .Set(t => t.ApprovedBy, adminId)
+            .Set(t => t.ApprovedAt, DateTime.UtcNow)
+            .Update();
+    }
+
+    // Updates the status of a post ticket to rejected with admin info.
+    public async Task UpdatePostTicketStatusToRejectedAsync(long ticketId, long adminId)
+    {
+        if (ticketId <= 0)
+            throw new ArgumentException("Invalid ticket ID.", nameof(ticketId));
+
+        await supabase.From<Ticket>()
+            .Where(t => t.Id == ticketId)
+            .Set(t => t.Status, StatusRejected)
+            .Set(t => t.ApprovedBy, adminId)
+            .Set(t => t.ApprovedAt, DateTime.UtcNow)
+            .Update();
+    }
+
+    // Updates the status of a post ticket to pending with admin info.
+    public async Task UpdatePostTicketStatusToPendingAsync(long ticketId, long adminId)
+    {
+        if (ticketId <= 0)
+            throw new ArgumentException("Invalid ticket ID.", nameof(ticketId));
+
+        await supabase.From<Ticket>()
+            .Where(t => t.Id == ticketId)
+            .Set(t => t.Status, StatusPending)
+            .Set(t => t.ApprovedBy, null)
+            .Set(t => t.ApprovedAt, null)
             .Update();
     }
 
@@ -82,6 +136,7 @@ public class AdminCommunityManagerSupabase : ISupabase
                 TicketId = ticket.Id,
                 PostId = post.Id,
                 Title = string.IsNullOrWhiteSpace(post.Title) ? "Untitled" : post.Title,
+                Author = string.IsNullOrWhiteSpace(post.Author) ? "Unknown" : post.Author,
                 Description = post.Description ?? string.Empty,
                 PrimaryImageUrl = GetPrimaryImageUrl(post.MediaLink),
                 Status = NormalizeStatus(ticket.Status),

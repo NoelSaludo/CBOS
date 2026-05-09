@@ -5,12 +5,18 @@
 @using Microsoft.AspNetCore.Components.Server.ProtectedBrowserStorage
 @using CBOS.Components.Shared
 @using CBOS.Components.Services
+@using CBOS.Components.Model
 
 @inject NavigationManager Navigation
 @inject ILogger<AdminApp> Logger
 @inject AdminSupabase AdminSupabase
+@inject IncidentManagementService IncidentService
 @inject ProtectedSessionStorage ProtectedSessionStorage
 @inject LayoutService LayoutService
+@inject AppointmentTicketSupabase TicketService
+@inject AdminCommunityManagerSupabase CommunityService
+@inject AdminVerificationManagerSupabase VerificationService
+
 @inject IJSRuntime JS
 
 @rendermode InteractiveServer
@@ -31,656 +37,95 @@ else
                         <div class="welcome-orb orb-1"></div>
                         <div class="welcome-orb orb-2"></div>
                         <div class="welcome-text-group">
-                            <h1>Welcome back, Official Name.</h1>
+                            <h1>Welcome back, Admin @adminFirstName.</h1>
                             <p>Here's what's happening in your Barangay today.</p>
                         </div>
                         <div class="welcome-actions">
-                            <button class="quick-action-btn">
-                                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
-                                Download Report
-                            </button>
-                            <button class="quick-action-btn">
-                                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
-                                System Settings
+                            <button class="quick-action-btn" @onclick="LoadDashboardData">
+                                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M23 4v6h-6"/><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"/></svg>
+                                Refresh Data
                             </button>
                         </div>
                     </div>
 
-                    <div class="analytics-grid">
-                        <div class="stat-card">
-                            <div class="stat-card-top">
-                                <div class="stat-icon-wrapper green">
-                                    <span class="stat-icon">
-                                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                                            <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path>
-                                            <polyline points="22 4 12 14.01 9 11.01"></polyline>
-                                        </svg>
-                                    </span>
-                                </div>
-                                <div class="stat-trend up">
-                                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="23 6 13.5 15.5 8.5 10.5 1 18"></polyline><polyline points="17 6 23 6 23 12"></polyline></svg>
-                                    <span>+12%</span>
-                                </div>
-                            </div>
-                            <div class="stat-info">
-                                <div class="stat-number-wrapper">
-                                    <p class="stat-number">1,024</p>
-                                </div>
-                                <h3>FULLY VERIFIED USERS</h3>
-                            </div>
-                        </div>
-                        <div class="stat-card">
-                            <div class="stat-card-top">
-                                <div class="stat-icon-wrapper orange">
-                                    <span class="stat-icon">
-                                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                                            <circle cx="12" cy="12" r="10"></circle>
-                                            <polyline points="12 6 12 12 16 14"></polyline>
-                                        </svg>
-                                    </span>
-                                </div>
-                                <div class="stat-trend down">
-                                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="23 18 13.5 8.5 8.5 13.5 1 6"></polyline><polyline points="17 18 23 18 23 12"></polyline></svg>
-                                    <span>-5%</span>
-                                </div>
-                            </div>
-                            <div class="stat-info">
-                                <div class="stat-number-wrapper">
-                                    <p class="stat-number">45</p>
-                                </div>
-                                <h3>PARTIALLY UNVERIFIED</h3>
-                            </div>
-                        </div>
-                        <div class="stat-card">
-                            <div class="stat-card-top">
-                                <div class="stat-icon-wrapper red">
-                                    <span class="stat-icon">
-                                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                                            <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"></path>
-                                            <line x1="12" y1="9" x2="12" y2="13"></line>
-                                            <line x1="12" y1="17" x2="12.01" y2="17"></line>
-                                        </svg>
-                                    </span>
-                                </div>
-                                <div class="stat-trend up">
-                                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="23 6 13.5 15.5 8.5 10.5 1 18"></polyline><polyline points="17 6 23 6 23 12"></polyline></svg>
-                                    <span>+2 today</span>
-                                </div>
-                            </div>
-                            <div class="stat-info">
-                                <div class="stat-number-wrapper">
-                                    <p class="stat-number">12</p>
-                                </div>
-                                <h3>INCIDENT REPORTS</h3>
-                            </div>
-                        </div>
-                        <div class="stat-card">
-                            <div class="stat-card-top">
-                                <div class="stat-icon-wrapper blue">
-                                    <span class="stat-icon">
-                                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                                            <rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect>
-                                            <line x1="16" y1="2" x2="16" y2="6"></line>
-                                            <line x1="8" y1="2" x2="8" y2="6"></line>
-                                            <line x1="3" y1="10" x2="21" y2="10"></line>
-                                        </svg>
-                                    </span>
-                                </div>
-                                <div class="stat-trend up">
-                                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="23 6 13.5 15.5 8.5 10.5 1 18"></polyline><polyline points="17 6 23 6 23 12"></polyline></svg>
-                                    <span>+8 today</span>
-                                </div>
-                            </div>
-                            <div class="stat-info">
-                                <div class="stat-number-wrapper">
-                                    <p class="stat-number">08</p>
-                                </div>
-                                <h3>APPOINTMENTS</h3>
-                            </div>
-                        </div>
-                    </div>
+                    <AdminStatCards 
+                        TotalIncidentsCount="TotalIncidentsCount"
+                        IncidentsTodayCount="IncidentsTodayCount"
+                        TotalAppointmentsCount="TotalAppointmentsCount"
+                        AppointmentsTodayCount="AppointmentsTodayCount"
+                        VerifiedUsersCount="VerifiedUsersCount"
+                        UnverifiedUsersCount="UnverifiedUsersCount"
+                        IsLoading="_isLoading" />
 
-                    <div class="analytics-chart-container">
-                        <div class="architectural-card">
-                            <div class="card-header-split">
-                                <div class="chart-title-left">
-                                    <h2 class="card-title">User Growth Analytics</h2>
-                                    <p class="card-subtitle">@(ActiveTimeRange == "6M" ? "Resident registration trends over the last 6 months" : ActiveTimeRange == "1Y" ? "Resident registration trends over the last year" : "Overall resident registration trends")</p>
-                                </div>
-                                <div class="chart-actions">
-                                    <div class="time-filter">
-                                        <button class="filter-btn @(ActiveTimeRange == "6M" ? "active" : "")" @onclick='() => SetTimeRange("6M")'>6M</button>
-                                        <button class="filter-btn @(ActiveTimeRange == "1Y" ? "active" : "")" @onclick='() => SetTimeRange("1Y")'>1Y</button>
-                                        <button class="filter-btn @(ActiveTimeRange == "ALL" ? "active" : "")" @onclick='() => SetTimeRange("ALL")'>ALL</button>
-                                    </div>
-                                    <span class="stat-badge live">LIVE</span>
-                                </div>
-                            </div>
-                            <div class="chart-placeholder">
-                                @if (_isLoading)
-                                {
-                                    <div class="skeleton skeleton-chart"></div>
-                                }
-                                else if (trendData == null || !trendData.Any())
-                                {
-                                    <div class="empty-state">
-                                        <div class="empty-state-icon">
-                                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                                                <line x1="18" y1="20" x2="18" y2="10"></line>
-                                                <line x1="12" y1="20" x2="12" y2="4"></line>
-                                                <line x1="6" y1="20" x2="6" y2="14"></line>
-                                            </svg>
-                                        </div>
-                                        <p class="empty-state-text">No registration data available for this period.</p>
-                                    </div>
-                                }
-                                else
-                                {
-                                    <ApexChart TItem="RegistrationData"
-                                               @ref="registrationChart"
-                                               Height="@("250")"
-                                               Options="chartOptions">
-                                        <ApexPointSeries TItem="RegistrationData"
-                                                         Items="trendData"
-                                                         Name="Registrations"
-                                                         SeriesType="SeriesType.Area"
-                                                         XValue="@(e => e.Month)"
-                                                         YValue="@(e => e.Count)" />
-                                    </ApexChart>
-                                }
-                            </div>
-                        </div>
-                    </div>
+
+                    <AdminUserGrowthChart 
+                        @ref="userGrowthChartComponent"
+                        TrendData="trendData"
+                        ActiveTimeRange="@ActiveTimeRange"
+                        IsLoading="_isLoading"
+                        OnTimeRangeChanged="SetTimeRange"
+                        ChartOptions="chartOptions" />
+
 
                     <div class="section-divider">
                         <h2 class="section-label">Overview</h2>
                         <span class="section-line"></span>
                     </div>
 
-                                        <div class="dashboard-grid-3">
-<div class="architectural-card line-chart-card">
-                                <div class="card-header-split">
-                                    <h2 class="card-title">User Verification Trends</h2>
-                                </div>
-                                <div class="chart-placeholder">
-                                    @if (_isLoading)
-                                    {
-                                        <div class="skeleton skeleton-chart"></div>
-                                    }
-                                    else if (verificationTrendData == null || !verificationTrendData.Any())
-                                    {
-                                        <div class="empty-state">
-                                            <p class="empty-state-text">No verification trend data available.</p>
-                                        </div>
-                                    }
-                                    else
-                                    {
-                                        <ApexChart TItem="UserVerificationTrendData"
-                                                   @ref="verificationChart"
-                                                   Height="@("250")"
-                                                   Options="verificationChartOptions">
-                                            <ApexPointSeries TItem="UserVerificationTrendData"
-                                                             Items='verificationTrendData.Where(x => x.Status == "Verified").ToList()'
-                                                             Name="Fully Verified"
-                                                             SeriesType="SeriesType.Line"
-                                                             XValue="@(e => e.Month)"
-                                                             YValue="@(e => e.Count)" />
-                                            <ApexPointSeries TItem="UserVerificationTrendData"
-                                                             Items='verificationTrendData.Where(x => x.Status == "Partial").ToList()'
-                                                             Name="Partially Verified"
-                                                             SeriesType="SeriesType.Line"
-                                                             XValue="@(e => e.Month)"
-                                                             YValue="@(e => e.Count)" />
-                                        </ApexChart>
-                                    }
-                                </div>
-                            </div>
-<div class="architectural-card line-chart-card">
-                                <div class="card-header-split">
-                                    <h2 class="card-title">Incident Report Trends</h2>
-                                </div>
-                                <div class="chart-placeholder">
-                                    @if (_isLoading)
-                                    {
-                                        <div class="skeleton skeleton-chart"></div>
-                                    }
-                                    else if (incidentTrendData == null || !incidentTrendData.Any())
-                                    {
-                                        <div class="empty-state">
-                                            <p class="empty-state-text">No incident trend data available.</p>
-                                        </div>
-                                    }
-                                    else
-                                    {
-                                        <ApexChart TItem="IncidentTrendData"
-                                                   @ref="incidentChart"
-                                                   Height="@("250")"
-                                                   Options="incidentLineChartOptions">
-                                            <ApexPointSeries TItem="IncidentTrendData"
-                                                             Items='incidentTrendData.Where(x => x.Status == "Resolved").ToList()'
-                                                             Name="Resolved"
-                                                             SeriesType="SeriesType.Line"
-                                                             XValue="@(e => e.Month)"
-                                                             YValue="@(e => e.Count)" />
-                                            <ApexPointSeries TItem="IncidentTrendData"
-                                                             Items='incidentTrendData.Where(x => x.Status == "Pending").ToList()'
-                                                             Name="Pending"
-                                                             SeriesType="SeriesType.Line"
-                                                             XValue="@(e => e.Month)"
-                                                             YValue="@(e => e.Count)" />
-                                            <ApexPointSeries TItem="IncidentTrendData"
-                                                             Items='incidentTrendData.Where(x => x.Status == "Rejected").ToList()'
-                                                             Name="Rejected"
-                                                             SeriesType="SeriesType.Line"
-                                                             XValue="@(e => e.Month)"
-                                                             YValue="@(e => e.Count)" />
-                                        </ApexChart>
-                                    }
-                                </div>
-                            </div>
-<div class="architectural-card line-chart-card">
-                                <div class="card-header-split">
-                                    <h2 class="card-title">Appointment Trends</h2>
-                                </div>
-                                <div class="chart-placeholder">
-                                    @if (_isLoading)
-                                    {
-                                        <div class="skeleton skeleton-chart"></div>
-                                    }
-                                    else if (appTrendData == null || !appTrendData.Any())
-                                    {
-                                        <div class="empty-state">
-                                            <p class="empty-state-text">No appointment trend data available.</p>
-                                        </div>
-                                    }
-                                    else
-                                    {
-                                        <ApexChart TItem="AppointmentTrendData"
-                                                   @ref="appointmentChart"
-                                                   Height="@("250")"
-                                                   Options="appLineChartOptions">
-                                            <ApexPointSeries TItem="AppointmentTrendData"
-                                                             Items='appTrendData.Where(x => x.Category == "DOCUMENT REQUEST").ToList()'
-                                                             Name="Documents"
-                                                             SeriesType="SeriesType.Line"
-                                                             XValue="@(e => e.Month)"
-                                                             YValue="@(e => e.Count)" />
-                                            <ApexPointSeries TItem="AppointmentTrendData"
-                                                             Items='appTrendData.Where(x => x.Category == "COMPLAINT AND MEDIATION").ToList()'
-                                                             Name="Mediation"
-                                                             SeriesType="SeriesType.Line"
-                                                             XValue="@(e => e.Month)"
-                                                             YValue="@(e => e.Count)" />
-                                            <ApexPointSeries TItem="AppointmentTrendData"
-                                                             Items='appTrendData.Where(x => x.Category == "PERMITS & CLEARANCES").ToList()'
-                                                             Name="Permits"
-                                                             SeriesType="SeriesType.Line"
-                                                             XValue="@(e => e.Month)"
-                                                             YValue="@(e => e.Count)" />
-                                            <ApexPointSeries TItem="AppointmentTrendData"
-                                                             Items='appTrendData.Where(x => x.Category == "COMMUNITY PROGRAMS").ToList()'
-                                                             Name="Programs"
-                                                             SeriesType="SeriesType.Line"
-                                                             XValue="@(e => e.Month)"
-                                                             YValue="@(e => e.Count)" />
-                                            <ApexPointSeries TItem="AppointmentTrendData"
-                                                             Items='appTrendData.Where(x => x.Category == "ASSISTANCE SERVICES").ToList()'
-                                                             Name="Assistance"
-                                                             SeriesType="SeriesType.Line"
-                                                             XValue="@(e => e.Month)"
-                                                             YValue="@(e => e.Count)" />
-                                        </ApexChart>
-                                    }
-                                </div>
-                            </div>
-                    </div>
-
-                    <div class="dashboard-grid-2">
-<div class="architectural-card pie-chart-card">
-                                <div class="card-header-split">
-                                    <h2 class="card-title">Community Post Statuses</h2>
-                                </div>
-                                <div class="pie-chart-container">
-                                    @if (_isLoading)
-                                    {
-                                        <div class="skeleton skeleton-chart" style="border-radius: 50%; width: 200px; height: 200px; margin: 0 auto;"></div>
-                                    }
-                                    else if (postStatusData == null || !postStatusData.Any())
-                                    {
-                                        <div class="empty-state">
-                                            <p class="empty-state-text">No post status data available.</p>
-                                        </div>
-                                    }
-                                    else
-                                    {
-                                        <ApexChart TItem="CategoryData"
-                                                   @ref="postStatusChart"
-                                                   Height="@("300")"
-                                                   Options="postStatusPieOptions">
-                                            <ApexPointSeries TItem="CategoryData"
-                                                             Items="postStatusData"
-                                                             Name="Posts"
-                                                             SeriesType="SeriesType.Donut"
-                                                             XValue="@(e => e.Name)"
-                                                             YValue="@(e => e.Value)" />
-                                        </ApexChart>
-                                    }
-                                </div>
-                            </div>
-<div class="architectural-card pie-chart-card">
-                                <div class="card-header-split">
-                                    <h2 class="card-title">Incident Categories</h2>
-                                </div>
-                                <div class="pie-chart-container">
-                                    @if (_isLoading)
-                                    {
-                                        <div class="skeleton skeleton-chart" style="border-radius: 50%; width: 200px; height: 200px; margin: 0 auto;"></div>
-                                    }
-                                    else if (incidentCategories == null || !incidentCategories.Any())
-                                    {
-                                        <div class="empty-state">
-                                            <p class="empty-state-text">No category data available.</p>
-                                        </div>
-                                    }
-                                    else
-                                    {
-                                        <ApexChart TItem="CategoryData"
-                                                   @ref="incidentCategoryChart"
-                                                   Height="@("300")"
-                                                   Options="pieChartOptions">
-                                            <ApexPointSeries TItem="CategoryData"
-                                                             Items="incidentCategories"
-                                                             Name="Incidents"
-                                                             SeriesType="SeriesType.Donut"
-                                                             XValue="@(e => e.Name)"
-                                                             YValue="@(e => e.Value)" />
-                                        </ApexChart>
-                                    }
-                                </div>
-                            </div>
-                    </div>
+                    <AdminTrendCharts 
+                        @ref="trendChartsComponent"
+                        IncidentTrendData="incidentTrendData"
+                        AppointmentTrendData="appTrendData"
+                        IsLoading="_isLoading"
+                        IncidentChartOptions="incidentLineChartOptions"
+                        AppointmentChartOptions="appLineChartOptions" />
+                    
+                    <AdminStatusPieCharts 
+                        @ref="statusPieChartsComponent"
+                        VerificationStatusData="verificationStatusData"
+                        PostStatusData="postStatusData"
+                        IncidentStatusData="incidentStatuses"
+                        IsLoading="_isLoading"
+                        VerificationStatusPieOptions="verificationStatusPieOptions"
+                        PostStatusPieOptions="postStatusPieOptions"
+                        IncidentPieOptions="pieChartOptions" />
 
                     <div class="dashboard-grid-2">
                         <div class="dashboard-col">
-<div class="architectural-card list-card">
-                                <div class="card-header-split">
-                                    <h2 class="card-title">User Verification</h2>
-                                    <a href="#" class="card-link">VIEW ALL</a>
-                                </div>
-                                <div class="table-container">
-                                    <table class="data-table">
-                                        <thead>
-                                            <tr>
-                                                <th>ID</th>
-                                                <th>NAME</th>
-                                                <th>DATE REGISTERED</th>
-                                                <th>STATUS</th>
-                                            </tr>
-                                        </thead>
-                                        <tbody>
-                                            @if (_isLoading)
-                                            {
-                                                @for (int i = 0; i < 4; i++)
-                                                {
-                                                    <tr>
-                                                        <td><div class="skeleton skeleton-text" style="width: 70px;"></div></td>
-                                                        <td><div class="skeleton skeleton-text"></div></td>
-                                                        <td><div class="skeleton skeleton-text" style="width: 80px;"></div></td>
-                                                        <td><div class="skeleton skeleton-text" style="width: 90px;"></div></td>
-                                                    </tr>
-                                                }
-                                            }
-                                            else if (verificationUsers == null || !verificationUsers.Any())
-                                            {
-                                                <tr>
-                                                    <td colspan="4">
-                                                        <div class="empty-state">
-                                                            <div class="empty-state-icon">
-                                                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                                                                    <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
-                                                                    <circle cx="12" cy="7" r="4"></circle>
-                                                                </svg>
-                                                            </div>
-                                                            <p class="empty-state-text">No pending verifications found.</p>
-                                                        </div>
-                                                    </td>
-                                                </tr>
-                                            }
-                                            else
-                                            {
-                                                @foreach (var user in verificationUsers)
-                                                {
-                                                    <tr>
-                                                        <td class="id-cell">@user.Id</td>
-                                                        <td class="bold-cell">
-                                                            <div class="user-avatar-group">
-                                                                <div class="avatar-circle">@user.Name[0]</div>
-                                                                <div class="name-details">
-                                                                    <span>@user.Name</span>
-                                                                    <span class="sub-text">Resident</span>
-                                                                </div>
-                                                            </div>
-                                                        </td>
-                                                        <td class="light-cell">@user.DateRegistered</td>
-                                                        <td><span class="data-chip @user.StatusClass">@user.Status</span></td>
-                                                    </tr>
-                                                }
-                                            }
-                                        </tbody>
-                                    </table>
-                                </div>
-
-                            </div>
-<div class="architectural-card list-card">
-                                <div class="card-header-split">
-                                    <h2 class="card-title">Recent Incident Reports</h2>
-                                    <a href="#" class="card-link">VIEW ALL</a>
-                                </div>
-                                <div class="table-container">
-                                    <table class="data-table">
-                                        <thead>
-                                            <tr>
-                                                <th>ID</th>
-                                                <th>COMPLAINANT</th>
-                                                <th>TITLE</th>
-                                                <th>CATEGORY</th>
-                                                <th>DATE</th>
-                                                <th>STATUS</th>
-                                            </tr>
-                                        </thead>
-                                        <tbody>
-                                            @if (_isLoading)
-                                            {
-                                                @for (int i = 0; i < 4; i++)
-                                                {
-                                                    <tr>
-                                                        <td><div class="skeleton skeleton-text" style="width: 70px;"></div></td>
-                                                        <td><div class="skeleton skeleton-text"></div></td>
-                                                        <td><div class="skeleton skeleton-text"></div></td>
-                                                        <td><div class="skeleton skeleton-text" style="width: 60px;"></div></td>
-                                                        <td><div class="skeleton skeleton-text" style="width: 80px;"></div></td>
-                                                        <td><div class="skeleton skeleton-text" style="width: 70px;"></div></td>
-                                                    </tr>
-                                                }
-                                            }
-                                            else if (incidentReports == null || !incidentReports.Any())
-                                            {
-                                                <tr>
-                                                    <td colspan="6">
-                                                        <div class="empty-state">
-                                                            <div class="empty-state-icon">
-                                                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                                                                    <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"></path>
-                                                                    <line x1="12" y1="9" x2="12" y2="13"></line>
-                                                                    <line x1="12" y1="17" x2="12.01" y2="17"></line>
-                                                                </svg>
-                                                            </div>
-                                                            <p class="empty-state-text">No incident reports recorded.</p>
-                                                        </div>
-                                                    </td>
-                                                </tr>
-                                            }
-                                            else
-                                            {
-                                                @foreach (var report in incidentReports)
-                                                {
-                                                    <tr>
-                                                        <td class="id-cell">@report.Id</td>
-                                                        <td class="bold-cell">
-                                                            <div class="user-avatar-group">
-                                                                <div class="avatar-circle">@report.Complainant[0]</div>
-                                                                <div class="name-details">
-                                                                    <span>@report.Complainant</span>
-                                                                    <span class="sub-text">Complainant</span>
-                                                                </div>
-                                                            </div>
-                                                        </td>
-                                                        <td class="light-cell">@report.Title</td>
-                                                        <td><span class="data-chip @report.CategoryClass">@report.Category</span></td>
-                                                        <td class="light-cell">@report.Date</td>
-                                                        <td><span class="data-chip @report.StatusClass">@report.Status</span></td>
-                                                    </tr>
-                                                }
-                                            }
-                                        </tbody>
-                                    </table>
-                                </div>
-
-                            </div>
+<AdminDashboardTable 
+    TableType="AdminDashboardTable.DashboardTableType.Verification"
+    Title="User Verification"
+    Headers="verificationHeaders"
+    IsLoading="_isLoading"
+    SkeletonRows="5"
+    VerificationUsers="verificationUsers"
+    OnViewAll="OnViewAllVerifications" />
+                                <AdminDashboardTable 
+                                    TableType="AdminDashboardTable.DashboardTableType.Incident"
+                                    Title="Recent Incident Reports"
+                                    Headers="incidentHeaders"
+                                    IsLoading="_isLoading"
+                                    SkeletonRows="5"
+                                    IncidentReports="incidentReports"
+                                    OnViewAll="OnViewAllIncidents" />
                         </div>
                         <div class="dashboard-col">
-<div class="architectural-card list-card">
-                                <div class="card-header-split">
-                                    <h2 class="card-title">Recent Community Posts</h2>
-                                    <a href="#" class="card-link">VIEW ALL</a>
-                                </div>
-                                <div class="table-container">
-                                    <table class="data-table">
-                                        <thead>
-                                            <tr>
-                                                <th>ID</th>
-                                                <th>AUTHOR</th>
-                                                <th>TOPIC</th>
-                                                <th>DATE</th>
-                                                <th>STATUS</th>
-                                            </tr>
-                                        </thead>
-                                        <tbody>
-                                            @if (_isLoading)
-                                            {
-                                                @for (int i = 0; i < 3; i++)
-                                                {
-                                                    <tr>
-                                                        <td><div class="skeleton skeleton-text" style="width: 70px;"></div></td>
-                                                        <td><div class="skeleton skeleton-text"></div></td>
-                                                        <td><div class="skeleton skeleton-text"></div></td>
-                                                        <td><div class="skeleton skeleton-text" style="width: 80px;"></div></td>
-                                                        <td><div class="skeleton skeleton-text" style="width: 70px;"></div></td>
-                                                    </tr>
-                                                }
-                                            }
-                                            else if (communityPosts == null || !communityPosts.Any())
-                                            {
-                                                <tr>
-                                                    <td colspan="5">
-                                                        <div class="empty-state">
-                                                            <div class="empty-state-icon">
-                                                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                                                                    <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path>
-                                                                    <path d="M18.5 2.5a2.121 2.121 0 1 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path>
-                                                                </svg>
-                                                            </div>
-                                                            <p class="empty-state-text">No community posts found.</p>
-                                                        </div>
-                                                    </td>
-                                                </tr>
-                                            }
-                                            else
-                                            {
-                                                @foreach (var post in communityPosts)
-                                                {
-                                                    <tr>
-                                                        <td class="id-cell">@post.Id</td>
-                                                        <td class="bold-cell">
-                                                            <div class="user-avatar-group">
-                                                                <div class="avatar-circle">@post.Author[0]</div>
-                                                                <div class="name-details">
-                                                                    <span>@post.Author</span>
-                                                                    <span class="sub-text">Resident</span>
-                                                                </div>
-                                                            </div>
-                                                        </td>
-                                                        <td class="light-cell">@post.Topic</td>
-                                                        <td class="light-cell">@post.Date</td>
-                                                        <td><span class="data-chip @post.StatusClass">@post.Status</span></td>
-                                                    </tr>
-                                                }
-                                            }
-                                        </tbody>
-                                    </table>
-                                </div>
-
-                            </div>
-<div class="architectural-card appointments-card">
-                                <div class="card-header-split">
-                                    <h2 class="card-title">Appointments</h2>
-                                    <a href="#" class="card-link">VIEW ALL</a>
-                                </div>
-                                <div class="appointments-list">
-                                    @if (_isLoading)
-                                    {
-                                        @for (int i = 0; i < 4; i++)
-                                        {
-                                            <div class="appointment-item">
-                                                <div class="app-header-row">
-                                                    <div class="skeleton skeleton-text" style="width: 70px;"></div>
-                                                    <div class="skeleton skeleton-text" style="width: 60px;"></div>
-                                                </div>
-                                                <div class="app-body">
-                                                    <div class="skeleton skeleton-text" style="margin-bottom: 0.5rem;"></div>
-                                                    <div class="skeleton skeleton-text" style="width: 80%;"></div>
-                                                </div>
-                                            </div>
-                                        }
-                                    }
-                                    else if (appointments == null || !appointments.Any())
-                                    {
-                                        <div class="empty-state">
-                                            <div class="empty-state-icon">
-                                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                                                    <rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect>
-                                                    <line x1="16" y1="2" x2="16" y2="6"></line>
-                                                    <line x1="8" y1="2" x2="8" y2="6"></line>
-                                                    <line x1="3" y1="10" x2="21" y2="10"></line>
-                                                </svg>
-                                            </div>
-                                            <p class="empty-state-text">No scheduled appointments today.</p>
-                                        </div>
-                                    }
-                                    else
-                                    {
-                                        @foreach (var app in appointments)
-                                        {
-                                            <div class="appointment-item @app.StatusClass">
-                                                <div class="app-header-row">
-                                                    <span class="app-id">@app.Id</span>
-                                                    <span class="data-chip @app.StatusClass">@app.Status</span>
-                                                </div>
-                                                <div class="app-body">
-                                                    <div class="app-name-group">
-                                                        <div class="avatar-circle">@app.Name[0]</div>
-                                                        <div class="app-name">@app.Name</div>
-                                                    </div>
-                                                    <div class="app-meta">
-                                                        <span class="app-category">@app.Category</span>
-                                                        <span class="app-service">@app.Service</span>
-                                                    </div>
-                                                </div>
-                                            </div>
-                                        }
-                                    }
-                                </div>
-                            </div>
+<AdminDashboardTable 
+                                    TableType="AdminDashboardTable.DashboardTableType.CommunityPost"
+                                    Title="Recent Community Posts"
+                                    Headers="communityPostHeaders"
+                                    IsLoading="_isLoading"
+                                    SkeletonRows="5"
+                                    CommunityPosts="communityPosts"
+                                    OnViewAll="OnViewAllPosts" />
+                                <AdminDashboardTable 
+                                    TableType="AdminDashboardTable.DashboardTableType.Appointment"
+                                    Title="Appointments"
+                                    Headers="appointmentHeaders"
+                                    IsLoading="_isLoading"
+                                    SkeletonRows="5"
+                                    Appointments="appointments"
+                                    OnViewAll="OnViewAllAppointments" />
                         </div>
                     </div>
                 }
@@ -692,26 +137,38 @@ else
 }
 
 @code {
-    private ApexChart<RegistrationData> registrationChart = default!;
-    private ApexChart<UserVerificationTrendData> verificationChart = default!;
-    private ApexChart<IncidentTrendData> incidentChart = default!;
-    private ApexChart<AppointmentTrendData> appointmentChart = default!;
-    private ApexChart<CategoryData> postStatusChart = default!;
-    private ApexChart<CategoryData> incidentCategoryChart = default!;
+    private AdminUserGrowthChart userGrowthChartComponent = default!;
+    private AdminTrendCharts trendChartsComponent = default!;
+    private AdminStatusPieCharts statusPieChartsComponent = default!;
 
     private bool _isAuthorized = false;
     private bool _isLoading = true;
+    private string adminFirstName = "Official Name";
+
+    // Table headers
+    private List<string> verificationHeaders = new() { "ID", "NAME", "DATE REGISTERED", "STATUS" };
+    private List<string> incidentHeaders = new() { "ID", "COMPLAINANT", "TITLE", "CATEGORY", "DATE", "STATUS" };
+    private List<string> communityPostHeaders = new() { "ID", "AUTHOR", "TOPIC", "DATE", "STATUS" };
+    private List<string> appointmentHeaders = new() { "ID", "NAME", "CATEGORY", "SERVICE", "STATUS" };
 
     private List<RegistrationData> trendData = new();
     private List<VerificationUser> verificationUsers = new();
     private List<IncidentReport> incidentReports = new();
     private List<CommunityPost> communityPosts = new();
     private List<Appointment> appointments = new();
-    private List<CategoryData> incidentCategories = new();
+    private List<CategoryData> incidentStatuses = new();
     private List<AppointmentTrendData> appTrendData = new();
-    private List<UserVerificationTrendData> verificationTrendData = new();
+    private List<CategoryData> verificationStatusData = new();
     private List<CategoryData> postStatusData = new();
     private List<IncidentTrendData> incidentTrendData = new();
+    private List<IncidentReportDto> _allIncidentData = new();
+    private int TotalIncidentsCount = 0;
+    private int IncidentsTodayCount = 0;
+    private int TotalAppointmentsCount = 0;
+    private int AppointmentsTodayCount = 0;
+    private int VerifiedUsersCount = 0;
+    private int UnverifiedUsersCount = 0;
+
 
     private string _fontFamily = "'Inter', system-ui, -apple-system, sans-serif";
     private string _primaryColor = "#3b82f6";
@@ -769,42 +226,9 @@ else
     private ApexChartOptions<RegistrationData> chartOptions = new();
     private ApexChartOptions<CategoryData> pieChartOptions = new();
     private ApexChartOptions<AppointmentTrendData> appLineChartOptions = new();
-    private ApexChartOptions<UserVerificationTrendData> verificationChartOptions = new();
+    private ApexChartOptions<CategoryData> verificationStatusPieOptions = new();
     private ApexChartOptions<CategoryData> postStatusPieOptions = new();
     private ApexChartOptions<IncidentTrendData> incidentLineChartOptions = new();
-
-    public class RegistrationData
-    {
-        public string Month { get; set; } = "";
-        public int Count { get; set; }
-    }
-
-    public class CategoryData
-    {
-        public string Name { get; set; } = "";
-        public int Value { get; set; }
-    }
-
-    public class AppointmentTrendData
-    {
-        public string Month { get; set; } = "";
-        public string Category { get; set; } = "";
-        public int Count { get; set; }
-    }
-
-    public class UserVerificationTrendData
-    {
-        public string Month { get; set; } = "";
-        public string Status { get; set; } = "";
-        public int Count { get; set; }
-    }
-
-    public class IncidentTrendData
-    {
-        public string Month { get; set; } = "";
-        public string Status { get; set; } = "";
-        public int Count { get; set; }
-    }
 
     public class VerificationUser
     {
@@ -866,26 +290,20 @@ else
     protected override void OnInitialized()
     {
         LayoutService.OnSidebarToggled += HandleSidebarToggled;
+        IncidentService.OnIncidentsChanged += HandleIncidentsChanged;
+        TicketService.OnAppointmentsChanged += HandleAppointmentsChanged;
+        CommunityService.OnCommunityPostsChanged += HandleCommunityPostsChanged;
+        VerificationService.OnVerificationChanged += HandleVerificationChanged;
+
 
         chartOptions = GetDefaultOptions<RegistrationData>();
-        chartOptions.Stroke = new Stroke { Curve = Curve.Smooth, Width = 3, Colors = new List<string> { _primaryColor } };
-        chartOptions.Fill = new Fill
-        {
-            Type = new List<FillType> { FillType.Gradient },
-            Gradient = new FillGradient
-            {
-                ShadeIntensity = 1,
-                OpacityFrom = 0.45,
-                OpacityTo = 0.05,
-                Stops = new List<double> { 0, 100 }
-            }
-        };
-        chartOptions.Colors = new List<string> { _primaryColor };
-        chartOptions.Markers = new Markers { Size = 5, Colors = new List<string> { _primaryColor }, StrokeColors = new List<string> { "#ffffff" }, StrokeWidth = 2, Hover = new MarkersHover { Size = 7 } };
-        chartOptions.Tooltip.Y = new TooltipY { Title = new TooltipYTitle { Formatter = @"function(seriesName) { return 'Registrations'; }" } };
+        chartOptions.Stroke = new Stroke { Curve = Curve.Smooth, Width = 3 };
+        chartOptions.Colors = new List<string> { "#3b82f6", "#10b981", "#f59e0b" }; // All, Verified, Unverified
+        chartOptions.Markers = new Markers { Size = 4, StrokeColors = new List<string> { "#ffffff" }, StrokeWidth = 2, Hover = new MarkersHover { Size = 6 } };
+        chartOptions.Tooltip.Y = new TooltipY { Title = new TooltipYTitle { Formatter = @"function(seriesName) { return seriesName; }" } };
 
         pieChartOptions = GetDefaultOptions<CategoryData>();
-        pieChartOptions.Colors = new List<string> { "#10b981", "#f59e0b", "#ef4444", "#9ca3af" };
+            pieChartOptions.Colors = new List<string> { "#f59e0b", "#10b981", "#ef4444" };
         pieChartOptions.Stroke = new Stroke { Show = true, Width = 2, Colors = new List<string> { "#ffffff" } };
         pieChartOptions.Legend.Position = LegendPosition.Bottom;
         pieChartOptions.Legend.HorizontalAlign = Align.Center;
@@ -913,10 +331,29 @@ else
         appLineChartOptions.Colors = new List<string> { "#3b82f6", "#ef4444", "#10b981", "#8b5cf6", "#f59e0b" };
         appLineChartOptions.Markers = new Markers { Size = 4, StrokeColors = new List<string> { "#ffffff" }, StrokeWidth = 2, Hover = new MarkersHover { Size = 6 } };
 
-        verificationChartOptions = GetDefaultOptions<UserVerificationTrendData>();
-        verificationChartOptions.Stroke = new Stroke { Curve = Curve.Smooth, Width = 3 };
-        verificationChartOptions.Colors = new List<string> { "#10b981", "#f59e0b" };
-        verificationChartOptions.Markers = new Markers { Size = 4, StrokeColors = new List<string> { "#ffffff" }, StrokeWidth = 2, Hover = new MarkersHover { Size = 6 } };
+        verificationStatusPieOptions = GetDefaultOptions<CategoryData>();
+        verificationStatusPieOptions.Colors = new List<string> { "#10b981", "#f59e0b" };
+        verificationStatusPieOptions.Stroke = new Stroke { Show = true, Width = 2, Colors = new List<string> { "#ffffff" } };
+        verificationStatusPieOptions.Legend.Position = LegendPosition.Bottom;
+        verificationStatusPieOptions.Legend.HorizontalAlign = Align.Center;
+        verificationStatusPieOptions.PlotOptions = new PlotOptions
+        {
+            Pie = new PlotOptionsPie
+            {
+                Donut = new PlotOptionsDonut
+                {
+                    Size = "75%",
+                    Labels = new DonutLabels
+                    {
+                        Show = true,
+                        Name = new DonutLabelName { FontSize = "14px", Color = _secondaryTextColor, FontWeight = "600" },
+                        Value = new DonutLabelValue { FontSize = "24px", Color = "#0d0a2d", FontWeight = "800" },
+                        Total = new DonutLabelTotal { Show = true, Label = "Total", Color = _secondaryTextColor, FontSize = "14px", FontWeight = "600" }
+                    }
+                }
+            }
+        };
+        verificationStatusPieOptions.Tooltip.Y = new TooltipY { Title = new TooltipYTitle { Formatter = @"function(seriesName) { return ''; }" } };
 
         postStatusPieOptions = GetDefaultOptions<CategoryData>();
         postStatusPieOptions.Colors = new List<string> { "#10b981", "#f59e0b", "#ef4444" };
@@ -944,8 +381,176 @@ else
 
         incidentLineChartOptions = GetDefaultOptions<IncidentTrendData>();
         incidentLineChartOptions.Stroke = new Stroke { Curve = Curve.Smooth, Width = 3 };
-        incidentLineChartOptions.Colors = new List<string> { "#10b981", "#f59e0b", "#ef4444" };
+        incidentLineChartOptions.Colors = new List<string> { "#ef4444", "#f59e0b", "#3b82f6", "#64748b" };
         incidentLineChartOptions.Markers = new Markers { Size = 4, StrokeColors = new List<string> { "#ffffff" }, StrokeWidth = 2, Hover = new MarkersHover { Size = 6 } };
+    }
+
+    private async Task RefreshAppointmentDataAsync(bool redrawChart, bool clearOnFailure)
+    {
+        try
+        {
+            var appointmentData = await TicketService.GetAppointmentBoardAsync();
+            
+            TotalAppointmentsCount = appointmentData.Count;
+            AppointmentsTodayCount = appointmentData.Count(a => a.ScheduledDate.Date == DateTime.Today);
+
+            appointments = appointmentData
+                .OrderByDescending(a => a.ScheduledDate)
+                .Take(5)
+                .Select(app => new Appointment
+                {
+                    Id = $"#TKT-{app.TicketId}",
+                    Name = string.IsNullOrWhiteSpace(app.FullName) ? "Unknown" : app.FullName,
+                    Category = string.IsNullOrWhiteSpace(app.AppointmentType) ? "General" : app.AppointmentType,
+                    Service = app.Description.Length > 30 ? app.Description.Substring(0, 30) + "..." : app.Description,
+                    Status = app.Status.ToUpperInvariant(),
+                    StatusClass = GetAppointmentStatusClass(app.Status)
+                })
+                .ToList();
+
+
+            appTrendData = BuildAppointmentTrends(appointmentData, ActiveTimeRange);
+
+            StateHasChanged();
+
+            if (redrawChart && trendChartsComponent != null)
+            {
+                await trendChartsComponent.RenderAllAsync();
+            }
+        }
+        catch (Exception ex)
+        {
+            Logger.LogWarning(ex, "Failed to refresh appointment dashboard data.");
+
+            if (clearOnFailure)
+            {
+                appointments = new List<Appointment>();
+                appTrendData = new List<AppointmentTrendData>();
+                StateHasChanged();
+            }
+        }
+    }
+
+    private async Task RefreshIncidentDataAsync(bool redrawChart, bool clearOnFailure)
+
+    {
+        try
+        {
+            var incidentData = await IncidentService.GetIncidentReportsAsync();
+            _allIncidentData = incidentData;
+            
+            TotalIncidentsCount = _allIncidentData.Count;
+            IncidentsTodayCount = _allIncidentData.Count(d => d.Date.Date == DateTime.Today);
+
+            incidentReports = incidentData
+                .OrderByDescending(report => report.Date)
+                .Take(5)
+                .Select(report => new IncidentReport
+                {
+                    Id = report.FormattedId,
+                    Complainant = string.IsNullOrWhiteSpace(report.Complainant) ? "Unknown" : report.Complainant,
+                    Title = string.IsNullOrWhiteSpace(report.Title) ? "No Title" : report.Title,
+                    Category = string.IsNullOrWhiteSpace(report.Category) ? "OTHER" : report.Category,
+                    CategoryClass = GetIncidentCategoryClass(report.Category),
+                    Date = report.Date.ToString("MMM dd, yyyy"),
+                    Status = report.Status,
+                    StatusClass = GetIncidentStatusClass(report.Status)
+                })
+                .ToList();
+
+            incidentStatuses = BuildIncidentStatuses(incidentData);
+            incidentTrendData = BuildIncidentTrends(_allIncidentData, ActiveTimeRange);
+
+            var statusColors = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase)
+            {
+                { "PENDING", "#f59e0b" },
+                { "RESOLVED", "#10b981" },
+                { "REJECTED", "#ef4444" }
+            };
+            
+            if (incidentStatuses.Any())
+            {
+                pieChartOptions.Colors = incidentStatuses
+                    .Select(s => statusColors.TryGetValue(s.Name, out var c) ? c : "#64748b")
+                    .ToList();
+            }
+
+            StateHasChanged();
+
+            if (redrawChart && trendChartsComponent != null)
+            {
+                await trendChartsComponent.RenderAllAsync();
+            }
+        }
+        catch (Exception ex)
+        {
+            Logger.LogWarning(ex, "Failed to refresh incident dashboard data.");
+
+            if (clearOnFailure)
+            {
+                _allIncidentData = new List<IncidentReportDto>();
+                incidentReports = new List<IncidentReport>();
+                incidentStatuses = new List<CategoryData>();
+                incidentTrendData = new List<IncidentTrendData>();
+                StateHasChanged();
+            }
+        }
+    }
+
+    private async Task RefreshCommunityPostDataAsync(bool redrawChart, bool clearOnFailure)
+    {
+        try
+        {
+            var postData = await CommunityService.GetAllCommunityPostTicketsAsync();
+            
+            communityPosts = postData
+                .OrderByDescending(p => p.CreatedAt)
+                .Take(5)
+                .Select(p => new CommunityPost
+                {
+                    Id = $"#PST-{p.TicketId}",
+                    Author = string.IsNullOrWhiteSpace(p.Author) ? "Unknown" : p.Author,
+                    Topic = string.IsNullOrWhiteSpace(p.Title) ? "Untitled" : p.Title,
+                    Date = p.CreatedAt.ToString("MMM dd, yyyy"),
+                    Status = p.Status.ToUpperInvariant(),
+                    StatusClass = GetPostStatusClass(p.Status)
+                })
+                .ToList();
+
+            postStatusData = BuildPostStatuses(postData);
+
+            var statusColors = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase)
+            {
+                { "PENDING", "#f59e0b" },
+                { "APPROVED", "#10b981" },
+                { "REJECTED", "#ef4444" }
+            };
+            
+            if (postStatusData.Any())
+            {
+                postStatusPieOptions.Colors = postStatusData
+                    .Select(s => statusColors.TryGetValue(s.Name, out var c) ? c : "#64748b")
+                    .ToList();
+            }
+
+            StateHasChanged();
+
+            if (redrawChart && statusPieChartsComponent != null)
+            {
+                await statusPieChartsComponent.RenderAllAsync();
+            }
+        }
+        catch (Exception ex)
+        {
+            Logger.LogWarning(ex, "Failed to refresh community post dashboard data.");
+
+            if (clearOnFailure)
+            {
+                communityPosts = new List<CommunityPost>();
+                postStatusData = new List<CategoryData>();
+                StateHasChanged();
+            }
+        }
     }
 
     private async Task LoadDashboardData()
@@ -953,144 +558,15 @@ else
         _isLoading = true;
         StateHasChanged();
 
-        // Simulate API delay
-        await Task.Delay(1500);
+        // Simulated API delay removed for better performance
+        // await Task.Delay(1500);
 
-        trendData = new List<RegistrationData>
-        {
-            new RegistrationData { Month = "JAN", Count = 120 },
-            new RegistrationData { Month = "FEB", Count = 230 },
-            new RegistrationData { Month = "MAR", Count = 310 },
-            new RegistrationData { Month = "APR", Count = 480 },
-            new RegistrationData { Month = "MAY", Count = 550 },
-            new RegistrationData { Month = "JUN", Count = 820 }
-        };
+        await RefreshIncidentDataAsync(redrawChart: false, clearOnFailure: true);
+        await RefreshAppointmentDataAsync(redrawChart: false, clearOnFailure: true);
+        await RefreshCommunityPostDataAsync(redrawChart: false, clearOnFailure: true);
+        await RefreshVerificationDataAsync(redrawChart: false, clearOnFailure: true);
 
-        verificationUsers = new List<VerificationUser>
-        {
-            new VerificationUser { Id = "#USR-3001", Name = "Ana Patricia Reyes", DateRegistered = "Oct 22, 2023", Status = "FULLY VERIFIED", StatusClass = "approved" },
-            new VerificationUser { Id = "#USR-3002", Name = "Carlos Miguel Torres", DateRegistered = "Oct 23, 2023", Status = "PARTIALLY VERIFIED", StatusClass = "yellow" },
-            new VerificationUser { Id = "#USR-3003", Name = "Diana Rose Lim", DateRegistered = "Oct 24, 2023", Status = "FULLY VERIFIED", StatusClass = "approved" },
-            new VerificationUser { Id = "#USR-3004", Name = "Roberto Santos Jr.", DateRegistered = "Oct 24, 2023", Status = "PARTIALLY VERIFIED", StatusClass = "yellow" }
-        };
-
-        incidentReports = new List<IncidentReport>
-        {
-            new IncidentReport { Id = "#INC-4021", Complainant = "Maria Santos", Title = "Stray Animal Complaint", Category = "COMPLAINT", CategoryClass = "yellow", Date = "Oct 24, 2023", Status = "PENDING", StatusClass = "yellow" },
-            new IncidentReport { Id = "#INC-4020", Complainant = "Juan Dela Cruz", Title = "Noise Disturbance", Category = "OTHER", CategoryClass = "gray", Date = "Oct 24, 2023", Status = "REJECTED", StatusClass = "rejected" },
-            new IncidentReport { Id = "#INC-4019", Complainant = "Elena Rodriguez", Title = "Clogged Drainage", Category = "EMERGENCY", CategoryClass = "red", Date = "Oct 23, 2023", Status = "RESOLVED", StatusClass = "resolved" },
-            new IncidentReport { Id = "#INC-4018", Complainant = "Mark Jayson Sy", Title = "More Streetlights", Category = "SUGGESTION", CategoryClass = "green", Date = "Oct 23, 2023", Status = "RESOLVED", StatusClass = "resolved" }
-        };
-
-        incidentCategories = new List<CategoryData>
-        {
-            new CategoryData { Name = "SUGGESTION", Value = 28 },
-            new CategoryData { Name = "COMPLAINT", Value = 45 },
-            new CategoryData { Name = "EMERGENCY", Value = 12 },
-            new CategoryData { Name = "OTHER", Value = 15 }
-        };
-
-        incidentTrendData = new List<IncidentTrendData>
-        {
-            new IncidentTrendData { Month = "JAN", Status = "Resolved", Count = 30 },
-            new IncidentTrendData { Month = "FEB", Status = "Resolved", Count = 45 },
-            new IncidentTrendData { Month = "MAR", Status = "Resolved", Count = 38 },
-            new IncidentTrendData { Month = "APR", Status = "Resolved", Count = 65 },
-            new IncidentTrendData { Month = "MAY", Status = "Resolved", Count = 80 },
-            new IncidentTrendData { Month = "JUN", Status = "Resolved", Count = 95 },
-
-            new IncidentTrendData { Month = "JAN", Status = "Pending", Count = 15 },
-            new IncidentTrendData { Month = "FEB", Status = "Pending", Count = 22 },
-            new IncidentTrendData { Month = "MAR", Status = "Pending", Count = 18 },
-            new IncidentTrendData { Month = "APR", Status = "Pending", Count = 25 },
-            new IncidentTrendData { Month = "MAY", Status = "Pending", Count = 30 },
-            new IncidentTrendData { Month = "JUN", Status = "Pending", Count = 20 },
-
-            new IncidentTrendData { Month = "JAN", Status = "Rejected", Count = 5 },
-            new IncidentTrendData { Month = "FEB", Status = "Rejected", Count = 8 },
-            new IncidentTrendData { Month = "MAR", Status = "Rejected", Count = 4 },
-            new IncidentTrendData { Month = "APR", Status = "Rejected", Count = 10 },
-            new IncidentTrendData { Month = "MAY", Status = "Rejected", Count = 12 },
-            new IncidentTrendData { Month = "JUN", Status = "Rejected", Count = 7 }
-        };
-
-        appTrendData = new List<AppointmentTrendData>
-        {
-            new AppointmentTrendData { Month = "JAN", Category = "DOCUMENT REQUEST", Count = 45 },
-            new AppointmentTrendData { Month = "FEB", Category = "DOCUMENT REQUEST", Count = 52 },
-            new AppointmentTrendData { Month = "MAR", Category = "DOCUMENT REQUEST", Count = 38 },
-            new AppointmentTrendData { Month = "APR", Category = "DOCUMENT REQUEST", Count = 65 },
-            new AppointmentTrendData { Month = "MAY", Category = "DOCUMENT REQUEST", Count = 48 },
-            new AppointmentTrendData { Month = "JUN", Category = "DOCUMENT REQUEST", Count = 55 },
-
-            new AppointmentTrendData { Month = "JAN", Category = "COMPLAINT AND MEDIATION", Count = 10 },
-            new AppointmentTrendData { Month = "FEB", Category = "COMPLAINT AND MEDIATION", Count = 15 },
-            new AppointmentTrendData { Month = "MAR", Category = "COMPLAINT AND MEDIATION", Count = 12 },
-            new AppointmentTrendData { Month = "APR", Category = "COMPLAINT AND MEDIATION", Count = 18 },
-            new AppointmentTrendData { Month = "MAY", Category = "COMPLAINT AND MEDIATION", Count = 22 },
-            new AppointmentTrendData { Month = "JUN", Category = "COMPLAINT AND MEDIATION", Count = 25 },
-
-            new AppointmentTrendData { Month = "JAN", Category = "PERMITS & CLEARANCES", Count = 20 },
-            new AppointmentTrendData { Month = "FEB", Category = "PERMITS & CLEARANCES", Count = 25 },
-            new AppointmentTrendData { Month = "MAR", Category = "PERMITS & CLEARANCES", Count = 40 },
-            new AppointmentTrendData { Month = "APR", Category = "PERMITS & CLEARANCES", Count = 30 },
-            new AppointmentTrendData { Month = "MAY", Category = "PERMITS & CLEARANCES", Count = 35 },
-            new AppointmentTrendData { Month = "JUN", Category = "PERMITS & CLEARANCES", Count = 50 },
-
-            new AppointmentTrendData { Month = "JAN", Category = "COMMUNITY PROGRAMS", Count = 15 },
-            new AppointmentTrendData { Month = "FEB", Category = "COMMUNITY PROGRAMS", Count = 20 },
-            new AppointmentTrendData { Month = "MAR", Category = "COMMUNITY PROGRAMS", Count = 18 },
-            new AppointmentTrendData { Month = "APR", Category = "COMMUNITY PROGRAMS", Count = 25 },
-            new AppointmentTrendData { Month = "MAY", Category = "COMMUNITY PROGRAMS", Count = 30 },
-            new AppointmentTrendData { Month = "JUN", Category = "COMMUNITY PROGRAMS", Count = 35 },
-
-            new AppointmentTrendData { Month = "JAN", Category = "ASSISTANCE SERVICES", Count = 30 },
-            new AppointmentTrendData { Month = "FEB", Category = "ASSISTANCE SERVICES", Count = 35 },
-            new AppointmentTrendData { Month = "MAR", Category = "ASSISTANCE SERVICES", Count = 28 },
-            new AppointmentTrendData { Month = "APR", Category = "ASSISTANCE SERVICES", Count = 40 },
-            new AppointmentTrendData { Month = "MAY", Category = "ASSISTANCE SERVICES", Count = 45 },
-            new AppointmentTrendData { Month = "JUN", Category = "ASSISTANCE SERVICES", Count = 50 }
-        };
-
-        verificationTrendData = new List<UserVerificationTrendData>
-        {
-            new UserVerificationTrendData { Month = "JAN", Status = "Verified", Count = 80 },
-            new UserVerificationTrendData { Month = "FEB", Status = "Verified", Count = 150 },
-            new UserVerificationTrendData { Month = "MAR", Status = "Verified", Count = 220 },
-            new UserVerificationTrendData { Month = "APR", Status = "Verified", Count = 350 },
-            new UserVerificationTrendData { Month = "MAY", Status = "Verified", Count = 410 },
-            new UserVerificationTrendData { Month = "JUN", Status = "Verified", Count = 600 },
-
-            new UserVerificationTrendData { Month = "JAN", Status = "Partial", Count = 40 },
-            new UserVerificationTrendData { Month = "FEB", Status = "Partial", Count = 80 },
-            new UserVerificationTrendData { Month = "MAR", Status = "Partial", Count = 90 },
-            new UserVerificationTrendData { Month = "APR", Status = "Partial", Count = 130 },
-            new UserVerificationTrendData { Month = "MAY", Status = "Partial", Count = 140 },
-            new UserVerificationTrendData { Month = "JUN", Status = "Partial", Count = 220 }
-        };
-
-        postStatusData = new List<CategoryData>
-        {
-            new CategoryData { Name = "Approved", Value = 120 },
-            new CategoryData { Name = "Pending", Value = 45 },
-            new CategoryData { Name = "Rejected", Value = 15 }
-        };
-
-        communityPosts = new List<CommunityPost>
-        {
-            new CommunityPost { Id = "#PST-1052", Author = "Juan Dela Cruz", Topic = "Barangay Fiesta", Date = "Oct 24, 2023", Status = "PENDING", StatusClass = "yellow" },
-            new CommunityPost { Id = "#PST-1051", Author = "Maria Santos", Topic = "Clean & Green Drive", Date = "Oct 24, 2023", Status = "APPROVED", StatusClass = "approved" },
-            new CommunityPost { Id = "#PST-1050", Author = "Pedro Penduko", Topic = "Lost Pet", Date = "Oct 23, 2023", Status = "REJECTED", StatusClass = "rejected" }
-        };
-
-        appointments = new List<Appointment>
-        {
-            new Appointment { Id = "#APP-5001", Name = "Elena Rodriguez", Category = "DOCUMENT REQUEST", Service = "Certificate of Residency", Status = "PENDING", StatusClass = "yellow" },
-            new Appointment { Id = "#APP-5002", Name = "Mark Jayson Sy", Category = "PERMITS & CLEARANCES", Service = "Barangay Business Permit", Status = "APPROVED", StatusClass = "approved" },
-            new Appointment { Id = "#APP-5003", Name = "Maria Clara Santos", Category = "COMMUNITY PROGRAMS", Service = "Health Program", Status = "RESCHEDULED", StatusClass = "rescheduled" },
-            new Appointment { Id = "#APP-5004", Name = "Juan Dela Cruz", Category = "COMPLAINT AND MEDIATION", Service = "Mediation Session", Status = "REJECTED", StatusClass = "rejected" },
-            new Appointment { Id = "#APP-5005", Name = "Ricardo Gomez", Category = "ASSISTANCE SERVICES", Service = "Medical Assistance", Status = "APPROVED", StatusClass = "approved" }
-        };
+        // verificationUsers and verificationStatusData are now populated in RefreshVerificationDataAsync
 
         _isLoading = false;
         StateHasChanged();
@@ -1124,12 +600,9 @@ else
         try
         {
             var tasks = new List<Task>();
-            if (registrationChart != null) tasks.Add(registrationChart.RenderAsync());
-            if (verificationChart != null) tasks.Add(verificationChart.RenderAsync());
-            if (incidentChart != null) tasks.Add(incidentChart.RenderAsync());
-            if (appointmentChart != null) tasks.Add(appointmentChart.RenderAsync());
-            if (postStatusChart != null) tasks.Add(postStatusChart.RenderAsync());
-            if (incidentCategoryChart != null) tasks.Add(incidentCategoryChart.RenderAsync());
+            if (userGrowthChartComponent != null) tasks.Add(userGrowthChartComponent.RenderAsync());
+            if (trendChartsComponent != null) tasks.Add(trendChartsComponent.RenderAllAsync());
+            if (statusPieChartsComponent != null) tasks.Add(statusPieChartsComponent.RenderAllAsync());
 
             if (tasks.Any())
             {
@@ -1145,7 +618,126 @@ else
     public void Dispose()
     {
         LayoutService.OnSidebarToggled -= HandleSidebarToggled;
+        IncidentService.OnIncidentsChanged -= HandleIncidentsChanged;
+        TicketService.OnAppointmentsChanged -= HandleAppointmentsChanged;
+        CommunityService.OnCommunityPostsChanged -= HandleCommunityPostsChanged;
+        VerificationService.OnVerificationChanged -= HandleVerificationChanged;
     }
+
+
+    private async void HandleIncidentsChanged()
+    {
+        try
+        {
+            await InvokeAsync(() => RefreshIncidentDataAsync(redrawChart: true, clearOnFailure: false));
+        }
+        catch (Exception ex)
+        {
+            Logger.LogWarning(ex, "Error refreshing incident dashboard data after an incident update.");
+        }
+    }
+
+    private async void HandleAppointmentsChanged()
+    {
+        try
+        {
+            await InvokeAsync(() => RefreshAppointmentDataAsync(redrawChart: true, clearOnFailure: false));
+        }
+        catch (Exception ex)
+        {
+            Logger.LogWarning(ex, "Error refreshing appointment dashboard data after an appointment update.");
+        }
+    }
+
+    private async void HandleCommunityPostsChanged()
+    {
+        try
+        {
+            await InvokeAsync(() => RefreshCommunityPostDataAsync(redrawChart: true, clearOnFailure: false));
+        }
+        catch (Exception ex)
+        {
+            Logger.LogWarning(ex, "Error refreshing community post dashboard data after a post update.");
+        }
+    }
+
+    private async void HandleVerificationChanged()
+    {
+        try
+        {
+            await InvokeAsync(() => RefreshVerificationDataAsync(redrawChart: true, clearOnFailure: false));
+        }
+        catch (Exception ex)
+        {
+            Logger.LogWarning(ex, "Error refreshing verification dashboard data after a verification update.");
+        }
+    }
+
+    private async Task RefreshVerificationDataAsync(bool redrawChart, bool clearOnFailure)
+    {
+        try
+        {
+            var ticketData = await VerificationService.GetVerificationTicketsAsync();
+            
+            verificationUsers = ticketData
+                .OrderByDescending(t => t.CreatedDate)
+                .Take(5)
+                .Select(t => new VerificationUser
+                {
+                    Id = $"#USR-{t.UserId}",
+                    Name = string.IsNullOrWhiteSpace(t.UserFullName) ? "Unknown" : t.UserFullName,
+                    DateRegistered = t.CreatedDate.ToString("MMM dd, yyyy"),
+                    Status = (t.Status ?? "Pending").ToUpperInvariant(),
+                    StatusClass = GetVerificationStatusClass(t.Status)
+                })
+                .ToList();
+
+            verificationStatusData = BuildVerificationStatuses(ticketData);
+
+            VerifiedUsersCount = ticketData.Count(t => string.Equals(t.Status, "Approved", StringComparison.OrdinalIgnoreCase));
+            UnverifiedUsersCount = ticketData.Count(t => !string.Equals(t.Status, "Approved", StringComparison.OrdinalIgnoreCase));
+
+            var statusColors = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase)
+            {
+                { "APPROVED", "#10b981" },
+                { "PENDING", "#f59e0b" },
+                { "REJECTED", "#ef4444" }
+            };
+            
+            if (verificationStatusData.Any())
+            {
+                verificationStatusPieOptions.Colors = verificationStatusData
+                    .Select(s => statusColors.TryGetValue(s.Name, out var c) ? c : "#64748b")
+                    .ToList();
+            }
+
+            trendData = BuildUserGrowthTrends(ticketData, ActiveTimeRange);
+
+            StateHasChanged();
+
+            if (redrawChart && statusPieChartsComponent != null)
+            {
+                await statusPieChartsComponent.RenderAllAsync();
+            }
+
+            if (redrawChart && userGrowthChartComponent != null)
+            {
+                await userGrowthChartComponent.RenderAsync();
+            }
+        }
+        catch (Exception ex)
+        {
+            Logger.LogWarning(ex, "Failed to refresh verification dashboard data.");
+
+            if (clearOnFailure)
+            {
+                verificationUsers = new List<VerificationUser>();
+                verificationStatusData = new List<CategoryData>();
+                StateHasChanged();
+            }
+        }
+    }
+
 
     protected override async Task OnAfterRenderAsync(bool firstRender)
     {
@@ -1171,6 +763,12 @@ else
                 return;
             }
 
+            var admin = await AdminSupabase.GetAdminBySessionKey(result.Value);
+            if (admin != null && !string.IsNullOrWhiteSpace(admin.FirstName))
+            {
+                adminFirstName = admin.FirstName;
+            }
+
             _isAuthorized = true;
             await LoadDashboardData();
         }
@@ -1186,56 +784,431 @@ else
         ActiveFilter = filter;
     }
 
+
+    private static string GetIncidentCategoryClass(string category)
+    {
+        var normalizedCategory = category?.ToUpperInvariant() ?? string.Empty;
+
+        return normalizedCategory switch
+        {
+            "SUGGESTION" => "review",
+            "COMPLAINT" => "yellow",
+            "EMERGENCY" => "red",
+            "OTHER" => "gray",
+            _ => "gray"
+        };
+    }
+
+    private static string GetIncidentStatusClass(string status)
+    {
+        var normalizedStatus = status?.ToUpperInvariant() ?? string.Empty;
+
+        return normalizedStatus switch
+        {
+            "PENDING" => "yellow",
+            "RESOLVED" => "resolved",
+            "REJECTED" => "rejected",
+            _ => "gray"
+        };
+    }
+
+    private static string GetAppointmentStatusClass(string status)
+    {
+        var normalizedStatus = status?.ToUpperInvariant() ?? string.Empty;
+
+        return normalizedStatus switch
+        {
+            "PENDING" => "yellow",
+            "APPROVED" => "approved",
+            "ACCEPTED" => "approved",
+            "RESCHEDULED" => "rescheduled",
+            "REJECTED" => "rejected",
+            _ => "gray"
+        };
+    }
+
+    private static string GetPostStatusClass(string status)
+    {
+        var normalizedStatus = status?.ToUpperInvariant() ?? string.Empty;
+
+        return normalizedStatus switch
+        {
+            "PENDING" => "yellow",
+            "APPROVED" => "approved",
+            "REJECTED" => "rejected",
+            _ => "gray"
+        };
+    }
+
+
+    private static List<CategoryData> BuildIncidentStatuses(IEnumerable<IncidentReportDto> incidentData)
+    {
+        var counts = incidentData
+            .GroupBy(report => NormalizeIncidentStatus(report.Status))
+            .ToDictionary(group => group.Key, group => group.Count());
+
+        var orderedStatuses = new[] { "PENDING", "RESOLVED", "REJECTED" };
+
+        var statuses = orderedStatuses
+            .Select(status => new CategoryData
+            {
+                Name = status,
+                Value = counts.TryGetValue(status, out var count) ? count : 0
+            })
+            .ToList();
+
+        return statuses;
+    }
+
+    private static List<IncidentTrendData> BuildIncidentTrends(IEnumerable<IncidentReportDto> incidentData, string timeRange)
+    {
+        var categories = new[] { "EMERGENCY", "COMPLAINT", "SUGGESTION", "OTHER" };
+        var result = new List<IncidentTrendData>();
+
+        if (timeRange == "ALL")
+        {
+            var years = incidentData.Select(d => d.Date.Year).Distinct().OrderBy(y => y).ToList();
+            if (!years.Any()) years = new List<int> { DateTime.UtcNow.Year }; // fallback
+
+            foreach (var category in categories)
+            {
+                foreach (var year in years)
+                {
+                    var count = incidentData.Count(d => d.Category == category && d.Date.Year == year);
+                    result.Add(new IncidentTrendData
+                    {
+                        Month = year.ToString(),
+                        Category = category,
+                        Count = count
+                    });
+                }
+            }
+        }
+        else if (timeRange == "1M")
+        {
+            var daysToGenerate = 30;
+            var endDate = DateTime.UtcNow.Date;
+            var days = new List<DateTime>();
+            for (int i = 0; i < daysToGenerate; i++)
+            {
+                days.Add(endDate.AddDays(-(daysToGenerate - 1 - i)));
+            }
+
+            foreach (var category in categories)
+            {
+                foreach (var dayDate in days)
+                {
+                    var dayStr = dayDate.ToString("MMM dd");
+                    var count = incidentData.Count(d => d.Category == category && d.Date.Date == dayDate);
+                    
+                    result.Add(new IncidentTrendData 
+                    {
+                        Month = dayStr,
+                        Category = category,
+                        Count = count
+                    });
+                }
+            }
+        }
+        else
+        {
+            var monthsToGenerate = timeRange == "1Y" ? 12 : 6;
+            var endDate = DateTime.UtcNow;
+            var months = new List<DateTime>();
+            for (int i = 0; i < monthsToGenerate; i++)
+            {
+                months.Add(endDate.AddMonths(- (monthsToGenerate - 1 - i)));
+            }
+
+            foreach (var category in categories)
+            {
+                foreach (var monthDate in months)
+                {
+                    var monthStr = monthDate.ToString("MMM").ToUpperInvariant();
+                    var count = incidentData.Count(d => d.Category == category && d.Date.Year == monthDate.Year && d.Date.Month == monthDate.Month);
+                    
+                    result.Add(new IncidentTrendData 
+                    {
+                        Month = monthStr,
+                        Category = category,
+                        Count = count
+                    });
+                }
+            }
+        }
+
+        return result;
+    }
+
+    private static List<RegistrationData> BuildUserGrowthTrends(IEnumerable<VerificationTicketRecord> ticketData, string timeRange)
+    {
+        var result = new List<RegistrationData>();
+
+        if (timeRange == "ALL")
+        {
+            var years = ticketData.Select(d => d.CreatedDate.Year).Distinct().OrderBy(y => y).ToList();
+            if (!years.Any()) years = new List<int> { DateTime.UtcNow.Year };
+
+            foreach (var year in years)
+            {
+                var yearTickets = ticketData.Where(d => d.CreatedDate.Year == year).ToList();
+                result.Add(new RegistrationData
+                {
+                    Month = year.ToString(),
+                    AllCount = yearTickets.Count,
+                    VerifiedCount = yearTickets.Count(t => string.Equals(t.Status, "Approved", StringComparison.OrdinalIgnoreCase)),
+                    UnverifiedCount = yearTickets.Count(t => !string.Equals(t.Status, "Approved", StringComparison.OrdinalIgnoreCase))
+                });
+            }
+        }
+        else if (timeRange == "1M")
+        {
+            var daysToGenerate = 30;
+            var endDate = DateTime.UtcNow.Date;
+            var days = new List<DateTime>();
+            for (int i = 0; i < daysToGenerate; i++)
+            {
+                days.Add(endDate.AddDays(-(daysToGenerate - 1 - i)));
+            }
+
+            foreach (var dayDate in days)
+            {
+                var dayStr = dayDate.ToString("MMM dd");
+                var dayTickets = ticketData.Where(d => d.CreatedDate.Date == dayDate).ToList();
+                
+                result.Add(new RegistrationData 
+                {
+                    Month = dayStr,
+                    AllCount = dayTickets.Count,
+                    VerifiedCount = dayTickets.Count(t => string.Equals(t.Status, "Approved", StringComparison.OrdinalIgnoreCase)),
+                    UnverifiedCount = dayTickets.Count(t => !string.Equals(t.Status, "Approved", StringComparison.OrdinalIgnoreCase))
+                });
+            }
+        }
+        else
+        {
+            var monthsToGenerate = timeRange == "1Y" ? 12 : 6;
+            var endDate = DateTime.UtcNow;
+            var months = new List<DateTime>();
+            for (int i = 0; i < monthsToGenerate; i++)
+            {
+                months.Add(endDate.AddMonths(-(monthsToGenerate - 1 - i)));
+            }
+
+            foreach (var monthDate in months)
+            {
+                var monthStr = monthDate.ToString("MMM").ToUpperInvariant();
+                var monthTickets = ticketData.Where(d => d.CreatedDate.Year == monthDate.Year && d.CreatedDate.Month == monthDate.Month).ToList();
+                
+                result.Add(new RegistrationData 
+                {
+                    Month = monthStr,
+                    AllCount = monthTickets.Count,
+                    VerifiedCount = monthTickets.Count(t => string.Equals(t.Status, "Approved", StringComparison.OrdinalIgnoreCase)),
+                    UnverifiedCount = monthTickets.Count(t => !string.Equals(t.Status, "Approved", StringComparison.OrdinalIgnoreCase))
+                });
+            }
+        }
+
+        return result;
+    }
+
+    private static List<AppointmentTrendData> BuildAppointmentTrends(IEnumerable<AppointmentTicketModel> appointmentData, string timeRange)
+    {
+        var categories = new[] 
+        { 
+            "Document Requests", 
+            "Complaint & Mediation", 
+            "Permits & Clearances", 
+            "Community Programs", 
+            "Assistance Services" 
+        };
+        var result = new List<AppointmentTrendData>();
+
+        if (timeRange == "ALL")
+        {
+            var years = appointmentData.Select(d => d.ScheduledDate.Year).Distinct().OrderBy(y => y).ToList();
+            if (!years.Any()) years = new List<int> { DateTime.UtcNow.Year };
+
+            foreach (var category in categories)
+            {
+                foreach (var year in years)
+                {
+                    var count = appointmentData.Count(d => (d.AppointmentType?.StartsWith(category, StringComparison.OrdinalIgnoreCase) ?? false) && d.ScheduledDate.Year == year);
+                    result.Add(new AppointmentTrendData
+                    {
+                        Month = year.ToString(),
+                        Category = category.ToUpperInvariant(),
+                        Count = count
+                    });
+                }
+            }
+        }
+        else if (timeRange == "1M")
+        {
+            var daysToGenerate = 30;
+            var endDate = DateTime.UtcNow.Date;
+            var days = new List<DateTime>();
+            for (int i = 0; i < daysToGenerate; i++)
+            {
+                days.Add(endDate.AddDays(-(daysToGenerate - 1 - i)));
+            }
+
+            foreach (var category in categories)
+            {
+                foreach (var dayDate in days)
+                {
+                    var dayStr = dayDate.ToString("MMM dd");
+                    var count = appointmentData.Count(d => (d.AppointmentType?.StartsWith(category, StringComparison.OrdinalIgnoreCase) ?? false) && d.ScheduledDate.Date == dayDate);
+                    
+                    result.Add(new AppointmentTrendData 
+                    {
+                        Month = dayStr,
+                        Category = category.ToUpperInvariant(),
+                        Count = count
+                    });
+                }
+            }
+        }
+        else
+        {
+            var monthsToGenerate = timeRange == "1Y" ? 12 : 6;
+            var endDate = DateTime.UtcNow;
+            var months = new List<DateTime>();
+            for (int i = 0; i < monthsToGenerate; i++)
+            {
+                months.Add(endDate.AddMonths(- (monthsToGenerate - 1 - i)));
+            }
+
+            foreach (var category in categories)
+            {
+                foreach (var monthDate in months)
+                {
+                    var monthStr = monthDate.ToString("MMM").ToUpperInvariant();
+                    var count = appointmentData.Count(d => (d.AppointmentType?.StartsWith(category, StringComparison.OrdinalIgnoreCase) ?? false) && d.ScheduledDate.Year == monthDate.Year && d.ScheduledDate.Month == monthDate.Month);
+                    
+                    result.Add(new AppointmentTrendData 
+                    {
+                        Month = monthStr,
+                        Category = category.ToUpperInvariant(),
+                        Count = count
+                    });
+                }
+            }
+        }
+
+        return result;
+    }
+
+
+    private static string NormalizeIncidentStatus(string status)
+
+    {
+        var normalizedStatus = status?.Trim().ToUpperInvariant() ?? string.Empty;
+
+        return normalizedStatus switch
+        {
+            "PENDING" => "PENDING",
+            "RESOLVED" => "RESOLVED",
+            "REJECTED" => "REJECTED",
+            _ => normalizedStatus
+        };
+    }
+
+    private static List<CategoryData> BuildPostStatuses(IEnumerable<CommunityPostTicket> postData)
+    {
+        var counts = postData
+            .GroupBy(p => p.Status.ToUpperInvariant())
+            .ToDictionary(group => group.Key, group => group.Count());
+
+        var orderedStatuses = new[] { "APPROVED", "PENDING", "REJECTED" };
+
+        return orderedStatuses
+            .Select(status => new CategoryData
+            {
+                Name = status,
+                Value = counts.TryGetValue(status, out var count) ? count : 0
+            })
+            .ToList();
+    }
+
+    private static List<CategoryData> BuildVerificationStatuses(IEnumerable<VerificationTicketRecord> ticketData)
+    {
+        var counts = ticketData
+            .GroupBy(t => (t.Status ?? "Pending").ToUpperInvariant())
+            .ToDictionary(group => group.Key, group => group.Count());
+
+        var orderedStatuses = new[] { "APPROVED", "PENDING", "REJECTED" };
+
+        return orderedStatuses
+            .Select(status => new CategoryData
+            {
+                Name = status,
+                Value = counts.TryGetValue(status, out var count) ? count : 0
+            })
+            .ToList();
+    }
+
+    private static string GetVerificationStatusClass(string? status)
+    {
+        var normalizedStatus = status?.ToUpperInvariant() ?? "PENDING";
+
+        return normalizedStatus switch
+        {
+            "PENDING" => "yellow",
+            "APPROVED" => "approved",
+            "REJECTED" => "rejected",
+            _ => "gray"
+        };
+    }
+
     private async Task SetTimeRange(string range)
     {
         ActiveTimeRange = range;
         _isLoading = true;
         StateHasChanged();
         
-        await Task.Delay(800); // Simulate data fetch for different range
+        await Task.Delay(500); 
 
-        if (range == "1Y")
+        // User Growth is now driven by RefreshVerificationDataAsync which handles all ranges
+        await RefreshVerificationDataAsync(redrawChart: false, clearOnFailure: false);
+
+        incidentTrendData = BuildIncidentTrends(_allIncidentData, ActiveTimeRange);
+        
+        // Refresh appointment data for the new time range
+        await RefreshAppointmentDataAsync(redrawChart: false, clearOnFailure: false);
+
+        if (trendChartsComponent != null)
         {
-            trendData = new List<RegistrationData>
-            {
-                new RegistrationData { Month = "JUL", Count = 100 },
-                new RegistrationData { Month = "AUG", Count = 150 },
-                new RegistrationData { Month = "SEP", Count = 180 },
-                new RegistrationData { Month = "OCT", Count = 220 },
-                new RegistrationData { Month = "NOV", Count = 280 },
-                new RegistrationData { Month = "DEC", Count = 350 },
-                new RegistrationData { Month = "JAN", Count = 380 },
-                new RegistrationData { Month = "FEB", Count = 420 },
-                new RegistrationData { Month = "MAR", Count = 500 },
-                new RegistrationData { Month = "APR", Count = 580 },
-                new RegistrationData { Month = "MAY", Count = 650 },
-                new RegistrationData { Month = "JUN", Count = 820 }
-            };
-        }
-        else if (range == "ALL")
-        {
-             trendData = new List<RegistrationData>
-            {
-                new RegistrationData { Month = "2023", Count = 1200 },
-                new RegistrationData { Month = "2024", Count = 2800 },
-                new RegistrationData { Month = "2025", Count = 4500 },
-                new RegistrationData { Month = "2026", Count = 5800 }
-            };
-        }
-        else
-        {
-            trendData = new List<RegistrationData>
-            {
-                new RegistrationData { Month = "JAN", Count = 120 },
-                new RegistrationData { Month = "FEB", Count = 230 },
-                new RegistrationData { Month = "MAR", Count = 310 },
-                new RegistrationData { Month = "APR", Count = 480 },
-                new RegistrationData { Month = "MAY", Count = 550 },
-                new RegistrationData { Month = "JUN", Count = 820 }
-            };
+            _ = trendChartsComponent.RenderAllAsync();
         }
 
         _isLoading = false;
         StateHasChanged();
+    }
+
+
+    private Task OnViewAllVerifications()
+    {
+        Navigation.NavigateTo("/admin/verification");
+        return Task.CompletedTask;
+    }
+
+    private Task OnViewAllIncidents()
+    {
+        Navigation.NavigateTo("/admin/incidents");
+        return Task.CompletedTask;
+    }
+
+    private Task OnViewAllPosts()
+    {
+        Navigation.NavigateTo("/admin/community-posts");
+        return Task.CompletedTask;
+    }
+
+    private Task OnViewAllAppointments()
+    {
+        Navigation.NavigateTo("/admin/appointments");
+        return Task.CompletedTask;
     }
 }

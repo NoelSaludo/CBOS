@@ -62,13 +62,13 @@ else
                         <button class="action-btn accept"
                                 type="button"
                                 disabled="@IsUpdating(ticket.TicketId)"
-                                @onclick="() => UpdateStatusAsync(ticket, StatusApproved)">
+                                @onclick="() => UpdateStatusToApprovedAsync(ticket)">
                             Accept
                         </button>
                         <button class="action-btn decline"
                                 type="button"
                                 disabled="@IsUpdating(ticket.TicketId)"
-                                @onclick="() => UpdateStatusAsync(ticket, StatusRejected)">
+                                @onclick="() => UpdateStatusToRejectedAsync(ticket)">
                             Reject
                         </button>
                     </div>
@@ -84,6 +84,7 @@ else
     private string? _loadError;
     private string? _updateError;
     private readonly HashSet<long> _updatingTicketIds = new();
+    private long adminId;
 
     private const string StatusApproved = "Approved";
     private const string StatusRejected = "Rejected";
@@ -92,6 +93,7 @@ else
     protected override async Task OnInitializedAsync()
     {
         await LoadPostsAsync();
+        adminId = AdminSupabase.GetCurrentAdminId();
     }
 
     // Requests the pending community posts from Supabase.
@@ -117,7 +119,7 @@ else
     }
 
     // Updates the status of a post ticket and refreshes the list.
-    private async Task UpdateStatusAsync(CommunityPostTicket ticket, string newStatus)
+    private async Task UpdateStatusToApprovedAsync(CommunityPostTicket ticket)
     {
         _updateError = null;
 
@@ -126,7 +128,29 @@ else
 
         try
         {
-            await CommunityManager.UpdatePostTicketStatusAsync(ticket, newStatus, AdminSupabase.GetCurrentAdminId());
+            await CommunityManager.UpdatePostTicketStatusToApprovedAsync(ticket.TicketId, adminId);
+            await LoadPostsAsync();
+        }
+        catch (Exception ex)
+        {
+            _updateError = $"Failed to update post: {ex.Message}";
+        }
+        finally
+        {
+            _updatingTicketIds.Remove(ticket.TicketId);
+        }
+    }
+
+    private async Task UpdateStatusToRejectedAsync(CommunityPostTicket ticket)
+    {
+        _updateError = null;
+
+        if (!_updatingTicketIds.Add(ticket.TicketId))
+            return;
+
+        try
+        {
+            await CommunityManager.UpdatePostTicketStatusToRejectedAsync(ticket.TicketId, adminId);
             await LoadPostsAsync();
         }
         catch (Exception ex)

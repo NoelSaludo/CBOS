@@ -1,0 +1,143 @@
+@using CBOS.Components.Model
+@using ApexCharts
+
+<div class="dashboard-grid-3">
+    <div class="architectural-card pie-chart-card">
+        <div class="card-header-split">
+            <h2 class="card-title">User Verification Status</h2>
+        </div>
+        <div class="pie-chart-container">
+            @if (IsLoading)
+            {
+                <div class="pie-skeleton-group">
+                    <div class="skeleton skeleton-donut"></div>
+                    <div class="skeleton-legend">
+                        <div class="skeleton skeleton-legend-item" style="width: 80px;"></div>
+                        <div class="skeleton skeleton-legend-item" style="width: 65px;"></div>
+                    </div>
+                </div>
+            }
+            else if (VerificationStatusData == null || !VerificationStatusData.Any())
+            {
+                <div class="empty-state">
+                    <p class="empty-state-text">No verification status data available.</p>
+                </div>
+            }
+            else
+            {
+                <ApexChart TItem="CategoryData"
+                           @ref="verificationStatusChart"
+                           Height="@("300")"
+                           Options="VerificationStatusPieOptions">
+                    <ApexPointSeries TItem="CategoryData"
+                                     Items="VerificationStatusData"
+                                     Name="Users"
+                                     SeriesType="SeriesType.Donut"
+                                     XValue="@(e => e.Name)"
+                                     YValue="@(e => e.Value)" />
+                </ApexChart>
+            }
+        </div>
+    </div>
+
+    <div class="architectural-card pie-chart-card">
+        <div class="card-header-split">
+            <h2 class="card-title">Community Post Status</h2>
+        </div>
+        <div class="pie-chart-container">
+            @if (IsLoading)
+            {
+                <div class="pie-skeleton-group">
+                    <div class="skeleton skeleton-donut"></div>
+                    <div class="skeleton-legend">
+                        <div class="skeleton skeleton-legend-item" style="width: 75px;"></div>
+                        <div class="skeleton skeleton-legend-item" style="width: 70px;"></div>
+                        <div class="skeleton skeleton-legend-item" style="width: 60px;"></div>
+                    </div>
+                </div>
+            }
+            else if (PostStatusData == null || !PostStatusData.Any())
+            {
+                <div class="empty-state">
+                    <p class="empty-state-text">No post status data available.</p>
+                </div>
+            }
+            else
+            {
+                <ApexChart TItem="CategoryData"
+                           @ref="postStatusChart"
+                           Height="@("300")"
+                           Options="PostStatusPieOptions">
+                    <ApexPointSeries TItem="CategoryData"
+                                     Items="PostStatusData"
+                                     Name="Posts"
+                                     SeriesType="SeriesType.Donut"
+                                     XValue="@(e => e.Name)"
+                                     YValue="@(e => e.Value)" />
+                </ApexChart>
+            }
+        </div>
+    </div>
+
+    <div class="architectural-card pie-chart-card">
+        <div class="card-header-split">
+            <h2 class="card-title">Incident Status</h2>
+        </div>
+        <div class="pie-chart-container">
+            @if (IsLoading)
+            {
+                <div class="pie-skeleton-group">
+                    <div class="skeleton skeleton-donut"></div>
+                    <div class="skeleton-legend">
+                        <div class="skeleton skeleton-legend-item" style="width: 70px;"></div>
+                        <div class="skeleton skeleton-legend-item" style="width: 75px;"></div>
+                        <div class="skeleton skeleton-legend-item" style="width: 60px;"></div>
+                    </div>
+                </div>
+            }
+            else if (IncidentStatusData == null || !IncidentStatusData.Any())
+            {
+                <div class="empty-state">
+                    <p class="empty-state-text">No incident status data available.</p>
+                </div>
+            }
+            else
+            {
+                <ApexChart TItem="CategoryData"
+                           @ref="incidentCategoryChart"
+                           Height="@("300")"
+                           Options="IncidentPieOptions">
+                    <ApexPointSeries TItem="CategoryData"
+                                     Items="IncidentStatusData"
+                                     Name="Incidents"
+                                     SeriesType="SeriesType.Donut"
+                                     XValue="@(e => e.Name)"
+                                     YValue="@(e => e.Value)" />
+                </ApexChart>
+            }
+        </div>
+    </div>
+</div>
+
+
+@code {
+    [Parameter] public List<CategoryData> VerificationStatusData { get; set; } = new();
+    [Parameter] public List<CategoryData> PostStatusData { get; set; } = new();
+    [Parameter] public List<CategoryData> IncidentStatusData { get; set; } = new();
+    [Parameter] public bool IsLoading { get; set; }
+
+    [Parameter] public ApexChartOptions<CategoryData> VerificationStatusPieOptions { get; set; } = new();
+    [Parameter] public ApexChartOptions<CategoryData> PostStatusPieOptions { get; set; } = new();
+    [Parameter] public ApexChartOptions<CategoryData> IncidentPieOptions { get; set; } = new();
+
+    private ApexChart<CategoryData> verificationStatusChart = default!;
+    private ApexChart<CategoryData> postStatusChart = default!;
+    private ApexChart<CategoryData> incidentCategoryChart = default!;
+
+    public async Task RenderAllAsync()
+    {
+        if (verificationStatusChart != null) await verificationStatusChart.RenderAsync();
+        if (postStatusChart != null) await postStatusChart.RenderAsync();
+        if (incidentCategoryChart != null) await incidentCategoryChart.RenderAsync();
+    }
+}

@@ -1,7 +1,11 @@
 @page "/app/reports"
 @layout MainLayout
+@rendermode InteractiveServer
 @inject NavigationManager Navigation
 @inject IJSRuntime JS
+@inject Supabase.Client Supabase
+@inject CBOS.Components.Services.AuthService AuthService
+@using CBOS.Components.Model
 
 <div class="reports-wrapper">
     <div class="reports-container">
@@ -107,11 +111,27 @@
                 />
             </div>
 
+            @if (!string.IsNullOrEmpty(errorMessage))
+            {
+                <div class="error-message">@errorMessage</div>
+            }
+
             <!-- Submit Button -->
-            <button type="submit" class="submit-button">
-                Submit
+            <button type="submit" class="submit-button" disabled="@isSubmitting">
+                @(isSubmitting ? "Submitting..." : "Submit")
             </button>
         </form>
+
+        @if (showSuccess)
+        {
+            <div class="success-overlay">
+                <div class="success-card">
+                    <h2>Report Submitted!</h2>
+                    <p>Your report is pending admin review. You'll be updated on its status.</p>
+                    <button type="button" class="submit-button" @onclick="GoBack">Back</button>
+                </div>
+            </div>
+        }
     </div>
 </div>
 
@@ -120,7 +140,18 @@
     private string reportHeader = "";
     private string reportDescription = "";
     private List<string> uploadedMedia = new List<string>();
-    private InputFile fileInput;
+    private InputFile? fileInput;
+    private bool isSubmitting;
+    private bool showSuccess;
+    private string errorMessage = "";
+
+    protected override void OnInitialized()
+    {
+        if (!AuthService.IsAuthenticated)
+        {
+            Navigation.NavigateTo("/login");
+        }
+    }
 
     private void GoBack()
     {
@@ -131,6 +162,15 @@
     {
         selectedReportType = type;
     }
+
+    private static string MapCategoryToEnum(string label) => label switch
+    {
+        "Suggestion" => "suggestion",
+        "Complaint"  => "complaint",
+        "Emergency"  => "emergency",
+        "Other"      => "others",
+        _            => "others"
+    };
 
     private async Task HandleAttachMedia()
     {
@@ -185,13 +225,93 @@
 
     private async Task HandleSubmit()
     {
-        // TODO: Implement report submission logic
-        // This should send the report data to your backend
-        Console.WriteLine($"Report submitted: Type={selectedReportType}, Header={reportHeader}");
-        selectedReportType = "Complaint";
-        reportHeader = "";
-        reportDescription = "";
-        uploadedMedia.Clear();
+        errorMessage = "";
+
+        if (!AuthService.IsAuthenticated || string.IsNullOrEmpty(AuthService.UserEmail))
+        {
+            Navigation.NavigateTo("/login");
+            return;
+        }
+
+        if (string.IsNullOrWhiteSpace(reportHeader))
+        {
+            errorMessage = "Please enter a header for your report.";
+            return;
+        }
+
+        if (string.IsNullOrWhiteSpace(reportDescription))
+        {
+            errorMessage = "Please enter a description for your report.";
+            return;
+        }
+
+        isSubmitting = true;
+
+        try
+        {
+            var profile = await Supabase
+                .From<UserProfile>()
+                .Match(new Dictionary<string, string> { { "emailaddress", AuthService.UserEmail } })
+                .Single();
+
+            if (profile == null)
+            {
+                errorMessage = "Unable to find your user profile. Please log in again.";
+                return;
+            }
+
+            var newReport = new Report
+            {
+                UserId = profile.Id,
+                Category = MapCategoryToEnum(selectedReportType),
+                Title = reportHeader.Trim(),
+                Content = reportDescription.Trim()
+            };
+
+            var insertedReport = await Supabase.From<Report>().Insert(newReport);
+            var reportId = insertedReport.Models.FirstOrDefault()?.Id ?? 0;
+
+            if (reportId == 0)
+            {
+                errorMessage = "Report was created but the ID could not be retrieved.";
+                return;
+            }
+
+            try
+            {
+                var ticket = new Ticket
+                {
+                    Type = "report",
+                    SourceId = reportId,
+                    SubmittedBy = profile.Id,
+                    Status = "Pending"
+                };
+
+                await Supabase.From<Ticket>().Insert(ticket);
+            }
+            catch
+            {
+                // Compensating delete: if ticket creation fails, remove the orphan report
+                await Supabase.From<Report>()
+                    .Where(r => r.Id == reportId)
+                    .Delete();
+                throw;
+            }
+
+            selectedReportType = "Complaint";
+            reportHeader = "";
+            reportDescription = "";
+            uploadedMedia.Clear();
+            showSuccess = true;
+        }
+        catch (Exception ex)
+        {
+            errorMessage = $"Failed to submit report: {ex.Message}";
+        }
+        finally
+        {
+            isSubmitting = false;
+        }
     }
 }
 
@@ -475,6 +595,53 @@
 
 .submit-button:active {
     transform: scale(0.98);
+}
+
+.submit-button:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+}
+
+.error-message {
+    background-color: #fef2f2;
+    color: #e50000;
+    border: 1px solid #f5a0a0;
+    border-radius: 8px;
+    padding: 12px 16px;
+    margin-bottom: 16px;
+    font-size: 0.9rem;
+}
+
+.success-overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.5);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 1000;
+}
+
+.success-card {
+    background: white;
+    border-radius: 16px;
+    padding: 40px;
+    max-width: 420px;
+    text-align: center;
+    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.2);
+}
+
+.success-card h2 {
+    color: #0078d4;
+    margin: 0 0 12px 0;
+    font-size: 1.5rem;
+}
+
+.success-card p {
+    color: #666;
+    margin: 0 0 24px 0;
+    font-size: 0.95rem;
+    line-height: 1.5;
 }
 </style>
 

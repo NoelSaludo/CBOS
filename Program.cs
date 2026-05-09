@@ -4,6 +4,8 @@ using DotNetEnv;
 using CBOS.Components.Services;
 using CBOS.Components.Shared;
 using Microsoft.AspNetCore.Authentication.Cookies;
+using CBOS.Services;
+using Supabase;
 using Microsoft.AspNetCore.Components.Authorization;
 
 Env.Load();
@@ -32,17 +34,39 @@ catch (Exception ex)
     Console.WriteLine("The application will continue running, but Supabase features may not work.");
 }
 
+var adminKey = Environment.GetEnvironmentVariable("SUPABASE_ADMIN_KEY");
+var adminSupabase = supabase;
+if (!string.IsNullOrWhiteSpace(adminKey) && !string.Equals(adminKey, key, StringComparison.Ordinal))
+{
+    adminSupabase = new Supabase.Client(url, adminKey, options);
+    try
+    {
+        await adminSupabase.InitializeAsync();
+    }
+    catch (Exception ex)
+    {
+        Console.WriteLine($"Warning: Failed to initialize admin Supabase: {ex.Message}");
+        Console.WriteLine("Admin Supabase features may not work.");
+    }
+}
+
 var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
 builder.Services.AddRazorComponents()
     .AddInteractiveServerComponents();
 
+builder.Services.AddHttpClient<VerificationService>();
+
 builder.Services.AddSingleton(supabase);
+builder.Services.AddSingleton(new AdminSupabaseClient(adminSupabase));
 builder.Services.AddScoped<AuthService>();
 builder.Services.AddScoped<AdminSupabase>();
-builder.Services.AddScoped<TicketSupabase>();
+builder.Services.AddScoped<AppointmentTicketSupabase>();
 builder.Services.AddScoped<AdminCommunityManagerSupabase>();
+builder.Services.AddScoped<AdminVerificationManagerSupabase>();
+builder.Services.AddScoped<LayoutService>();
+builder.Services.AddScoped<IncidentManagementService>();
 builder.Services.AddScoped<UserPostSupabaseImpl>();
 builder.Services.AddScoped<LayoutService>();
 
