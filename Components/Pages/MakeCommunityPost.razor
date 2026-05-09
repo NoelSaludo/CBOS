@@ -62,6 +62,14 @@
                 </p>
             </div>
 
+            @if (!isVerified)
+            {
+                <div class="unverified-notice">
+                    <span class="unverified-icon">⚠️</span>
+                    <span>Your account is <strong>not yet verified</strong>. Readers will see an unverified badge on your post.</span>
+                </div>
+            }
+
             @if (!string.IsNullOrEmpty(errorMessage))
             {
                 <div class="error-message">@errorMessage</div>
@@ -93,12 +101,29 @@
     private bool isSubmitting;
     private bool showSuccess;
     private string errorMessage = "";
+    private bool isVerified = true;
 
-    protected override void OnInitialized()
+    protected override async Task OnInitializedAsync()
     {
-        if (!AuthService.IsAuthenticated)
+        if (!AuthService.IsAuthenticated || string.IsNullOrEmpty(AuthService.UserEmail))
         {
             Navigation.NavigateTo("/login");
+            return;
+        }
+
+        var profile = await Supabase
+            .From<UserProfile>()
+            .Match(new Dictionary<string, string> { { "emailaddress", AuthService.UserEmail } })
+            .Single();
+
+        if (profile != null)
+        {
+            var verifiedEntry = await Supabase
+                .From<VerifiedUserRecord>()
+                .Match(new Dictionary<string, string> { { "userid", profile.Id.ToString() } })
+                .Single();
+
+            isVerified = verifiedEntry != null;
         }
     }
 
@@ -425,6 +450,24 @@
 .submit-button:disabled {
     opacity: 0.6;
     cursor: not-allowed;
+}
+
+.unverified-notice {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    background-color: #fffbeb;
+    color: #92400e;
+    border: 1px solid #fcd34d;
+    border-radius: 8px;
+    padding: 12px 16px;
+    margin-bottom: 16px;
+    font-size: 0.9rem;
+}
+
+.unverified-icon {
+    font-size: 1.1rem;
+    flex-shrink: 0;
 }
 
 .error-message {
