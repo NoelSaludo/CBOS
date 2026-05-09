@@ -39,7 +39,9 @@
                 <span class="profile-role">BARANGAY ADMIN</span>
             </div>
             <div class="profile-avatar-container">
-                <img src="https://i.pravatar.cc/150?u=admin" alt="Admin Profile" class="profile-avatar" />
+                <div class="profile-initials-avatar">
+                    @GetInitials(adminFullName)
+                </div>
                 <div class="status-indicator"></div>
             </div>
 
@@ -99,6 +101,16 @@
     }
 
     private string TopbarDateTimeText => _currentDateTime.ToString("dddd, MMMM dd, yyyy | hh:mm:ss tt");
+
+    private string GetInitials(string name)
+    {
+        if (string.IsNullOrWhiteSpace(name) || name == "Official Name") return "A";
+        
+        var parts = name.Split(' ', StringSplitOptions.RemoveEmptyEntries);
+        if (parts.Length == 0) return "A";
+        
+        return parts[0][0].ToString().ToUpper();
+    }
 
     protected override void OnInitialized()
     {
