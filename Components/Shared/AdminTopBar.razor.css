@@ -1,4 +1,4 @@
-﻿.topbar {
+.topbar {
     display: flex;
     align-items: center;
     justify-content: space-between;
@@ -276,4 +276,108 @@
     .topbar-datetime {
         display: none;
     }
+}
+
+/* Profile Dropdown Styles */
+.admin-profile {
+    position: relative;
+    user-select: none;
+}
+
+.profile-dropdown {
+    position: absolute;
+    top: calc(100% + 0.75rem);
+    right: 0;
+    width: 220px;
+    background: rgba(255, 255, 255, 0.9);
+    backdrop-filter: blur(16px);
+    -webkit-backdrop-filter: blur(16px);
+    border: 1px solid rgba(0, 0, 0, 0.08);
+    border-radius: 16px;
+    box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1), 0 8px 10px -6px rgba(0, 0, 0, 0.1);
+    z-index: 1000;
+    overflow: hidden;
+    transform-origin: top right;
+    animation: dropdown-enter 0.25s cubic-bezier(0.2, 0, 0.2, 1);
+}
+
+@keyframes dropdown-enter {
+    from {
+        opacity: 0;
+        transform: scale(0.95) translateY(-10px);
+    }
+    to {
+        opacity: 1;
+        transform: scale(1) translateY(0);
+    }
+}
+
+.dropdown-header {
+    padding: 1rem 1.25rem;
+    border-bottom: 1px solid rgba(0, 0, 0, 0.04);
+}
+
+.dropdown-title {
+    font-size: 0.7rem;
+    font-weight: 800;
+    color: var(--secondary);
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+}
+
+.dropdown-items {
+    padding: 0.5rem;
+}
+
+.dropdown-item {
+    width: 100%;
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    padding: 0.75rem 0.75rem;
+    border: none;
+    background: transparent;
+    border-radius: 10px;
+    color: var(--on-surface);
+    font-size: 0.85rem;
+    font-weight: 600;
+    text-align: left;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.dropdown-item:hover {
+    background: var(--topbar-complement-soft);
+    color: var(--topbar-complement);
+}
+
+.item-icon {
+    display: flex;
+    align-items: center;
+    color: inherit;
+}
+
+.item-icon svg {
+    width: 18px;
+    height: 18px;
+}
+
+.dropdown-divider {
+    height: 1px;
+    background: rgba(0, 0, 0, 0.04);
+    margin: 0.4rem 0.75rem;
+}
+
+.logout-item {
+    color: #ef4444;
+}
+
+.logout-item:hover {
+    background: rgba(239, 68, 68, 0.08);
+    color: #ef4444;
+}
+
+.admin-profile.dropdown-open {
+    background: var(--topbar-complement-soft);
+    border-color: var(--topbar-complement-border);
 }
