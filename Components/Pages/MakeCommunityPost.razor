@@ -5,98 +5,469 @@
 @inject IJSRuntime JS
 @inject Supabase.Client Supabase
 @inject CBOS.Components.Services.AuthService AuthService
+@inject IHttpClientFactory HttpClientFactory
 @using CBOS.Components.Model
+@using System.Net.Http.Headers
 
-<div class="make-post-wrapper">
-    <div class="make-post-container">
-        <!-- Back Button -->
-        <button class="back-button" @onclick="GoBack">
-            <span class="back-arrow">←</span>
-        </button>
+<div class="post-container">
+    <img src="/images/city-bg.png" class="post-city-bg" alt="" />
+    <div class="post-overlay"></div>
 
-        <!-- Title -->
-        <h1 class="make-post-title">Make a Community Post</h1>
+    <div class="post-card">
+        <div class="post-header">
+            <button class="back-btn" @onclick="GoBack">←</button>
+            <h1>Make a Community Post</h1>
+            <div class="header-spacer"></div>
+        </div>
 
-        <!-- Form -->
-        <form @onsubmit="HandleSubmit">
-            <!-- Description Section -->
-            <div class="form-section">
-                <label class="section-label">Add description to your post</label>
-                <textarea 
-                    class="post-textarea"
-                    @bind="postDescription"
-                    placeholder="Write your post here..."
-                    rows="6">
-                </textarea>
-            </div>
-
-            <!-- Media Section -->
-            <div class="form-section">
-                <label class="section-label">Add photo or video to your post (optional)</label>
-                
-                @if (!string.IsNullOrEmpty(mediaPreview))
-                {
-                    <div class="media-preview">
-                        <img src="@mediaPreview" alt="Preview" />
-                        <button type="button" class="remove-media-btn" @onclick="RemoveMedia">×</button>
-                    </div>
-                }
-
-                <button type="button" class="attach-media-btn" @onclick="HandleAttachMedia">
-                    Attach media
-                </button>
-                <InputFile 
-                    @ref="fileInput" 
-                    id="fileInputElement"
-                    style="display:none;" 
-                    accept="image/*,video/*"
-                    OnChange="HandleFileUpload" 
-                />
-            </div>
-
-            <!-- Notice Section -->
-            <div class="notice-section">
-                <h3 class="notice-title">Notice</h3>
-                <p class="notice-text">
-                    Your posts will be subject for approval first being posted at the community feed for regulation. Expect updates regarding the status of your post.
+        @if (!isVerified)
+        {
+            <div class="blocked-screen">
+                <div class="blocked-icon">🔒</div>
+                <h2 class="blocked-title">Verification Required</h2>
+                <p class="blocked-text">
+                    You need to verify your account before you can make a community post.
+                    Upload your valid ID or birth certificate on your profile to get started.
                 </p>
+                <div class="blocked-actions">
+                    <a href="/user/verify" class="btn-verify">Verify My Account</a>
+                    <button class="btn-back" @onclick="GoBack">Back to Feed</button>
+                </div>
             </div>
-
-            @if (!isVerified)
+        }
+        else
+        {
+            @if (showSuccess)
             {
-                <div class="unverified-notice">
-                    <span class="unverified-icon">⚠️</span>
-                    <span>Your account is <strong>not yet verified</strong>. Readers will see an unverified badge on your post.</span>
+                <div class="post-success">
+                    ✅ Post submitted successfully! It is currently <strong>Pending</strong> approval from the barangay.
                 </div>
             }
 
             @if (!string.IsNullOrEmpty(errorMessage))
             {
-                <div class="error-message">@errorMessage</div>
+                <div class="post-error">⚠ @errorMessage</div>
             }
 
-            <!-- Submit Button -->
-            <button type="submit" class="submit-button" disabled="@isSubmitting">
-                @(isSubmitting ? "Submitting..." : "Submit")
-            </button>
-        </form>
+            <div class="post-content">
 
-        @if (showSuccess)
-        {
-            <div class="success-overlay">
-                <div class="success-card">
-                    <h2>Post Submitted!</h2>
-                    <p>Your post is pending admin approval and will appear in the feed once approved.</p>
-                    <button type="button" class="submit-button" @onclick="GoBack">Back to Feed</button>
+                @* ── LEFT: Form ── *@
+                <div class="post-form">
+                    <div class="field-group">
+                        <label>Title</label>
+                        <input type="text" @bind="postTitle" placeholder="Enter a title for your post..." />
+                    </div>
+
+                    <div class="field-group">
+                        <label>Add description to your post</label>
+                        <textarea @bind="postDescription"
+                                  placeholder="Write your post here..."
+                                  rows="6"></textarea>
+                    </div>
+
+                    <div class="field-group">
+                        <label>Add photo or video (optional)</label>
+
+                        @if (!string.IsNullOrEmpty(mediaPreview))
+                        {
+                            <div class="media-preview">
+                                <img src="@mediaPreview" alt="Preview" />
+                                <button type="button" class="remove-media-btn" @onclick="RemoveMedia">×</button>
+                            </div>
+                        }
+
+                        <button type="button" class="attach-btn" @onclick="HandleAttachMedia">
+                            📎 Attach media
+                        </button>
+                        <InputFile @ref="fileInput"
+                                   id="fileInputElement"
+                                   style="display:none;"
+                                   accept="image/*,video/*"
+                                   OnChange="HandleFileUpload" />
+                    </div>
                 </div>
+
+                @* ── RIGHT: Notice & Submit ── *@
+                <div class="post-side">
+                    <div class="notice-title">Notice</div>
+                    <div class="notice-text">
+                        Your posts will be subject for approval first before being posted at the community feed for regulation. Expect updates regarding the status of your post.
+                    </div>
+
+                    <button class="submit-btn" @onclick="HandleSubmit" disabled="@isSubmitting">
+                        @if (isSubmitting)
+                        {
+                            <span class="spinner"></span>
+                            <span>Submitting...</span>
+                        }
+                        else
+                        {
+                            <span>Submit Post</span>
+                        }
+                    </button>
+                </div>
+
             </div>
         }
     </div>
 </div>
 
+<style>
+    .post-container {
+        position: fixed;
+        top: 56px;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        display: flex;
+        align-items: flex-start;
+        justify-content: center;
+        padding: 24px;
+        box-sizing: border-box;
+        background: linear-gradient(160deg, #00d4ff 0%, #0099ff 45%, #0066ff 100%);
+        overflow-y: auto;
+    }
+
+    .post-city-bg {
+        position: fixed;
+        top: 56px;
+        left: 0;
+        width: 100%;
+        height: calc(100% - 56px);
+        object-fit: cover;
+        object-position: bottom;
+        mix-blend-mode: luminosity;
+        opacity: 0.55;
+        pointer-events: none;
+        z-index: 0;
+    }
+
+    .post-overlay {
+        position: fixed;
+        top: 56px;
+        left: 0;
+        width: 100%;
+        height: calc(100% - 56px);
+        background: linear-gradient(160deg, rgba(0,180,255,0.35) 0%, rgba(0,80,200,0.45) 100%);
+        pointer-events: none;
+        z-index: 0;
+    }
+
+    .post-card {
+        position: relative;
+        z-index: 1;
+        background: #fff;
+        border-radius: 24px;
+        width: 100%;
+        max-width: 900px;
+        box-shadow: 0 8px 40px rgba(0,0,0,0.22);
+        padding: 0 0 28px 0;
+        overflow: hidden;
+        margin: auto;
+    }
+
+    .post-header {
+        display: flex;
+        align-items: center;
+        padding: 22px 32px 18px 32px;
+        border-bottom: 1.5px solid #f0f4ff;
+        position: relative;
+    }
+
+    .post-header h1 {
+        position: absolute;
+        left: 50%;
+        transform: translateX(-50%);
+        font-size: 1.5rem;
+        font-weight: 700;
+        color: #0066ff;
+        margin: 0;
+        white-space: nowrap;
+    }
+
+    .back-btn {
+        background: #f0f4ff;
+        border: none;
+        font-size: 1.1rem;
+        color: #0066ff;
+        cursor: pointer;
+        width: 36px;
+        height: 36px;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        transition: background 0.15s;
+        flex-shrink: 0;
+        z-index: 1;
+    }
+
+    .back-btn:hover { background: #dbeafe; }
+
+    .header-spacer {
+        width: 36px;
+        flex-shrink: 0;
+        margin-left: auto;
+    }
+
+    .post-success {
+        margin: 12px 28px 0;
+        background: #f0fff4;
+        border: 1px solid #9ae6b4;
+        color: #276749;
+        border-radius: 8px;
+        padding: 10px 14px;
+        font-size: 0.88rem;
+    }
+
+    .post-error {
+        margin: 12px 28px 0;
+        background: #fef2f2;
+        border: 1px solid #f5a0a0;
+        color: #e50000;
+        border-radius: 8px;
+        padding: 10px 14px;
+        font-size: 0.88rem;
+    }
+
+    .blocked-screen {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        padding: 48px 32px;
+        text-align: center;
+    }
+
+    .blocked-icon {
+        font-size: 3rem;
+        margin-bottom: 16px;
+    }
+
+    .blocked-title {
+        font-size: 1.4rem;
+        font-weight: 700;
+        color: #0066ff;
+        margin: 0 0 12px 0;
+    }
+
+    .blocked-text {
+        font-size: 0.9rem;
+        color: #64748b;
+        line-height: 1.7;
+        max-width: 420px;
+        margin: 0 0 28px 0;
+    }
+
+    .blocked-actions {
+        display: flex;
+        gap: 12px;
+        flex-wrap: wrap;
+        justify-content: center;
+    }
+
+    .btn-verify {
+        background: linear-gradient(90deg, #0099ff, #0066ff);
+        color: #fff;
+        text-decoration: none;
+        border-radius: 50px;
+        padding: 11px 28px;
+        font-size: 0.9rem;
+        font-weight: 700;
+        box-shadow: 0 3px 10px rgba(0,102,255,0.3);
+        transition: opacity 0.2s;
+    }
+
+    .btn-verify:hover { opacity: 0.88; color: #fff; }
+
+    .btn-back {
+        background: #f0f4ff;
+        color: #0066ff;
+        border: none;
+        border-radius: 50px;
+        padding: 11px 28px;
+        font-size: 0.9rem;
+        font-weight: 700;
+        cursor: pointer;
+        transition: background 0.15s;
+    }
+
+    .btn-back:hover { background: #dbeafe; }
+
+    .post-content {
+        display: flex;
+        gap: 24px;
+        padding: 20px 28px 0 28px;
+    }
+
+    /* ── LEFT ── */
+    .post-form {
+        flex: 2;
+        display: flex;
+        flex-direction: column;
+        gap: 16px;
+    }
+
+    .field-group label {
+        font-size: 0.85rem;
+        font-weight: 600;
+        color: #64748b;
+        display: block;
+        margin-bottom: 6px;
+    }
+
+    .field-group textarea {
+        width: 100%;
+        border-radius: 10px;
+        border: 1.5px solid #e2e8f0;
+        padding: 9px 12px;
+        font-size: 0.88rem;
+        background: #f8fafc;
+        color: #334155;
+        resize: none;
+        font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
+        outline: none;
+        transition: border-color 0.15s;
+        box-sizing: border-box;
+    }
+
+    .field-group textarea:focus { border-color: #0066ff; }
+
+    .media-preview {
+        position: relative;
+        margin-bottom: 10px;
+        border-radius: 8px;
+        overflow: hidden;
+        max-width: 260px;
+    }
+
+    .media-preview img {
+        width: 100%;
+        height: auto;
+        display: block;
+    }
+
+    .remove-media-btn {
+        position: absolute;
+        top: 6px;
+        right: 6px;
+        background: rgba(0,0,0,0.55);
+        color: white;
+        border: none;
+        border-radius: 50%;
+        width: 28px;
+        height: 28px;
+        font-size: 20px;
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+
+    .attach-btn {
+        background: #f0f4ff;
+        color: #0066ff;
+        border: 1.5px solid #c7d7ff;
+        border-radius: 50px;
+        padding: 8px 20px;
+        font-size: 0.85rem;
+        font-weight: 600;
+        cursor: pointer;
+        transition: background 0.15s;
+    }
+
+    .attach-btn:hover { background: #dbeafe; }
+
+    /* ── RIGHT ── */
+    .post-side {
+        flex: 1;
+        display: flex;
+        flex-direction: column;
+        gap: 14px;
+    }
+
+    .notice-title {
+        color: #0066ff;
+        font-size: 0.95rem;
+        font-weight: 700;
+    }
+
+    .notice-text {
+        color: #94a3b8;
+        font-size: 0.82rem;
+        line-height: 1.6;
+    }
+
+    .unverified-notice {
+        display: flex;
+        align-items: flex-start;
+        gap: 8px;
+        background: #fffbeb;
+        color: #92400e;
+        border: 1px solid #fcd34d;
+        border-radius: 8px;
+        padding: 10px 12px;
+        font-size: 0.8rem;
+        line-height: 1.5;
+    }
+
+    .submit-btn {
+        background: linear-gradient(90deg, #0099ff, #0066ff);
+        color: #fff;
+        border: none;
+        border-radius: 50px;
+        padding: 11px 28px;
+        font-size: 0.95rem;
+        font-weight: 700;
+        cursor: pointer;
+        transition: opacity 0.2s, transform 0.15s;
+        font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
+        box-shadow: 0 3px 10px rgba(0,102,255,0.3);
+        margin-top: auto;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 8px;
+        width: 100%;
+    }
+
+    .submit-btn:hover:not(:disabled) {
+        opacity: 0.9;
+        transform: translateY(-1px);
+    }
+
+    .submit-btn:disabled { opacity: 0.6; cursor: not-allowed; }
+
+    .spinner {
+        width: 14px;
+        height: 14px;
+        border: 2px solid rgba(255,255,255,0.4);
+        border-top-color: #fff;
+        border-radius: 50%;
+        animation: spin 0.7s linear infinite;
+        flex-shrink: 0;
+    }
+
+    @@keyframes spin { to { transform: rotate(360deg); } }
+
+    @@media (max-width: 768px) {
+        .post-container { overflow-y: auto; align-items: flex-start; }
+        .post-content { flex-direction: column; }
+        .post-card { margin: 16px 0; }
+    }
+
+    @@media (max-width: 480px) {
+        .post-card { border-radius: 12px; }
+        .post-header, .post-content { padding: 14px; }
+        .post-header h1 { font-size: 1.1rem; }
+    }
+</style>
+
 @code {
+    private string postTitle = "";
     private string postDescription = "";
     private string mediaPreview = "";
+    private IBrowserFile? _mediaFile;
     private InputFile? fileInput;
     private bool isSubmitting;
     private bool showSuccess;
@@ -159,6 +530,7 @@
         var file = e.GetMultipleFiles().FirstOrDefault();
         if (file != null)
         {
+            _mediaFile = file;
             var stream = file.OpenReadStream(maxAllowedSize: 5242880); // 5MB
             var bytes = new byte[stream.Length];
             await stream.ReadAsync(bytes);
@@ -170,6 +542,49 @@
     private void RemoveMedia()
     {
         mediaPreview = "";
+        _mediaFile = null;
+    }
+
+    private async Task<string?> UploadMediaAsync(IBrowserFile file, long userId)
+    {
+        try
+        {
+            var supabaseUrl = Environment.GetEnvironmentVariable("SUPABASE_URL");
+            var supabaseKey = Environment.GetEnvironmentVariable("SUPABASE_KEY");
+            var accessToken = AuthService.CurrentSession?.AccessToken;
+
+            if (string.IsNullOrEmpty(supabaseUrl) || string.IsNullOrEmpty(supabaseKey))
+                return null;
+
+            var fileName = $"{userId}/{Guid.NewGuid()}_{file.Name}";
+            var uploadUrl = $"{supabaseUrl}/storage/v1/object/community-posts/{fileName}";
+
+            using var stream = file.OpenReadStream(maxAllowedSize: 5242880);
+            using var content = new StreamContent(stream);
+            content.Headers.ContentType = new MediaTypeHeaderValue(file.ContentType);
+
+            using var request = new HttpRequestMessage(HttpMethod.Post, uploadUrl);
+            request.Headers.Add("apikey", supabaseKey);
+            request.Headers.Add("Authorization", $"Bearer {accessToken}");
+            request.Content = content;
+
+            var http = HttpClientFactory.CreateClient();
+            var response = await http.SendAsync(request);
+
+            if (!response.IsSuccessStatusCode)
+            {
+                var error = await response.Content.ReadAsStringAsync();
+                Console.WriteLine($"[MakeCommunityPost] Media upload failed: {error}");
+                return null;
+            }
+
+            return $"{supabaseUrl}/storage/v1/object/public/community-posts/{fileName}";
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"[MakeCommunityPost] Media upload exception: {ex.Message}");
+            return null;
+        }
     }
 
     private async Task HandleSubmit()
@@ -213,14 +628,22 @@
             long barangayId = profile.BarangayId.Value;
             string author = $"{profile.FirstName} {profile.LastName}".Trim();
 
+            var mediaLinks = new List<string>();
+            if (_mediaFile != null)
+            {
+                var mediaUrl = await UploadMediaAsync(_mediaFile, userId);
+                if (mediaUrl != null)
+                    mediaLinks.Add(mediaUrl);
+            }
+
             var newPost = new UserPost
             {
                 UserId = userId,
                 BarangayId = barangayId,
-                Title = "",
+                Title = postTitle.Trim(),
                 Author = author,
                 Description = postDescription.Trim(),
-                MediaLink = new List<string>()
+                MediaLink = mediaLinks
             };
 
             var insertedPost = await Supabase.From<UserPost>().Insert(newPost);
@@ -254,9 +677,14 @@
                 throw;
             }
 
+            postTitle = "";
             postDescription = "";
             mediaPreview = "";
+            _mediaFile = null;
             showSuccess = true;
+            StateHasChanged();
+            await Task.Delay(2500);
+            Navigation.NavigateTo("/app/feed");
         }
         catch (Exception ex)
         {
@@ -268,248 +696,3 @@
         }
     }
 }
-
-<style>
-.make-post-wrapper {
-    background: linear-gradient(135deg, #00a8e8 0%, #0078d4 100%);
-    min-height: 100vh;
-    padding: 20px;
-}
-
-.make-post-container {
-    background: white;
-    border-radius: 20px;
-    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.1);
-    max-width: 900px;
-    margin: 40px auto;
-    padding: 40px;
-    position: relative;
-}
-
-.back-button {
-    position: absolute;
-    top: 30px;
-    left: 30px;
-    background: none;
-    border: none;
-    cursor: pointer;
-    font-size: 28px;
-    color: #0078d4;
-    padding: 8px 12px;
-    transition: opacity 0.2s;
-}
-
-.back-button:hover {
-    opacity: 0.7;
-}
-
-.back-arrow {
-    display: inline-block;
-}
-
-.make-post-title {
-    text-align: center;
-    color: #0078d4;
-    font-size: 2.5rem;
-    font-weight: 600;
-    margin: 0 0 40px 0;
-    padding-top: 20px;
-}
-
-.form-section {
-    margin-bottom: 30px;
-}
-
-.section-label {
-    display: block;
-    color: #666;
-    font-size: 1rem;
-    margin-bottom: 12px;
-    font-weight: 500;
-}
-
-.post-textarea {
-    width: 100%;
-    border: 1px solid #e0e0e0;
-    border-radius: 8px;
-    padding: 16px;
-    font-size: 0.95rem;
-    font-family: inherit;
-    color: #333;
-    resize: vertical;
-    background-color: #f5f5f5;
-    transition: border-color 0.2s;
-}
-
-.post-textarea:focus {
-    outline: none;
-    border-color: #0078d4;
-    background-color: #fff;
-}
-
-.post-textarea::placeholder {
-    color: #999;
-}
-
-.media-preview {
-    position: relative;
-    margin-bottom: 12px;
-    border-radius: 8px;
-    overflow: hidden;
-    max-width: 300px;
-}
-
-.media-preview img {
-    width: 100%;
-    height: auto;
-    display: block;
-}
-
-.remove-media-btn {
-    position: absolute;
-    top: 8px;
-    right: 8px;
-    background: rgba(0, 0, 0, 0.6);
-    color: white;
-    border: none;
-    border-radius: 50%;
-    width: 32px;
-    height: 32px;
-    font-size: 24px;
-    cursor: pointer;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    transition: background 0.2s;
-}
-
-.remove-media-btn:hover {
-    background: rgba(0, 0, 0, 0.8);
-}
-
-.attach-media-btn {
-    background-color: #0078d4;
-    color: white;
-    border: none;
-    border-radius: 24px;
-    padding: 10px 24px;
-    font-size: 0.95rem;
-    font-weight: 500;
-    cursor: pointer;
-    transition: background-color 0.2s;
-}
-
-.attach-media-btn:hover {
-    background-color: #005fa3;
-}
-
-.notice-section {
-    background-color: #f0f8ff;
-    border-left: 4px solid #0078d4;
-    border-radius: 8px;
-    padding: 20px;
-    margin-bottom: 30px;
-}
-
-.notice-title {
-    margin: 0 0 10px 0;
-    color: #0078d4;
-    font-size: 1.1rem;
-    font-weight: 600;
-}
-
-.notice-text {
-    margin: 0;
-    color: #666;
-    font-size: 0.9rem;
-    line-height: 1.6;
-    font-style: italic;
-}
-
-.submit-button {
-    width: 100%;
-    background-color: #0078d4;
-    color: white;
-    border: none;
-    border-radius: 24px;
-    padding: 14px 32px;
-    font-size: 1rem;
-    font-weight: 600;
-    cursor: pointer;
-    transition: background-color 0.2s;
-}
-
-.submit-button:hover {
-    background-color: #005fa3;
-}
-
-.submit-button:active {
-    transform: scale(0.98);
-}
-
-.submit-button:disabled {
-    opacity: 0.6;
-    cursor: not-allowed;
-}
-
-.unverified-notice {
-    display: flex;
-    align-items: center;
-    gap: 10px;
-    background-color: #fffbeb;
-    color: #92400e;
-    border: 1px solid #fcd34d;
-    border-radius: 8px;
-    padding: 12px 16px;
-    margin-bottom: 16px;
-    font-size: 0.9rem;
-}
-
-.unverified-icon {
-    font-size: 1.1rem;
-    flex-shrink: 0;
-}
-
-.error-message {
-    background-color: #fef2f2;
-    color: #e50000;
-    border: 1px solid #f5a0a0;
-    border-radius: 8px;
-    padding: 12px 16px;
-    margin-bottom: 16px;
-    font-size: 0.9rem;
-}
-
-.success-overlay {
-    position: fixed;
-    inset: 0;
-    background: rgba(0, 0, 0, 0.5);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    z-index: 1000;
-}
-
-.success-card {
-    background: white;
-    border-radius: 16px;
-    padding: 40px;
-    max-width: 420px;
-    text-align: center;
-    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.2);
-}
-
-.success-card h2 {
-    color: #0078d4;
-    margin: 0 0 12px 0;
-    font-size: 1.5rem;
-}
-
-.success-card p {
-    color: #666;
-    margin: 0 0 24px 0;
-    font-size: 0.95rem;
-    line-height: 1.5;
-}
-</style>
-
