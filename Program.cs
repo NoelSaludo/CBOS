@@ -43,6 +43,7 @@ builder.Services.AddScoped<AuthService>();
 builder.Services.AddScoped<AdminSupabase>();
 builder.Services.AddScoped<TicketSupabase>();
 builder.Services.AddScoped<AdminCommunityManagerSupabase>();
+builder.Services.AddScoped<UserPostSupabaseImpl>();
 builder.Services.AddScoped<LayoutService>();
 
 // ── MISSING: Cookie authentication config ──────────────────────────────────

@@ -2,6 +2,8 @@
 @layout MainLayout
 @rendermode InteractiveServer
 @inject NavigationManager Navigation
+@inject UserPostSupabaseImpl PostService
+@inject AuthService AuthService
 
 @* Community Feed Component *@
 <div class="community-feed-container">
@@ -10,9 +12,18 @@
         <div class="profile-card">
             <div class="profile-header"></div>
             <div class="profile-avatar">[PROFILE AVATAR]</div>
-            <h3 class="profile-name">Juan Dela Cruz</h3>
-            <p class="profile-subtitle">Student at Batangas State University</p>
-            <p class="profile-location">216 Tapan St. Brgy 143</p>
+            @if (currentUser != null)
+            {
+                <h3 class="profile-name">@GetFullName()</h3>
+                @if (!string.IsNullOrEmpty(currentUser.PhysicalAddress))
+                {
+                    <p class="profile-location">@currentUser.PhysicalAddress</p>
+                }
+            }
+            else
+            {
+                <p class="profile-location" style="text-align: center; color: #999;">Loading profile...</p>
+            }
         </div>
     </div>
 
@@ -36,65 +47,43 @@
 
         <!-- Posts Feed -->
         <div class="posts-feed">
-            <!-- Post 1 -->
-            <div class="post">
-                <div class="post-header">
-                    <div class="post-avatar">[AVATAR]</div>
-                    <div class="post-info">
-                        <h4 class="post-author">Jose Santos <span class="verified">✓</span></h4>
-                        <span class="post-time">1h ago · 20/2/2026</span>
+            @if (posts == null)
+            {
+                <div class="loading-spinner">Loading posts...</div>
+            }
+            else if (posts.Count == 0)
+            {
+                <div class="no-posts">No posts available yet. Be the first to share!</div>
+            }
+            else
+            {
+                @foreach (var post in posts)
+                {
+                    <div class="post">
+                        <div class="post-header">
+                            <div class="post-avatar">[AVATAR]</div>
+                            <div class="post-info">
+                                <h4 class="post-author">@post.Author</h4>
+                                <span class="post-time">@post.GetRelativeTime() · @post.CreatedAt.ToString("dd/M/yyyy")</span>
+                            </div>
+                            <button class="post-menu">⋯</button>
+                        </div>
+                        <div class="post-content">
+                            <p>@post.Description</p>
+                        </div>
+                        @if (!string.IsNullOrEmpty(post.PrimaryImageUrl))
+                        {
+                            <div class="post-image">
+                                <img src="@post.PrimaryImageUrl" alt="Post image" style="width: 100%; height: 100%; object-fit: cover; border-radius: 8px;" />
+                            </div>
+                        }
+                        <div class="post-stats">
+                            <span>⭐ 0</span>
+                            <span>0 Comments</span>
+                        </div>
                     </div>
-                    <button class="post-menu">⋯</button>
-                </div>
-                <div class="post-content">
-                    <p>Has anyone else noticed the recent increase in oil prices? Fuel costs keep going up, and it's starting to hit our daily transportation and goods in our area. I hope our barangay or local officials can share updates or possible measures to help residents manage these rising costs. What are your thoughts or experiences so far?</p>
-                </div>
-                <div class="post-image">[POST IMAGE]</div>
-                <div class="post-stats">
-                    <span>⭐ 362</span>
-                    <span>12 Comments</span>
-                </div>
-            </div>
-
-            <!-- Post 2 -->
-            <div class="post">
-                <div class="post-header">
-                    <div class="post-avatar">[AVATAR]</div>
-                    <div class="post-info">
-                        <h4 class="post-author">Jenny Manalo <span class="verified">✓</span> <span class="admin-badge">Admin</span></h4>
-                        <span class="post-time">2h ago · 20/2/2026</span>
-                    </div>
-                    <button class="post-menu">⋯</button>
-                </div>
-                <div class="post-content">
-                    <p>The barangay will be holding a community clean-up drive this Saturday morning to help keep our streets and public spaces clean. All residents are encouraged to participate and bring basic cleaning tools if possible. Let's work together to maintain a cleaner and healthier community. See you there!</p>
-                </div>
-                <div class="post-image">[POST IMAGE]</div>
-                <div class="post-stats">
-                    <span>⭐ 512</span>
-                    <span>56 Comments</span>
-                </div>
-            </div>
-
-            <!-- Post 3 -->
-            <div class="post">
-                <div class="post-header">
-                    <div class="post-avatar">[AVATAR]</div>
-                    <div class="post-info">
-                        <h4 class="post-author">Jong Batongbakal</h4>
-                        <span class="post-time">2d ago · 18/2/2026</span>
-                    </div>
-                    <button class="post-menu">⋯</button>
-                </div>
-                <div class="post-content">
-                    <p>Hi everyone, I just wanted to report that the streetlight near our block hasn't been working for the past few nights. The area gets really dark, especially for people walking home late. Hoping this can be checked by the barangay soon for safety. Thank you!</p>
-                </div>
-                <div class="post-image">[POST IMAGE]</div>
-                <div class="post-stats">
-                    <span>⭐ 145</span>
-                    <span>23 Comments</span>
-                </div>
-            </div>
+                }
+            }
         </div>
     </div>
 
@@ -377,6 +366,24 @@
         border-top: 1px solid #f0f0f0;
     }
 
+    /* Loading and empty states */
+    .loading-spinner {
+        text-align: center;
+        padding: 40px 20px;
+        color: #999;
+        font-size: 14px;
+    }
+
+    .no-posts {
+        text-align: center;
+        padding: 40px 20px;
+        color: #999;
+        font-size: 14px;
+        background: white;
+        border-radius: 12px;
+        box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+    }
+
     /* Bulletin */
     .bulletin-title {
         font-size: 16px;
@@ -466,6 +473,41 @@
 </style>
 
 @code {
+    private List<CommunityPostViewModel>? posts;
+    private UserProfile? currentUser;
+
+    protected override async Task OnInitializedAsync()
+    {
+        try
+        {
+            // Fetch current user profile
+            if (AuthService.IsAuthenticated && AuthService.UserEmail != null)
+            {
+                currentUser = await PostService.GetUserByEmailAsync(AuthService.UserEmail);
+            }
+
+            // Fetch community posts
+            posts = await PostService.GetApprovedPostsWithAuthorsAsync();
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Error loading data: {ex.Message}");
+            posts = new List<CommunityPostViewModel>();
+        }
+    }
+
+    private string GetFullName()
+    {
+        if (currentUser == null)
+            return "Unknown User";
+
+        var nameParts = new[] { currentUser.FirstName, currentUser.MiddleName, currentUser.LastName }
+            .Where(s => !string.IsNullOrWhiteSpace(s))
+            .ToList();
+
+        return string.Join(" ", nameParts);
+    }
+
     private void GoToCreatePost()
     {
         Navigation.NavigateTo("/app/make-post");
