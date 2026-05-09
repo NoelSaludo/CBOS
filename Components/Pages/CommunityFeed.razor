@@ -2,6 +2,9 @@
 @layout MainLayout
 @rendermode InteractiveServer
 @inject NavigationManager Navigation
+@inject Supabase.Client Supabase
+@inject CBOS.Components.Services.AuthService AuthService
+@using CBOS.Components.Model
 
 @* Community Feed Component *@
 <div class="community-feed-container">
@@ -10,9 +13,9 @@
         <div class="profile-card">
             <div class="profile-header"></div>
             <div class="profile-avatar">[PROFILE AVATAR]</div>
-            <h3 class="profile-name">Juan Dela Cruz</h3>
-            <p class="profile-subtitle">Student at Batangas State University</p>
-            <p class="profile-location">216 Tapan St. Brgy 143</p>
+            <h3 class="profile-name">@(currentUserName ?? "Loading...")</h3>
+            <p class="profile-subtitle">Barangay Resident</p>
+            <p class="profile-location">@(currentUserAddress ?? "")</p>
         </div>
     </div>
 
@@ -36,72 +39,60 @@
 
         <!-- Posts Feed -->
         <div class="posts-feed">
-            <!-- Post 1 -->
-            <div class="post">
-                <div class="post-header">
-                    <div class="post-avatar">[AVATAR]</div>
-                    <div class="post-info">
-                        <h4 class="post-author">Jose Santos <span class="verified">✓</span></h4>
-                        <span class="post-time">1h ago · 20/2/2026</span>
+            @if (isLoading)
+            {
+                <div class="feed-message">Loading posts...</div>
+            }
+            else if (feedPosts.Count == 0)
+            {
+                <div class="feed-message">No approved posts in your barangay yet.</div>
+            }
+            else
+            {
+                @foreach (var post in feedPosts)
+                {
+                    <div class="post">
+                        <div class="post-header">
+                            <div class="post-avatar">[AVATAR]</div>
+                            <div class="post-info">
+                                <h4 class="post-author">
+                                    @post.Author
+                                    @if (post.IsVerified)
+                                    {
+                                        <span class="verified">✓</span>
+                                    }
+                                    else
+                                    {
+                                        <span class="unverified-badge">Unverified</span>
+                                    }
+                                </h4>
+                                <span class="post-time">@FormatTime(post.CreatedAt)</span>
+                            </div>
+                            <button class="post-menu">⋯</button>
+                        </div>
+                        <div class="post-content">
+                            <p>@post.Description</p>
+                        </div>
+                        @if (!string.IsNullOrEmpty(post.MediaLink))
+                        {
+                            <div class="post-image">
+                                <img src="@post.MediaLink" alt="Post media" style="width:100%;height:100%;object-fit:cover;border-radius:8px;" />
+                            </div>
+                        }
+                        <div class="post-stats">
+                            <span>⭐ 0</span>
+                            <span>0 Comments</span>
+                        </div>
                     </div>
-                    <button class="post-menu">⋯</button>
-                </div>
-                <div class="post-content">
-                    <p>Has anyone else noticed the recent increase in oil prices? Fuel costs keep going up, and it's starting to hit our daily transportation and goods in our area. I hope our barangay or local officials can share updates or possible measures to help residents manage these rising costs. What are your thoughts or experiences so far?</p>
-                </div>
-                <div class="post-image">[POST IMAGE]</div>
-                <div class="post-stats">
-                    <span>⭐ 362</span>
-                    <span>12 Comments</span>
-                </div>
-            </div>
-
-            <!-- Post 2 -->
-            <div class="post">
-                <div class="post-header">
-                    <div class="post-avatar">[AVATAR]</div>
-                    <div class="post-info">
-                        <h4 class="post-author">Jenny Manalo <span class="verified">✓</span> <span class="admin-badge">Admin</span></h4>
-                        <span class="post-time">2h ago · 20/2/2026</span>
-                    </div>
-                    <button class="post-menu">⋯</button>
-                </div>
-                <div class="post-content">
-                    <p>The barangay will be holding a community clean-up drive this Saturday morning to help keep our streets and public spaces clean. All residents are encouraged to participate and bring basic cleaning tools if possible. Let's work together to maintain a cleaner and healthier community. See you there!</p>
-                </div>
-                <div class="post-image">[POST IMAGE]</div>
-                <div class="post-stats">
-                    <span>⭐ 512</span>
-                    <span>56 Comments</span>
-                </div>
-            </div>
-
-            <!-- Post 3 -->
-            <div class="post">
-                <div class="post-header">
-                    <div class="post-avatar">[AVATAR]</div>
-                    <div class="post-info">
-                        <h4 class="post-author">Jong Batongbakal</h4>
-                        <span class="post-time">2d ago · 18/2/2026</span>
-                    </div>
-                    <button class="post-menu">⋯</button>
-                </div>
-                <div class="post-content">
-                    <p>Hi everyone, I just wanted to report that the streetlight near our block hasn't been working for the past few nights. The area gets really dark, especially for people walking home late. Hoping this can be checked by the barangay soon for safety. Thank you!</p>
-                </div>
-                <div class="post-image">[POST IMAGE]</div>
-                <div class="post-stats">
-                    <span>⭐ 145</span>
-                    <span>23 Comments</span>
-                </div>
-            </div>
+                }
+            }
         </div>
     </div>
 
     <!-- Right Sidebar - Barangay Bulletin -->
     <div class="feed-sidebar right-sidebar">
         <h3 class="bulletin-title">Barangay Bulletin</h3>
-        
+
         <div class="bulletin-item">
             <div class="bulletin-image">[BULLETIN IMAGE]</div>
             <h4>Welcome Barangay Assembly Day</h4>
@@ -127,11 +118,11 @@
 <style>
     .community-feed-container {
         display: grid;
-        grid-template-columns: 280px 1fr 300px;
+        grid-template-columns: 260px 1fr 280px;
         gap: 20px;
-        padding: 20px;
-        max-width: 1400px;
-        margin: 0 auto;
+        padding: 20px 96px;
+        width: 100%;
+        box-sizing: border-box;
     }
 
     .feed-sidebar {
@@ -282,6 +273,16 @@
         gap: 16px;
     }
 
+    .feed-message {
+        background: white;
+        border-radius: 12px;
+        padding: 32px 16px;
+        text-align: center;
+        color: #999;
+        font-size: 14px;
+        box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+    }
+
     .post {
         background: white;
         border-radius: 12px;
@@ -335,6 +336,17 @@
         margin-left: 4px;
     }
 
+    .unverified-badge {
+        background: #FEF3C7;
+        color: #92400E;
+        border: 1px solid #FCD34D;
+        padding: 2px 6px;
+        border-radius: 4px;
+        font-size: 11px;
+        font-weight: 600;
+        margin-left: 4px;
+    }
+
     .post-time {
         font-size: 12px;
         color: #999;
@@ -366,6 +378,7 @@
         justify-content: center;
         color: #999;
         font-size: 12px;
+        overflow: hidden;
     }
 
     .post-stats {
@@ -442,7 +455,7 @@
         .community-feed-container {
             grid-template-columns: 1fr 300px;
         }
-        
+
         .left-sidebar {
             display: none;
         }
@@ -454,7 +467,7 @@
             gap: 12px;
             padding: 12px;
         }
-        
+
         .right-sidebar {
             display: none;
         }
@@ -466,6 +479,101 @@
 </style>
 
 @code {
+    private List<FeedPost> feedPosts = new();
+    private bool isLoading = true;
+    private string? currentUserName;
+    private string? currentUserAddress;
+
+    private class FeedPost
+    {
+        public long PostId { get; set; }
+        public string Author { get; set; } = "";
+        public string Description { get; set; } = "";
+        public string? MediaLink { get; set; }
+        public DateTime CreatedAt { get; set; }
+        public bool IsVerified { get; set; }
+    }
+
+    protected override async Task OnInitializedAsync()
+    {
+        if (!AuthService.IsAuthenticated || string.IsNullOrEmpty(AuthService.UserEmail))
+        {
+            Navigation.NavigateTo("/login");
+            return;
+        }
+
+        await LoadFeedAsync();
+    }
+
+    private async Task LoadFeedAsync()
+    {
+        isLoading = true;
+
+        try
+        {
+            var profile = await Supabase
+                .From<UserProfile>()
+                .Match(new Dictionary<string, string> { { "emailaddress", AuthService.UserEmail } })
+                .Single();
+
+            if (profile?.BarangayId == null)
+                return;
+
+            currentUserName = $"{profile.FirstName} {profile.LastName}".Trim();
+            currentUserAddress = profile.PhysicalAddress ?? "";
+
+            long barangayId = profile.BarangayId.Value;
+
+            // Fetch all post-type tickets and keep only approved ones
+            var ticketResponse = await Supabase.From<Ticket>()
+                .Where(t => t.Type == "post")
+                .Get();
+
+            var approvedSourceIds = ticketResponse.Models
+                .Where(t => t.Status.Equals("Approved", StringComparison.OrdinalIgnoreCase) ||
+                            t.Status.Equals("Accepted", StringComparison.OrdinalIgnoreCase))
+                .Select(t => t.SourceId)
+                .ToHashSet();
+
+            if (!approvedSourceIds.Any())
+                return;
+
+            // Fetch posts belonging to this barangay that are approved
+            var postResponse = await Supabase.From<UserPost>().Get();
+            var posts = postResponse.Models
+                .Where(p => approvedSourceIds.Contains(p.Id) && p.BarangayId == barangayId)
+                .OrderByDescending(p => p.CreatedAt)
+                .ToList();
+
+            // Build a set of verified user IDs
+            var verifiedResponse = await Supabase.From<VerifiedUserRecord>().Get();
+            var verifiedUserIds = verifiedResponse.Models.Select(v => v.UserId).ToHashSet();
+
+            feedPosts = posts.Select(p => new FeedPost
+            {
+                PostId = p.Id,
+                Author = string.IsNullOrWhiteSpace(p.Author) ? "Unknown" : p.Author,
+                Description = p.Description ?? "",
+                MediaLink = p.MediaLink?.FirstOrDefault(url => !string.IsNullOrWhiteSpace(url)),
+                CreatedAt = p.CreatedAt,
+                IsVerified = verifiedUserIds.Contains(p.UserId)
+            }).ToList();
+        }
+        finally
+        {
+            isLoading = false;
+        }
+    }
+
+    private static string FormatTime(DateTime createdAt)
+    {
+        var diff = DateTime.UtcNow - createdAt.ToUniversalTime();
+        if (diff.TotalMinutes < 60) return $"{(int)diff.TotalMinutes}m ago";
+        if (diff.TotalHours < 24) return $"{(int)diff.TotalHours}h ago";
+        if (diff.TotalDays < 7) return $"{(int)diff.TotalDays}d ago";
+        return createdAt.ToString("dd/MM/yyyy");
+    }
+
     private void GoToCreatePost()
     {
         Navigation.NavigateTo("/app/make-post");
