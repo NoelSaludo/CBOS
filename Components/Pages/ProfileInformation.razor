@@ -147,7 +147,7 @@
             _age         = result.Age > 0 ? result.Age.ToString() : "—";
 
             _birthday = result.BirthDate.HasValue
-                ? result.BirthDate.Value.ToString("yyyy - MM - dd")
+                ? result.BirthDate.Value.ToString("yyyy-MM-dd")
                 : "—";
 
             _fullName = string.Join(" ",
