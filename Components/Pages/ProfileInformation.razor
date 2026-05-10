@@ -1,73 +1,185 @@
-﻿@page "/app/profile"
+@page "/app/profile"
 @layout MainLayout
 @using CBOS.Components.Services
 @using CBOS.Services
+@using CBOS.Components.Model
 @inject VerificationService VerificationSvc
 @inject AuthService AuthSvc
+@inject Supabase.Client Supabase
+@inject NavigationManager Navigation
 
-<div class="profile-page-wrapper">
-    <h1 class="profile-header">Profile Information</h1>
+<div class="profile-container">
+    <img src="/images/city-bg.png" class="profile-city-bg" alt="" />
+    <div class="profile-overlay"></div>
 
-    <div class="status-container-white">
-        <div class="status-card-gray">
-            <span class="account-status-text">Account Status</span>
-            
-            <div class="status-indicator d-flex align-items-center">
-                <span class="status-label-text me-2">Status:</span>
-                
-                @if (_isStatusLoading)
-                {
-                    <span class="badge bg-secondary rounded-pill custom-badge">Loading…</span>
-                }
-                else
-                {
-                    <span class="badge @_statusToneClass rounded-pill custom-badge">@_statusLabel</span>
-                }
+    <div class="profile-card">
+
+        <div class="profile-header">
+            <button class="back-btn" @onclick="GoBack">←</button>
+            <h1>Profile Information</h1>
+            <div class="header-spacer"></div>
+        </div>
+
+        <div class="profile-body">
+
+            @* ── Avatar + User Info ── *@
+            <div class="profile-user-row">
+                <div class="profile-avatar">
+                    <img src="/images/user_pfp_default.png" alt="Profile Picture" />
+                </div>
+                <div class="profile-user-info">
+                    <div class="profile-fullname">@_fullName</div>
+                    <div class="profile-role">@_role</div>
+                    <div class="profile-email">@_email</div>
+                </div>
             </div>
+
+            <hr class="profile-divider" />
+
+            @* ── Info Grid ── *@
+            <div class="profile-info-grid">
+                <div class="info-cell">
+                    <div class="info-label">First Name:</div>
+                    <div class="info-value">@_firstName</div>
+                </div>
+                <div class="info-cell">
+                    <div class="info-label">Middle Name:</div>
+                    <div class="info-value">@_middleName</div>
+                </div>
+                <div class="info-cell">
+                    <div class="info-label">Last Name:</div>
+                    <div class="info-value">@_lastName</div>
+                </div>
+                <div class="info-cell">
+                    <div class="info-label">Address:</div>
+                    <div class="info-value">@_address</div>
+                </div>
+                <div class="info-cell">
+                    <div class="info-label">Birthday:</div>
+                    <div class="info-value">@_birthday</div>
+                </div>
+                <div class="info-cell">
+                    <div class="info-label">Phone No:</div>
+                    <div class="info-value">@_phoneNumber</div>
+                </div>
+                <div class="info-cell">
+                    <div class="info-label">Age:</div>
+                    <div class="info-value">@_age</div>
+                </div>
+            </div>
+
+            <hr class="profile-divider" />
+
+            @* ── Account Status ── *@
+            <div class="profile-status-bar">
+                <span class="status-label-left">Account Status</span>
+                <div class="status-right-group">
+                    <span class="status-text">Status:</span>
+                    @if (_isStatusLoading)
+                    {
+                        <span class="badge bg-secondary rounded-pill custom-badge">Loading…</span>
+                    }
+                    else
+                    {
+                        <span class="badge @_statusToneClass rounded-pill custom-badge">@_statusLabel</span>
+                    }
+                </div>
+            </div>
+
+            @* ── Verify Account Button ── *@
+            <a class="btn-verify-account" href="/user/verify">
+                Verify Your Account
+                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor"
+                     class="bi bi-shield-check" viewBox="0 0 16 16">
+                    <path d="M5.338 1.59a61 61 0 0 0-2.837.856.48.48 0 0 0-.328.39c-.554 4.157.726 7.19 2.253 9.188a10.7 10.7 0 0 0 2.287 2.233c.346.244.652.42.893.533.12.057.218.095.293.118a1 1 0 0 0 .101.025 1 1 0 0 0 .1-.025c.076-.023.174-.061.294-.118.24-.113.547-.29.893-.533a10.7 10.7 0 0 0 2.287-2.233c1.527-1.997 2.807-5.031 2.253-9.188a.48.48 0 0 0-.328-.39c-.651-.213-1.75-.56-2.837-.855C9.552 1.29 8.531 1.067 8 1.067c-.53 0-1.552.223-2.662.524zM5.072.56C6.157.265 7.31 0 8 0s1.843.265 2.928.56c1.11.3 2.229.655 2.887.87a1.54 1.54 0 0 1 1.044 1.262c.596 4.477-.787 7.795-2.465 9.99a11.8 11.8 0 0 1-2.517 2.453 7 7 0 0 1-1.048.625c-.28.132-.581.24-.829.24s-.548-.108-.829-.24a7 7 0 0 1-1.048-.625 11.8 11.8 0 0 1-2.517-2.453C1.928 10.487.545 7.169 1.141 2.692A1.54 1.54 0 0 1 2.185 1.43 63 63 0 0 1 5.072.56" />
+                    <path d="M10.854 5.146a.5.5 0 0 1 0 .708l-3 3a.5.5 0 0 1-.708 0l-1.5-1.5a.5.5 0 1 1 .708-.708L7.5 7.793l2.646-2.647a.5.5 0 0 1 .708 0" />
+                </svg>
+            </a>
+
         </div>
     </div>
-
-    @if (!string.IsNullOrWhiteSpace(_statusDescription) && !_isStatusLoading && _statusLabel != "No Submission")
-    {
-        <div class="status-description-text">@_statusDescription</div>
-    }
-
-    <NavLink class="btn btn-verify mt-2" href="/user/verify">
-        Verify account
-        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-shield-check" viewBox="0 0 16 16">
-            <path d="M5.338 1.59a61 61 0 0 0-2.837.856.48.48 0 0 0-.328.39c-.554 4.157.726 7.19 2.253 9.188a10.7 10.7 0 0 0 2.287 2.233c.346.244.652.42.893.533.12.057.218.095.293.118a1 1 0 0 0 .101.025 1 1 0 0 0 .1-.025c.076-.023.174-.061.294-.118.24-.113.547-.29.893-.533a10.7 10.7 0 0 0 2.287-2.233c1.527-1.997 2.807-5.031 2.253-9.188a.48.48 0 0 0-.328-.39c-.651-.213-1.75-.56-2.837-.855C9.552 1.29 8.531 1.067 8 1.067c-.53 0-1.552.223-2.662.524zM5.072.56C6.157.265 7.31 0 8 0s1.843.265 2.928.56c1.11.3 2.229.655 2.887.87a1.54 1.54 0 0 1 1.044 1.262c.596 4.477-.787 7.795-2.465 9.99a11.8 11.8 0 0 1-2.517 2.453 7 7 0 0 1-1.048.625c-.28.132-.581.24-.829.24s-.548-.108-.829-.24a7 7 0 0 1-1.048-.625 11.8 11.8 0 0 1-2.517-2.453C1.928 10.487.545 7.169 1.141 2.692A1.54 1.54 0 0 1 2.185 1.43 63 63 0 0 1 5.072.56"/>
-            <path d="M10.854 5.146a.5.5 0 0 1 0 .708l-3 3a.5.5 0 0 1-.708 0l-1.5-1.5a.5.5 0 1 1 .708-.708L7.5 7.793l2.646-2.647a.5.5 0 0 1 .708 0"/>
-        </svg>
-    </NavLink>
 </div>
 
 @code {
-    private bool _isStatusLoading = true;
-    private string _statusLabel = "No Submission";
-    private string _statusDescription = "";
+    private bool   _isStatusLoading = true;
+    private string _statusLabel     = "No Submission";
     private string _statusToneClass = "bg-secondary";
+
+    private string _fullName    = "—";
+    private string _role        = "User";
+    private string _email       = "";
+    private string _firstName   = "—";
+    private string _middleName  = "—";
+    private string _lastName    = "—";
+    private string _address     = "—";
+    private string _birthday    = "—";
+    private string _phoneNumber = "—";
+    private string _age         = "—";
 
     protected override async Task OnInitializedAsync()
     {
-        await LoadVerificationStatusAsync();
+        _email = AuthSvc.UserEmail ?? "";
+        await Task.WhenAll(LoadProfileAsync(), LoadVerificationStatusAsync());
     }
 
+    private void GoBack() => Navigation.NavigateTo("/app/feed");
+
+    // ── Pull profile fields from the users table ──────────────────────────
+    private async Task LoadProfileAsync()
+    {
+        if (string.IsNullOrWhiteSpace(_email)) return;
+
+        try
+        {
+            var result = await Supabase
+                .From<UserProfile>()
+                .Select("firstname, middlename, lastname, phonenumber, birthdate, age, physicaladdress")
+                .Match(new Dictionary<string, string> { { "emailaddress", _email.ToLower() } })
+                .Single();
+
+            if (result is null) return;
+
+            _firstName   = result.FirstName      ?? "—";
+            _middleName  = result.MiddleName      ?? "—";
+            _lastName    = result.LastName        ?? "—";
+            _phoneNumber = result.PhoneNumber     ?? "—";
+            _address     = result.PhysicalAddress ?? "—";
+            _age         = result.Age > 0 ? result.Age.ToString() : "—";
+
+            _birthday = result.BirthDate.HasValue
+                ? result.BirthDate.Value.ToString("yyyy-MM-dd")
+                : "—";
+
+            _fullName = string.Join(" ",
+                new[] { _firstName, _middleName, _lastName }
+                    .Where(s => s != "—" && !string.IsNullOrWhiteSpace(s)));
+
+            if (string.IsNullOrWhiteSpace(_fullName)) _fullName = "—";
+        }
+        catch
+        {
+            // Profile not yet available — fields stay as "—"
+        }
+    }
+
+    // ── Pull verification / account status ────────────────────────────────
     private async Task LoadVerificationStatusAsync()
     {
         _isStatusLoading = true;
+
         if (!AuthSvc.IsAuthenticated)
         {
-            SetStatus("Not Authenticated");
+            SetStatus("No Submission");
             _isStatusLoading = false;
             return;
         }
 
-        var userEmail = AuthSvc.UserEmail ?? string.Empty;
+        var userEmail   = AuthSvc.UserEmail ?? string.Empty;
         var accessToken = AuthSvc.CurrentSession?.AccessToken ?? string.Empty;
 
         if (string.IsNullOrWhiteSpace(userEmail) || string.IsNullOrWhiteSpace(accessToken))
         {
-            SetStatus($"Missing Info: Email={userEmail}, Token={!string.IsNullOrEmpty(accessToken)}");
+            SetStatus("No Submission");
             _isStatusLoading = false;
             return;
         }
@@ -75,46 +187,37 @@
         var userId = await VerificationSvc.GetUserProfileIdAsync(userEmail, accessToken);
         if (userId == null || userId <= 0)
         {
-            SetStatus($"User ID Not Found for {userEmail}");
+            SetStatus("No Submission");
             _isStatusLoading = false;
             return;
         }
 
         var status = await VerificationSvc.GetUserVerificationStatusAsync(userId.Value, accessToken);
-        if (status == null) 
-        {
-            SetStatus("No Submission"); // Originally mapped to null
-        } 
-        else 
-        {
-            SetStatus(status);
-        }
-        
+        SetStatus(status ?? "No Submission");
         _isStatusLoading = false;
     }
 
     private void SetStatus(string? status)
     {
-        if (string.IsNullOrWhiteSpace(status) || string.Equals(status, "No Submission", StringComparison.OrdinalIgnoreCase))
+        if (string.IsNullOrWhiteSpace(status) ||
+            string.Equals(status, "No Submission", StringComparison.OrdinalIgnoreCase))
         {
-            _statusLabel = "No Submission";
-            _statusDescription = "";
+            _statusLabel     = "No Submission";
             _statusToneClass = "bg-secondary";
             return;
         }
 
         if (string.Equals(status, "Pending", StringComparison.OrdinalIgnoreCase))
         {
-            _statusLabel = "Pending";
-            _statusDescription = "Submitted a ticket for admin review";
-            _statusToneClass = "bg-warning text-dark"; // Added text-dark for better contrast on yellow
+            _statusLabel     = "Pending";
+            _statusToneClass = "bg-warning text-dark";
             return;
         }
 
-        if (string.Equals(status, "Approved", StringComparison.OrdinalIgnoreCase) || string.Equals(status, "Verified", StringComparison.OrdinalIgnoreCase))
+        if (string.Equals(status, "Approved", StringComparison.OrdinalIgnoreCase) ||
+            string.Equals(status, "Verified",  StringComparison.OrdinalIgnoreCase))
         {
-            _statusLabel = "Verified";
-            _statusDescription = "Admin approved";
+            _statusLabel     = "Verified";
             _statusToneClass = "bg-success";
             return;
         }
@@ -122,14 +225,12 @@
         if (string.Equals(status, "Rejected", StringComparison.OrdinalIgnoreCase) ||
             string.Equals(status, "Declined", StringComparison.OrdinalIgnoreCase))
         {
-            _statusLabel = "Rejected";
-            _statusDescription = "Admin rejected";
+            _statusLabel     = "Rejected";
             _statusToneClass = "bg-danger";
             return;
         }
 
-        _statusLabel = status;
-        _statusDescription = "Verification status recorded.";
+        _statusLabel     = status;
         _statusToneClass = "bg-secondary";
     }
 }

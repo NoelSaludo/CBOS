@@ -11,10 +11,12 @@
 
 <PageTitle>Account Verification – CBOS</PageTitle>
 
-<div class="verify-wrapper">
+<div class="verify-container">
+    <img src="/images/city-bg.png" class="verify-city-bg" alt="" />
+    <div class="verify-overlay"></div>
+
     <div class="verify-card">
 
-        <!-- ── Back Button ─────────────────────────────────────── -->
         <button class="back-btn" @onclick="GoBack" title="Go back">
             <svg width="22" height="22" viewBox="0 0 24 24" fill="none"
                  stroke="currentColor" stroke-width="2.5"
@@ -23,9 +25,7 @@
             </svg>
         </button>
 
-        <!-- ══════════════════════════════════════════════════════
-             LEFT PANEL
-             ══════════════════════════════════════════════════════ -->
+        @* ── Left Panel ── *@
         <div class="left-panel">
             <img class="cbos-logo"
                  src="@VerificationLogoPath"
@@ -46,11 +46,10 @@
             </p>
         </div>
 
-        <!-- ══════════════════════════════════════════════════════
-             RIGHT PANEL
-             ══════════════════════════════════════════════════════ -->
+        @* ── Right Panel ── *@
         <div class="right-panel">
             <h2 class="docs-heading">Required Documents</h2>
+
             <div class="doc-block">
                 <span class="doc-label">Valid ID</span>
                 <span class="doc-sublabel">
@@ -61,7 +60,6 @@
                      @ondrop:preventDefault
                      @onclick="TriggerValidIdPicker">
 
-                    <!-- Upload / Check icon -->
                     @if (_validIdFile == null)
                     {
                         <svg class="upload-icon" viewBox="0 0 24 24" fill="none"
@@ -71,10 +69,7 @@
                             <polyline points="17 8 12 3 7 8"/>
                             <line x1="12" y1="3" x2="12" y2="15"/>
                         </svg>
-                        <span class="drop-text">
-                            Click to browse and select a file<br/>
-                            <em>Supports: JPG, PNG, PDF (Max 10MB)</em>
-                        </span>
+                        <span class="drop-text">Drop your file here, or browse file <br/><em>Supports: JPG, PNG, PDF (Max 10MB)</em></span>
                     }
                     else
                     {
@@ -103,6 +98,7 @@
                      @ondragover:preventDefault
                      @ondrop:preventDefault
                      @onclick="TriggerBirthCertPicker">
+
                     @if (_birthCertFile == null)
                     {
                         <svg class="upload-icon" viewBox="0 0 24 24" fill="none"
@@ -112,10 +108,7 @@
                             <polyline points="17 8 12 3 7 8"/>
                             <line x1="12" y1="3" x2="12" y2="15"/>
                         </svg>
-                        <span class="drop-text">
-                            Click to browse and select a file<br/>
-                            <em>Supports: JPG, PNG, PDF (Max 10MB)</em>
-                        </span>
+                        <span class="drop-text">Drop your file here, or browse file <br/><em>Supports: JPG, PNG, PDF (Max 10MB)</em></span>
                     }
                     else
                     {
@@ -136,6 +129,10 @@
             </div>
 
             <div class="submit-row">
+                @if (!_isSubmitting && !HasAllRequiredFiles)
+                {
+                    <span class="file-status">Please upload both required files first.</span>
+                }
                 <button class="submit-btn"
                         @onclick="SubmitVerificationRequest"
                         disabled="@_isSubmitting">
@@ -149,12 +146,9 @@
                         <span>Submit Verification Request</span>
                     }
                 </button>
-                @if (!_isSubmitting && !HasAllRequiredFiles)
-                {
-                    <span class="file-status">Please upload both required files first.</span>
-                }
             </div>
         </div>
+
     </div>
 </div>
 
@@ -195,22 +189,20 @@
     private bool   _isSubmitting = false;
     private bool   _showToast    = false;
     private string _toastMessage = string.Empty;
-    private string _toastType    = "info"; // "success" | "error" | "info"
+    private string _toastType    = "info";
     private bool HasAllRequiredFiles => _validIdFile != null && _birthCertFile != null;
 
-    private string CurrentUserId => AuthSvc.CurrentSession?.User?.Id ?? string.Empty;
-    private string CurrentUserEmail => AuthSvc.UserEmail ?? string.Empty;
-    private string CurrentUserName => !string.IsNullOrWhiteSpace(AuthSvc.FirstName)
+    private string CurrentUserId      => AuthSvc.CurrentSession?.User?.Id ?? string.Empty;
+    private string CurrentUserEmail   => AuthSvc.UserEmail ?? string.Empty;
+    private string CurrentUserName    => !string.IsNullOrWhiteSpace(AuthSvc.FirstName)
         ? AuthSvc.FirstName
         : (!string.IsNullOrWhiteSpace(CurrentUserEmail)
             ? CurrentUserEmail.Split('@')[0]
             : "User");
-
     private string CurrentAccessToken => AuthSvc.CurrentSession?.AccessToken ?? string.Empty;
 
     private const string VerificationLogoPath = "/images/cbos-logo-blue.png";
 
-    // ── File selection callbacks ────────────────────────────────────
     private void OnValidIdSelected(InputFileChangeEventArgs e)
     {
         _validIdFile = e.File;
@@ -222,10 +214,10 @@
         _birthCertFile = e.File;
         StateHasChanged();
     }
-    
-    private void TriggerValidIdPicker()    { /* handled by the overlay InputFile click passthrough */ }
-    private void TriggerBirthCertPicker() { /* handled by the overlay InputFile click passthrough */ }
-    
+
+    private void TriggerValidIdPicker()    { }
+    private void TriggerBirthCertPicker() { }
+
     private async Task SubmitVerificationRequest()
     {
         if (!AuthSvc.IsAuthenticated)
@@ -250,12 +242,12 @@
 
         if (!HasAllRequiredFiles)
         {
-            ShowToast("Please upload both Valid ID and Birth Certificate before submitting.", "error");
+            ShowToast("Please upload all necessary documents.", "error");
             return;
         }
 
-        var validIdFile = _validIdFile!;
-        var birthCertFile = _birthCertFile!;
+        var validIdFile    = _validIdFile!;
+        var birthCertFile  = _birthCertFile!;
 
         _isSubmitting = true;
         StateHasChanged();
@@ -269,7 +261,6 @@
                 return;
             }
 
-            // 1. Upload Valid ID
             ShowToast("Uploading Valid ID…", "info");
             var validIdUrl = await VerificationSvc.UploadFileAsync(
                 validIdFile, "valid-id", CurrentUserId, CurrentAccessToken);
@@ -280,7 +271,6 @@
                 return;
             }
 
-            // 2. Upload Birth Certificate
             ShowToast("Uploading Birth Certificate…", "info");
             var birthCertUrl = await VerificationSvc.UploadFileAsync(
                 birthCertFile, "birth-certificate", CurrentUserId, CurrentAccessToken);
@@ -291,7 +281,6 @@
                 return;
             }
 
-            // 3. Create the verification ticket
             var ticket = new VerificationTicket
             {
                 UserId              = userProfileId.Value,
