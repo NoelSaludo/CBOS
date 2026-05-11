@@ -11,7 +11,9 @@
     <div class="feed-sidebar left-sidebar">
         <div class="profile-card">
             <div class="profile-header"></div>
-            <div class="profile-avatar">[PROFILE AVATAR]</div>
+            <div class="profile-avatar">
+                <img src="/images/user_pfp_default.png" alt="Profile Picture" />
+            </div>
             @if (currentUser != null)
             {
                 <h3 class="profile-name">@GetFullName()</h3>
@@ -32,7 +34,9 @@
         <!-- Create Post Section -->
         <div class="create-post">
             <div class="create-post-header">
-                <div class="create-avatar">[AVATAR]</div>
+                <div class="create-avatar">
+                    <img src="/images/user_pfp_default.png" alt="Profile Picture" />
+                </div>
                 <input type="text"
                        placeholder="Start a Post"
                        class="create-input"
@@ -61,7 +65,9 @@
                 {
                     <div class="post">
                         <div class="post-header">
-                            <div class="post-avatar">[AVATAR]</div>
+                            <div class="post-avatar">
+                                <img src="/images/user_pfp_default.png" alt="Profile Picture" />
+                            </div>
                             <div class="post-info">
                                 <h4 class="post-author">@post.Author</h4>
                                 <span class="post-time">@post.GetRelativeTime() · @post.CreatedAt.ToString("dd/M/yyyy")</span>
@@ -92,19 +98,25 @@
         <h3 class="bulletin-title">Barangay Bulletin</h3>
 
         <div class="bulletin-item">
-            <div class="bulletin-image">[BULLETIN IMAGE]</div>
+            <div class="bulletin-image">
+                <img src="images/bulletin1.png" alt="Bulletin Image" />
+            </div>
             <h4>Welcome Barangay Assembly Day</h4>
             <p class="bulletin-date">Municipal Gymnasium</p>
         </div>
 
         <div class="bulletin-item">
-            <div class="bulletin-image">[BULLETIN IMAGE]</div>
+            <div class="bulletin-image">
+                <img src="images/bulletin2.png" alt="Bulletin Image" />
+            </div>
             <h4>Punla ng Pag-Asa Tree Planting Drive 2030</h4>
             <p class="bulletin-date">Community Event</p>
         </div>
-
+ 
         <div class="bulletin-item">
-            <div class="bulletin-image">[BULLETIN IMAGE]</div>
+            <div class="bulletin-image">
+                <img src="images/bulletin3.png" alt="Bulletin Image" />
+            </div>
             <h4>Barangay Ermita Operation Libreng Tuli</h4>
             <p class="bulletin-date">Health Program</p>
         </div>
@@ -165,10 +177,21 @@
         display: flex;
         align-items: center;
         justify-content: center;
+<<<<<<< HEAD
         font-size: 11px;
         font-weight: 600;
         color: #0066ff;
         box-shadow: 0 2px 8px rgba(0,0,0,0.12);
+=======
+        color: #999;
+        overflow: hidden;
+    }
+    
+    .profile-avatar img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+>>>>>>> deab26e419fdb6b93c9c8ff56da8b158a7d6cf6c
     }
 
     .profile-name {
@@ -314,10 +337,21 @@
         display: flex;
         align-items: center;
         justify-content: center;
+<<<<<<< HEAD
         font-size: 11px;
         font-weight: 700;
         color: white;
+=======
+        color: #999;
+>>>>>>> deab26e419fdb6b93c9c8ff56da8b158a7d6cf6c
         flex-shrink: 0;
+        overflow: hidden;
+    }
+    
+    .profile-avatar img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
     }
 
     .post-info { flex: 1; }
@@ -455,8 +489,18 @@
         display: flex;
         align-items: center;
         justify-content: center;
+<<<<<<< HEAD
         color: #94a3b8;
         font-size: 11px;
+=======
+        color: #999;
+    }
+    
+    .bulletin-image img {
+        width: 100%;
+        height: 100%;
+        object-fit: contain;
+>>>>>>> deab26e419fdb6b93c9c8ff56da8b158a7d6cf6c
     }
 
     .bulletin-item h4 {
