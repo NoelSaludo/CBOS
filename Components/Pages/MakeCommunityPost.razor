@@ -8,6 +8,7 @@
 @inject IHttpClientFactory HttpClientFactory
 @using CBOS.Components.Model
 @using System.Net.Http.Headers
+@using System.Text.Json
 
 <div class="post-container">
     <img src="/images/city-bg.png" class="post-city-bg" alt="" />
@@ -23,14 +24,42 @@
         @if (!isVerified)
         {
             <div class="blocked-screen">
-                <div class="blocked-icon">🔒</div>
+                <div class="blocked-icon-ring">
+                    <span class="blocked-lock">🔒</span>
+                </div>
                 <h2 class="blocked-title">Verification Required</h2>
                 <p class="blocked-text">
-                    You need to verify your account before you can make a community post.
-                    Upload your valid ID or birth certificate on your profile to get started.
+                    Your account must be verified before you can post in the community feed.
                 </p>
+
+                <div class="blocked-steps">
+                    <div class="blocked-step">
+                        <div class="step-icon">📄</div>
+                        <div class="step-info">
+                            <div class="step-label">Upload Documents</div>
+                            <div class="step-desc">Valid ID or birth certificate</div>
+                        </div>
+                    </div>
+                    <div class="step-arrow">›</div>
+                    <div class="blocked-step">
+                        <div class="step-icon">🔍</div>
+                        <div class="step-info">
+                            <div class="step-label">Admin Review</div>
+                            <div class="step-desc">Usually within 1–2 days</div>
+                        </div>
+                    </div>
+                    <div class="step-arrow">›</div>
+                    <div class="blocked-step">
+                        <div class="step-icon">✅</div>
+                        <div class="step-info">
+                            <div class="step-label">Get Verified</div>
+                            <div class="step-desc">Post freely in the community</div>
+                        </div>
+                    </div>
+                </div>
+
                 <div class="blocked-actions">
-                    <a href="/user/verify" class="btn-verify">Verify My Account</a>
+                    <a href="/user/verify" class="btn-verify">🛡️ Verify My Account</a>
                     <button class="btn-back" @onclick="GoBack">Back to Feed</button>
                 </div>
             </div>
@@ -59,26 +88,33 @@
                     </div>
 
                     <div class="field-group">
-                        <label>Add description to your post</label>
+                        <label>Description</label>
                         <textarea @bind="postDescription"
                                   placeholder="Write your post here..."
                                   rows="6"></textarea>
                     </div>
 
                     <div class="field-group">
-                        <label>Add photo or video (optional)</label>
+                        <label>Photo or Video <span class="optional-tag">optional</span></label>
 
-                        @if (!string.IsNullOrEmpty(mediaPreview))
-                        {
-                            <div class="media-preview">
-                                <img src="@mediaPreview" alt="Preview" />
-                                <button type="button" class="remove-media-btn" @onclick="RemoveMedia">×</button>
-                            </div>
-                        }
+                        <div class="media-drop-zone" @onclick="HandleAttachMedia">
+                            @if (!string.IsNullOrEmpty(mediaPreview))
+                            {
+                                <div class="media-preview" @onclick:stopPropagation="true">
+                                    <img src="@mediaPreview" alt="Preview" />
+                                    <button type="button" class="remove-media-btn" @onclick="RemoveMedia" @onclick:stopPropagation="true">×</button>
+                                </div>
+                            }
+                            else
+                            {
+                                <div class="media-drop-icon">🖼️</div>
+                                <div class="media-drop-hint">Click to browse a photo or video</div>
+                                <button type="button" class="attach-btn" @onclick:stopPropagation="true" @onclick="HandleAttachMedia">
+                                    📎 Browse file
+                                </button>
+                            }
+                        </div>
 
-                        <button type="button" class="attach-btn" @onclick="HandleAttachMedia">
-                            📎 Attach media
-                        </button>
                         <InputFile @ref="fileInput"
                                    id="fileInputElement"
                                    style="display:none;"
@@ -87,11 +123,16 @@
                     </div>
                 </div>
 
+                <div class="post-col-divider"></div>
+
                 @* ── RIGHT: Notice & Submit ── *@
                 <div class="post-side">
-                    <div class="notice-title">Notice</div>
-                    <div class="notice-text">
-                        Your posts will be subject for approval first before being posted at the community feed for regulation. Expect updates regarding the status of your post.
+                    <div class="notice-panel">
+                        <div class="notice-panel-icon">📋</div>
+                        <div class="notice-title">Notice</div>
+                        <div class="notice-text">
+                            Your posts will be subject for approval first before being posted at the community feed for regulation. Expect updates regarding the status of your post.
+                        </div>
                     </div>
 
                     <button class="submit-btn" @onclick="HandleSubmit" disabled="@isSubmitting">
@@ -235,28 +276,94 @@
         flex-direction: column;
         align-items: center;
         justify-content: center;
-        padding: 48px 32px;
+        padding: 36px 32px 40px;
         text-align: center;
     }
 
-    .blocked-icon {
-        font-size: 3rem;
-        margin-bottom: 16px;
+    .blocked-icon-ring {
+        width: 84px;
+        height: 84px;
+        border-radius: 50%;
+        background: linear-gradient(135deg, #e8f0ff 0%, #dbeafe 100%);
+        border: 3px solid #c7d7ff;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        margin-bottom: 20px;
+        box-shadow: 0 4px 18px rgba(0, 102, 255, 0.13);
     }
 
+    .blocked-lock { font-size: 2.2rem; line-height: 1; }
+
     .blocked-title {
-        font-size: 1.4rem;
-        font-weight: 700;
-        color: #0066ff;
-        margin: 0 0 12px 0;
+        font-size: 1.55rem;
+        font-weight: 800;
+        color: #0052cc;
+        margin: 0 0 8px 0;
+        letter-spacing: -0.02em;
     }
 
     .blocked-text {
         font-size: 0.9rem;
         color: #64748b;
         line-height: 1.7;
-        max-width: 420px;
-        margin: 0 0 28px 0;
+        max-width: 380px;
+        margin: 0 0 24px 0;
+    }
+
+    .blocked-steps {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        margin-bottom: 28px;
+        background: #f8fafc;
+        border: 1px solid #e2e8f0;
+        border-radius: 16px;
+        padding: 16px 24px;
+        flex-wrap: wrap;
+        justify-content: center;
+    }
+
+    .blocked-step {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        text-align: left;
+    }
+
+    .step-icon {
+        font-size: 1.3rem;
+        width: 42px;
+        height: 42px;
+        background: white;
+        border-radius: 10px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        box-shadow: 0 2px 6px rgba(0,0,0,0.07);
+        flex-shrink: 0;
+    }
+
+    .step-info { display: flex; flex-direction: column; }
+
+    .step-label {
+        font-size: 0.82rem;
+        font-weight: 700;
+        color: #334155;
+    }
+
+    .step-desc {
+        font-size: 0.72rem;
+        color: #94a3b8;
+        margin-top: 1px;
+    }
+
+    .step-arrow {
+        color: #93c5fd;
+        font-size: 1.5rem;
+        font-weight: 700;
+        flex-shrink: 0;
+        line-height: 1;
     }
 
     .blocked-actions {
@@ -315,6 +422,35 @@
         display: block;
         margin-bottom: 6px;
     }
+
+    .optional-tag {
+        font-size: 0.7rem;
+        font-weight: 500;
+        color: #94a3b8;
+        background: #f1f5f9;
+        border-radius: 4px;
+        padding: 1px 6px;
+        margin-left: 6px;
+        text-transform: uppercase;
+        letter-spacing: 0.04em;
+        vertical-align: middle;
+    }
+
+    .field-group input[type="text"] {
+        width: 100%;
+        border-radius: 10px;
+        border: 1.5px solid #e2e8f0;
+        padding: 9px 12px;
+        font-size: 0.88rem;
+        background: #f8fafc;
+        color: #334155;
+        outline: none;
+        transition: border-color 0.15s;
+        box-sizing: border-box;
+        font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
+    }
+
+    .field-group input[type="text"]:focus { border-color: #0066ff; background: #fff; }
 
     .field-group textarea {
         width: 100%;
@@ -450,6 +586,54 @@
 
     @@keyframes spin { to { transform: rotate(360deg); } }
 
+    .post-col-divider {
+        width: 1px;
+        background: linear-gradient(to bottom, transparent, #dde5f5 30%, #dde5f5 70%, transparent);
+        flex-shrink: 0;
+        align-self: stretch;
+        margin: 0 4px;
+    }
+
+    .notice-panel {
+        background: linear-gradient(135deg, #eef5ff 0%, #e8f0ff 100%);
+        border: 1px solid #c7d7ff;
+        border-radius: 14px;
+        padding: 18px 16px;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        text-align: center;
+        gap: 6px;
+    }
+
+    .notice-panel-icon {
+        font-size: 1.6rem;
+        line-height: 1;
+        margin-bottom: 2px;
+    }
+
+    .media-drop-zone {
+        border: 2px dashed #c7d7ff;
+        border-radius: 12px;
+        padding: 20px 16px;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 6px;
+        background: #f8fbff;
+        transition: border-color 0.15s, background 0.15s;
+        cursor: pointer;
+    }
+
+    .media-drop-zone:hover { border-color: #0066ff; background: #eff5ff; }
+
+    .media-drop-icon { font-size: 1.6rem; line-height: 1; }
+
+    .media-drop-hint {
+        font-size: 0.78rem;
+        color: #94a3b8;
+    }
+
     @@media (max-width: 768px) {
         .post-container { overflow-y: auto; align-items: flex-start; }
         .post-content { flex-direction: column; }
@@ -489,13 +673,33 @@
 
         if (profile != null)
         {
-            var verifiedEntry = await Supabase
-                .From<VerifiedUserRecord>()
-                .Match(new Dictionary<string, string> { { "userid", profile.Id.ToString() } })
-                .Single();
-
-            isVerified = verifiedEntry != null;
+            isVerified = await CheckIsVerifiedAsync(profile.Id);
         }
+    }
+
+    private async Task<bool> CheckIsVerifiedAsync(long userId)
+    {
+        var supabaseUrl = Environment.GetEnvironmentVariable("SUPABASE_URL");
+        var supabaseKey = Environment.GetEnvironmentVariable("SUPABASE_KEY");
+        var accessToken = AuthService.CurrentSession?.AccessToken;
+
+        if (string.IsNullOrEmpty(supabaseUrl) || string.IsNullOrEmpty(supabaseKey))
+            return false;
+
+        var token = string.IsNullOrEmpty(accessToken) ? supabaseKey : accessToken;
+        var url = $"{supabaseUrl}/rest/v1/verification_tickets?userid=eq.{userId}&status=in.(Approved,Verified)&select=id&limit=1";
+
+        using var request = new HttpRequestMessage(HttpMethod.Get, url);
+        request.Headers.Add("apikey", supabaseKey);
+        request.Headers.Add("Authorization", $"Bearer {token}");
+
+        var http = HttpClientFactory.CreateClient();
+        var response = await http.SendAsync(request);
+        if (!response.IsSuccessStatusCode) return false;
+
+        var json = await response.Content.ReadAsStringAsync();
+        using var doc = JsonDocument.Parse(json);
+        return doc.RootElement.ValueKind == JsonValueKind.Array && doc.RootElement.GetArrayLength() > 0;
     }
 
     private void GoBack()
