@@ -22,7 +22,7 @@ public class Report : BaseModel
     public string Content { get; set; } = "";
 
     [Column("approved_at")]
-    public DateTime ApprovedAt { get; set; }
+    public DateTime? ApprovedAt { get; set; }
 
     [Column("approved_by")]
     public long? ApprovedBy { get; set; }

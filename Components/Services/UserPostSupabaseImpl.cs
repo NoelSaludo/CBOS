@@ -82,7 +82,7 @@ public class UserPostSupabaseImpl : ISupabase
                 Author = authorName,
                 Description = post.Description ?? string.Empty,
                 MediaLinks = post.MediaLink ?? new List<string>(),
-                CreatedAt = post.CreatedAt,
+                CreatedAt = (post.CreatedAt ?? DateTime.UtcNow).AddHours(8),
                 PrimaryImageUrl = GetPrimaryImageUrl(post.MediaLink)
             });
         }
@@ -284,7 +284,7 @@ public class CommunityPostViewModel
     /// </summary>
     public string GetRelativeTime()
     {
-        var now = DateTime.UtcNow;
+        var now = DateTime.UtcNow.AddHours(8);
         var diff = now - CreatedAt;
 
         if (diff.TotalSeconds < 60)
