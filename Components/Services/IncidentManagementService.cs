@@ -78,7 +78,7 @@ public class IncidentManagementService
                 Title = report.Title,
                 Description = report.Content,
                 Category = normalizedCategory,
-                Date = report.CreatedAt,
+                Date = DateTime.SpecifyKind(report.CreatedAt ?? DateTime.UtcNow, DateTimeKind.Utc).ToLocalTime(),
                 Status = ticket.Status.ToUpper(),
                 MediaLinks = mediaUrls
             });

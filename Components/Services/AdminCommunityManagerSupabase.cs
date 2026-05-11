@@ -140,7 +140,7 @@ public class AdminCommunityManagerSupabase : ISupabase
                 Description = post.Description ?? string.Empty,
                 PrimaryImageUrl = GetPrimaryImageUrl(post.MediaLink),
                 Status = NormalizeStatus(ticket.Status),
-                CreatedAt = (post.CreatedAt ?? DateTime.UtcNow).AddHours(8)
+                CreatedAt = DateTime.SpecifyKind(post.CreatedAt ?? DateTime.UtcNow, DateTimeKind.Utc).ToLocalTime()
             });
         }
 

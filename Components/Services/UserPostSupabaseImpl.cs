@@ -82,7 +82,7 @@ public class UserPostSupabaseImpl : ISupabase
                 Author = authorName,
                 Description = post.Description ?? string.Empty,
                 MediaLinks = post.MediaLink ?? new List<string>(),
-                CreatedAt = (post.CreatedAt ?? DateTime.UtcNow).AddHours(8),
+                CreatedAt = DateTime.SpecifyKind(post.CreatedAt ?? DateTime.UtcNow, DateTimeKind.Utc).ToLocalTime(),
                 PrimaryImageUrl = GetPrimaryImageUrl(post.MediaLink)
             });
         }
@@ -174,7 +174,7 @@ public class UserPostSupabaseImpl : ISupabase
                     Title = report.Title,
                     Author = authorName,
                     Category = report.Category ?? "General",
-                    CreatedAt = report.CreatedAt
+                    CreatedAt = DateTime.SpecifyKind(report.CreatedAt ?? DateTime.UtcNow, DateTimeKind.Utc).ToLocalTime()
                 });
             }
 
@@ -284,7 +284,7 @@ public class CommunityPostViewModel
     /// </summary>
     public string GetRelativeTime()
     {
-        var now = DateTime.UtcNow.AddHours(8);
+        var now = DateTime.UtcNow.ToLocalTime();
         var diff = now - CreatedAt;
 
         if (diff.TotalSeconds < 60)

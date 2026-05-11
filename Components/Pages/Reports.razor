@@ -995,7 +995,8 @@
                 UserId = profile.Id,
                 Category = MapCategoryToEnum(selectedReportType),
                 Title = reportHeader.Trim(),
-                Content = reportDescription.Trim()
+                Content = reportDescription.Trim(),
+                CreatedAt = DateTime.UtcNow
             };
 
             var insertedReport = await Supabase.From<Report>().Insert(newReport);
