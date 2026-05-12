@@ -1,9 +1,143 @@
 @page "/app/notifications"
 @layout MainLayout
+@rendermode InteractiveServer
 
-@* Notifications Component *@
-<div>
-    <h2>Notifications</h2>
-    <p>Check your notifications here.</p>
+<div class="notifications-container">
+    <h1 class="notifications-title">Notifications</h1>
+    <div class="notifications-list">
+        @if (_notifications.Count == 0)
+        {
+            <div class="no-notifications">No notifications.</div>
+        }
+        else
+        {
+            @foreach (var notification in _notifications)
+            {
+                <div class="notification-item">
+                    <div class="notification-icon">
+                        <span class="icon">@GetIcon(notification.Type)</span>
+                    </div>
+                    <div class="notification-content">
+                        <h3>@notification.Title</h3>
+                        <p>@notification.Message</p>
+                        <span class="notification-time">@notification.CreatedAt.ToString("MMM dd, yyyy HH:mm")</span>
+                    </div>
+                </div>
+            }
+        }
+    </div>
 </div>
 
+<style>
+.notifications-container {
+    max-width: 800px;
+    margin: 40px auto;
+    padding: 20px;
+}
+
+.notifications-title {
+    font-size: 2rem;
+    font-weight: 700;
+    color: #0099cc;
+    margin-bottom: 20px;
+}
+
+.notifications-list {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+.notification-item {
+    display: flex;
+    align-items: center;
+    background: white;
+    padding: 16px;
+    border-radius: 12px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+    gap: 16px;
+}
+
+.notification-icon {
+    flex-shrink: 0;
+}
+
+.icon {
+    font-size: 1.5rem;
+}
+
+.notification-content {
+    flex: 1;
+}
+
+.notification-content h3 {
+    font-size: 1.1rem;
+    font-weight: 600;
+    color: #333;
+    margin: 0 0 4px 0;
+}
+
+.notification-content p {
+    font-size: 0.9rem;
+    color: #666;
+    margin: 0 0 8px 0;
+}
+
+.notification-time {
+    font-size: 0.8rem;
+    color: #999;
+}
+
+.no-notifications {
+    text-align: center;
+    color: #999;
+    font-size: 1rem;
+    padding: 40px;
+}
+</style>
+
+@code {
+    private List<NotificationItem> _notifications = new();
+
+    private class NotificationItem
+    {
+        public string Type { get; set; }
+        public string Title { get; set; }
+        public string Message { get; set; }
+        public DateTime CreatedAt { get; set; }
+    }
+
+    protected override async Task OnInitializedAsync()
+    {
+        // Simulate fetching notifications
+        await Task.Delay(500);
+
+        _notifications = new List<NotificationItem>
+        {
+            new NotificationItem
+            {
+                Type = "appointment",
+                Title = "Appointment Reminder",
+                Message = "Your appointment is coming up on Friday at 3 PM.",
+                CreatedAt = DateTime.Now.AddMinutes(-30)
+            },
+            new NotificationItem
+            {
+                Type = "incident",
+                Title = "Incident Update",
+                Message = "There is an update on the incident you reported.",
+                CreatedAt = DateTime.Now.AddHours(-2)
+            }
+        };
+    }
+
+    private string GetIcon(string type)
+    {
+        return type switch
+        {
+            "appointment" => "📅",
+            "incident" => "🚨",
+            _ => "📢"
+        };
+    }
+}

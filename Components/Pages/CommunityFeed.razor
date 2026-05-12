@@ -1,5 +1,9 @@
 @page "/app/feed"
 @layout MainLayout
+@rendermode InteractiveServer
+@inject NavigationManager Navigation
+@inject UserPostSupabaseImpl PostService
+@inject AuthService AuthService
 
 @* Community Feed Component *@
 <div class="community-feed-container">
@@ -7,10 +11,21 @@
     <div class="feed-sidebar left-sidebar">
         <div class="profile-card">
             <div class="profile-header"></div>
-            <div class="profile-avatar">[PROFILE AVATAR]</div>
-            <h3 class="profile-name">Juan Dela Cruz</h3>
-            <p class="profile-subtitle">Student at Batangas State University</p>
-            <p class="profile-location">216 Tapan St. Brgy 143</p>
+            <div class="profile-avatar">
+                <img src="/images/user_pfp_default.png" alt="Profile Picture" />
+            </div>
+            @if (currentUser != null)
+            {
+                <h3 class="profile-name">@GetFullName()</h3>
+                @if (!string.IsNullOrEmpty(currentUser.PhysicalAddress))
+                {
+                    <p class="profile-location">@currentUser.PhysicalAddress</p>
+                }
+            }
+            else
+            {
+                <p class="profile-location" style="text-align: center; color: #999;">Loading profile...</p>
+            }
         </div>
     </div>
 
@@ -19,97 +34,89 @@
         <!-- Create Post Section -->
         <div class="create-post">
             <div class="create-post-header">
-                <div class="create-avatar">[AVATAR]</div>
-                <input type="text" placeholder="Start a Post" class="create-input" />
+                <div class="create-avatar">
+                    <img src="/images/user_pfp_default.png" alt="Profile Picture" />
+                </div>
+                <input type="text"
+                       placeholder="Start a Post"
+                       class="create-input"
+                       readonly
+                       @onclick="GoToCreatePost" />
             </div>
             <div class="create-actions">
-                <button class="action-btn" @onclick="AttachMedia">📎 Attach Media</button>
-                <button class="action-btn upload-btn" @onclick="UploadMedia">☁️ Upload</button>
+                <button class="action-btn" @onclick="GoToCreatePost">📎 Attach Media</button>
+                <button class="action-btn upload-btn" @onclick="GoToCreatePost">☁️ Upload</button>
             </div>
         </div>
 
         <!-- Posts Feed -->
         <div class="posts-feed">
-            <!-- Post 1 -->
-            <div class="post">
-                <div class="post-header">
-                    <div class="post-avatar">[AVATAR]</div>
-                    <div class="post-info">
-                        <h4 class="post-author">Jose Santos <span class="verified">✓</span></h4>
-                        <span class="post-time">1h ago · 20/2/2026</span>
+            @if (posts == null)
+            {
+                <div class="loading-spinner">Loading posts...</div>
+            }
+            else if (posts.Count == 0)
+            {
+                <div class="no-posts">No posts available yet. Be the first to share!</div>
+            }
+            else
+            {
+                @foreach (var post in posts)
+                {
+                    <div class="post">
+                        <div class="post-header">
+                            <div class="post-avatar">
+                                <img src="/images/user_pfp_default.png" alt="Profile Picture" />
+                            </div>
+                            <div class="post-info">
+                                <h4 class="post-author">@post.Author</h4>
+                                <span class="post-time">@post.GetRelativeTime() · @post.CreatedAt.ToString("dd/M/yyyy")</span>
+                            </div>
+                            <button class="post-menu">⋯</button>
+                        </div>
+                        <div class="post-content">
+                            <p>@post.Description</p>
+                        </div>
+                        @if (!string.IsNullOrEmpty(post.PrimaryImageUrl))
+                        {
+                            <div class="post-image">
+                                <img src="@post.PrimaryImageUrl" alt="Post image" style="width: 100%; height: auto; display: block; max-height: 520px; object-fit: contain;" />
+                            </div>
+                        }
+                        <div class="post-stats">
+                            <button class="post-stat-btn">⭐ <span>0</span></button>
+                            <button class="post-stat-btn">💬 <span>0 Comments</span></button>
+                        </div>
                     </div>
-                    <button class="post-menu">⋯</button>
-                </div>
-                <div class="post-content">
-                    <p>Has anyone else noticed the recent increase in oil prices? Fuel costs keep going up, and it's starting to hit our daily transportation and goods in our area. I hope our barangay or local officials can share updates or possible measures to help residents manage these rising costs. What are your thoughts or experiences so far?</p>
-                </div>
-                <div class="post-image">[POST IMAGE]</div>
-                <div class="post-stats">
-                    <span>⭐ 362</span>
-                    <span>12 Comments</span>
-                </div>
-            </div>
-
-            <!-- Post 2 -->
-            <div class="post">
-                <div class="post-header">
-                    <div class="post-avatar">[AVATAR]</div>
-                    <div class="post-info">
-                        <h4 class="post-author">Jenny Manalo <span class="verified">✓</span> <span class="admin-badge">Admin</span></h4>
-                        <span class="post-time">2h ago · 20/2/2026</span>
-                    </div>
-                    <button class="post-menu">⋯</button>
-                </div>
-                <div class="post-content">
-                    <p>The barangay will be holding a community clean-up drive this Saturday morning to help keep our streets and public spaces clean. All residents are encouraged to participate and bring basic cleaning tools if possible. Let's work together to maintain a cleaner and healthier community. See you there!</p>
-                </div>
-                <div class="post-image">[POST IMAGE]</div>
-                <div class="post-stats">
-                    <span>⭐ 512</span>
-                    <span>56 Comments</span>
-                </div>
-            </div>
-
-            <!-- Post 3 -->
-            <div class="post">
-                <div class="post-header">
-                    <div class="post-avatar">[AVATAR]</div>
-                    <div class="post-info">
-                        <h4 class="post-author">Jong Batongbakal</h4>
-                        <span class="post-time">2d ago · 18/2/2026</span>
-                    </div>
-                    <button class="post-menu">⋯</button>
-                </div>
-                <div class="post-content">
-                    <p>Hi everyone, I just wanted to report that the streetlight near our block hasn't been working for the past few nights. The area gets really dark, especially for people walking home late. Hoping this can be checked by the barangay soon for safety. Thank you!</p>
-                </div>
-                <div class="post-image">[POST IMAGE]</div>
-                <div class="post-stats">
-                    <span>⭐ 145</span>
-                    <span>23 Comments</span>
-                </div>
-            </div>
+                }
+            }
         </div>
     </div>
 
     <!-- Right Sidebar - Barangay Bulletin -->
     <div class="feed-sidebar right-sidebar">
         <h3 class="bulletin-title">Barangay Bulletin</h3>
-        
+
         <div class="bulletin-item">
-            <div class="bulletin-image">[BULLETIN IMAGE]</div>
+            <div class="bulletin-image">
+                <img src="images/bulletin1.png" alt="Bulletin Image" />
+            </div>
             <h4>Welcome Barangay Assembly Day</h4>
             <p class="bulletin-date">Municipal Gymnasium</p>
         </div>
 
         <div class="bulletin-item">
-            <div class="bulletin-image">[BULLETIN IMAGE]</div>
+            <div class="bulletin-image">
+                <img src="images/bulletin2.png" alt="Bulletin Image" />
+            </div>
             <h4>Punla ng Pag-Asa Tree Planting Drive 2030</h4>
             <p class="bulletin-date">Community Event</p>
         </div>
-
+ 
         <div class="bulletin-item">
-            <div class="bulletin-image">[BULLETIN IMAGE]</div>
+            <div class="bulletin-image">
+                <img src="images/bulletin3.png" alt="Bulletin Image" />
+            </div>
             <h4>Barangay Ermita Operation Libreng Tuli</h4>
             <p class="bulletin-date">Health Program</p>
         </div>
@@ -121,11 +128,11 @@
 <style>
     .community-feed-container {
         display: grid;
-        grid-template-columns: 280px 1fr 300px;
+        grid-template-columns: 260px 1fr 280px;
         gap: 20px;
-        padding: 20px;
-        max-width: 1400px;
-        margin: 0 auto;
+        padding: 20px 96px;
+        width: 100%;
+        box-sizing: border-box;
     }
 
     .feed-sidebar {
@@ -149,119 +156,149 @@
     /* Profile Card */
     .profile-card {
         background: white;
-        border-radius: 12px;
+        border-radius: 16px;
         overflow: hidden;
-        box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+        box-shadow: 0 2px 8px rgba(0, 100, 200, 0.08);
+        border: 1px solid #e8f0ff;
     }
 
     .profile-header {
-        height: 60px;
-        background: linear-gradient(135deg, #00B4D8 0%, #0099CC 100%);
+        height: 68px;
+        background: linear-gradient(135deg, #00c6ff 0%, #0066ff 100%);
     }
 
     .profile-avatar {
         width: 80px;
         height: 80px;
-        background: #e0e0e0;
+        background: linear-gradient(135deg, #c7d7ff 0%, #a5c0ff 100%);
         border-radius: 50%;
-        margin: -40px auto 16px;
+        border: 3px solid white;
+        margin: -42px auto 14px;
         display: flex;
         align-items: center;
         justify-content: center;
-        font-size: 12px;
-        color: #999;
+        font-size: 11px;
+        font-weight: 600;
+        color: #0066ff;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.12);
+        overflow: hidden;
+    }
+
+    .profile-avatar img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
     }
 
     .profile-name {
         text-align: center;
-        font-size: 16px;
-        font-weight: 600;
-        color: #00B4D8;
+        font-size: 15px;
+        font-weight: 700;
+        color: #0052cc;
         margin: 0 0 4px 0;
     }
 
     .profile-subtitle {
         text-align: center;
         font-size: 13px;
-        color: #666;
+        color: #64748b;
         margin: 0 0 8px 0;
     }
 
     .profile-location {
         text-align: center;
         font-size: 12px;
-        color: #999;
+        color: #94a3b8;
         margin: 0 16px;
-        padding: 0 0 16px 0;
+        padding: 0 0 18px 0;
     }
 
     /* Create Post */
     .create-post {
         background: white;
-        border-radius: 12px;
-        padding: 16px;
+        border-radius: 16px;
+        padding: 16px 18px;
         margin-bottom: 16px;
-        box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+        box-shadow: 0 2px 8px rgba(0, 100, 200, 0.07);
+        border: 1px solid #e8f0ff;
     }
 
     .create-post-header {
         display: flex;
         gap: 12px;
         margin-bottom: 12px;
+        align-items: center;
     }
 
     .create-avatar {
         width: 40px;
         height: 40px;
-        background: #e0e0e0;
+        background: linear-gradient(135deg, #c7d7ff 0%, #a5c0ff 100%);
         border-radius: 50%;
         display: flex;
         align-items: center;
         justify-content: center;
         font-size: 10px;
-        color: #999;
+        font-weight: 600;
+        color: #0066ff;
         flex-shrink: 0;
+        overflow: hidden;
+    }
+    .create-avatar img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+        border-radius: 50%;
     }
 
     .create-input {
         flex: 1;
-        border: 1px solid #e0e0e0;
-        border-radius: 20px;
-        padding: 10px 16px;
+        border: 1.5px solid #e2e8f0;
+        border-radius: 24px;
+        padding: 10px 18px;
         font-size: 14px;
-        color: #666;
+        color: #94a3b8;
+        cursor: pointer;
+        background-color: #f8fafc;
+        transition: border-color 0.15s, background 0.15s;
+        font-family: inherit;
+        outline: none;
     }
 
-    .create-input::placeholder {
-        color: #999;
+    .create-input:hover {
+        background-color: #eff5ff;
+        border-color: #c7d7ff;
     }
+
+    .create-input::placeholder { color: #94a3b8; }
 
     .create-actions {
         display: flex;
         gap: 8px;
         padding-top: 12px;
-        border-top: 1px solid #f0f0f0;
+        border-top: 1px solid #f0f4ff;
     }
 
     .action-btn {
         flex: 1;
-        border: none;
-        background: transparent;
-        color: #00B4D8;
-        padding: 8px;
-        border-radius: 6px;
+        border: 1.5px solid #e2e8f0;
+        background: #f8fafc;
+        color: #0066ff;
+        padding: 8px 12px;
+        border-radius: 10px;
         cursor: pointer;
         font-size: 13px;
-        transition: background 0.2s;
+        font-weight: 600;
+        transition: background 0.15s, border-color 0.15s;
+        font-family: inherit;
     }
 
     .action-btn:hover {
-        background: #f5f5f5;
+        background: #eff5ff;
+        border-color: #c7d7ff;
     }
 
-    .upload-btn {
-        background: #f0f0f0;
-    }
+    .upload-btn { background: #f0f4ff; }
 
     /* Posts Feed */
     .posts-feed {
@@ -270,11 +307,22 @@
         gap: 16px;
     }
 
-    .post {
+    .feed-message {
         background: white;
         border-radius: 12px;
-        padding: 16px;
+        padding: 32px 16px;
+        text-align: center;
+        color: #999;
+        font-size: 14px;
         box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+    }
+
+    .post {
+        background: white;
+        border-radius: 16px;
+        padding: 18px;
+        box-shadow: 0 2px 8px rgba(0, 100, 200, 0.07);
+        border: 1px solid #e8f0ff;
     }
 
     .post-header {
@@ -285,152 +333,211 @@
     }
 
     .post-avatar {
-        width: 40px;
-        height: 40px;
-        background: #e0e0e0;
+        width: 42px;
+        height: 42px;
+        background: linear-gradient(135deg, #00c6ff 0%, #0066ff 100%);
         border-radius: 50%;
         display: flex;
         align-items: center;
         justify-content: center;
-        font-size: 10px;
-        color: #999;
+        font-size: 11px;
+        font-weight: 700;
+        color: white;
         flex-shrink: 0;
+        overflow: hidden;
     }
+    .post-avatar img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+        border-radius: 50%;
+    }
+    
 
-    .post-info {
-        flex: 1;
-    }
+    .post-info { flex: 1; }
 
     .post-author {
         font-size: 14px;
-        font-weight: 600;
-        color: #333;
+        font-weight: 700;
+        color: #1e293b;
         margin: 0 0 2px 0;
     }
 
-    .verified {
-        color: #00B4D8;
-        font-size: 12px;
-    }
+    .verified { color: #0099ff; font-size: 12px; }
 
     .admin-badge {
-        background: #00B4D8;
+        background: linear-gradient(90deg, #00c6ff, #0066ff);
         color: white;
+        padding: 2px 7px;
+        border-radius: 5px;
+        font-size: 11px;
+        font-weight: 700;
+        margin-left: 5px;
+    }
+
+    .unverified-badge {
+        background: #fffbeb;
+        color: #92400e;
+        border: 1px solid #fcd34d;
         padding: 2px 6px;
-        border-radius: 4px;
+        border-radius: 5px;
         font-size: 11px;
         font-weight: 600;
-        margin-left: 4px;
+        margin-left: 5px;
     }
 
     .post-time {
         font-size: 12px;
-        color: #999;
+        color: #94a3b8;
     }
 
     .post-menu {
         background: none;
         border: none;
-        font-size: 16px;
+        font-size: 18px;
         cursor: pointer;
-        color: #999;
+        color: #94a3b8;
+        padding: 4px 8px;
+        border-radius: 8px;
+        transition: background 0.15s, color 0.15s;
+        line-height: 1;
     }
+
+    .post-menu:hover { background: #f0f4ff; color: #0066ff; }
 
     .post-content {
         font-size: 14px;
-        line-height: 1.5;
-        color: #333;
-        margin-bottom: 12px;
+        line-height: 1.65;
+        color: #334155;
+        margin-bottom: 14px;
     }
 
     .post-image {
         width: 100%;
-        height: 200px;
-        background: #f0f0f0;
-        border-radius: 8px;
-        margin-bottom: 12px;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        color: #999;
-        font-size: 12px;
+        border-radius: 10px;
+        margin-bottom: 14px;
+        overflow: hidden;
+        background: #f0f4ff;
+        border: 1px solid #e8f0ff;
     }
 
     .post-stats {
         display: flex;
-        gap: 16px;
+        gap: 4px;
+        padding-top: 10px;
+        border-top: 1px solid #f0f4ff;
+    }
+
+    .post-stat-btn {
+        display: flex;
+        align-items: center;
+        gap: 5px;
+        background: none;
+        border: none;
+        color: #64748b;
         font-size: 13px;
-        color: #666;
-        padding-top: 8px;
-        border-top: 1px solid #f0f0f0;
+        font-weight: 500;
+        padding: 5px 10px;
+        border-radius: 8px;
+        cursor: pointer;
+        transition: background 0.15s, color 0.15s;
+        font-family: inherit;
+    }
+
+    .post-stat-btn:hover { background: #f0f4ff; color: #0066ff; }
+
+    /* Loading and empty states */
+    .loading-spinner {
+        text-align: center;
+        padding: 40px 20px;
+        color: #999;
+        font-size: 14px;
+    }
+
+    .no-posts {
+        text-align: center;
+        padding: 40px 20px;
+        color: #999;
+        font-size: 14px;
+        background: white;
+        border-radius: 12px;
+        box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
     }
 
     /* Bulletin */
     .bulletin-title {
-        font-size: 16px;
-        font-weight: 600;
-        color: #333;
-        margin: 0 0 16px 0;
+        font-size: 15px;
+        font-weight: 700;
+        color: #1e293b;
+        margin: 0 0 14px 0;
+        padding-left: 2px;
     }
 
     .bulletin-item {
         background: white;
-        border-radius: 8px;
+        border-radius: 12px;
         overflow: hidden;
         margin-bottom: 12px;
-        box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+        box-shadow: 0 2px 6px rgba(0, 100, 200, 0.07);
+        border: 1px solid #e8f0ff;
     }
 
     .bulletin-image {
         width: 100%;
-        height: 120px;
-        background: #e0e0e0;
+        height: 110px;
+        background: linear-gradient(135deg, #e8f0ff 0%, #dbeafe 100%);
         display: flex;
         align-items: center;
         justify-content: center;
-        color: #999;
+        color: #94a3b8;
         font-size: 11px;
+    }
+
+    .bulletin-image img {
+        width: 100%;
+        height: 100%;
+        object-fit: contain;
     }
 
     .bulletin-item h4 {
         font-size: 13px;
-        font-weight: 600;
-        color: #333;
-        padding: 8px 12px 4px 12px;
+        font-weight: 700;
+        color: #1e293b;
+        padding: 10px 12px 3px 12px;
         margin: 0;
+        line-height: 1.4;
     }
 
     .bulletin-date {
         font-size: 11px;
-        color: #999;
+        color: #94a3b8;
         padding: 0 12px 12px 12px;
         margin: 0;
     }
 
     .see-all-btn {
         width: 100%;
-        background: #00B4D8;
+        background: linear-gradient(90deg, #00c6ff, #0066ff);
         color: white;
         border: none;
-        padding: 10px;
-        border-radius: 6px;
+        padding: 11px;
+        border-radius: 10px;
         font-size: 13px;
-        font-weight: 600;
+        font-weight: 700;
         cursor: pointer;
-        margin-top: 12px;
-        transition: background 0.2s;
+        margin-top: 4px;
+        transition: opacity 0.2s, transform 0.15s;
+        font-family: inherit;
     }
 
-    .see-all-btn:hover {
-        background: #0088AA;
-    }
+    .see-all-btn:hover { opacity: 0.9; transform: translateY(-1px); }
 
     /* Responsive */
     @@media (max-width: 1200px) {
         .community-feed-container {
             grid-template-columns: 1fr 300px;
         }
-        
+
         .left-sidebar {
             display: none;
         }
@@ -442,7 +549,7 @@
             gap: 12px;
             padding: 12px;
         }
-        
+
         .right-sidebar {
             display: none;
         }
@@ -454,17 +561,43 @@
 </style>
 
 @code {
-    private async Task AttachMedia()
+    private List<CommunityPostViewModel>? posts;
+    private UserProfile? currentUser;
+
+    protected override async Task OnInitializedAsync()
     {
-        // Placeholder for attaching media functionality
-        Console.WriteLine("Attach Media clicked");
-        await Task.CompletedTask;
+        try
+        {
+            // Fetch current user profile
+            if (AuthService.IsAuthenticated && AuthService.UserEmail != null)
+            {
+                currentUser = await PostService.GetUserByEmailAsync(AuthService.UserEmail);
+            }
+
+            // Fetch community posts
+            posts = await PostService.GetApprovedPostsWithAuthorsAsync();
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Error loading data: {ex.Message}");
+            posts = new List<CommunityPostViewModel>();
+        }
     }
 
-    private async Task UploadMedia()
+    private string GetFullName()
     {
-        // Placeholder for uploading media functionality
-        Console.WriteLine("Upload Media clicked");
-        await Task.CompletedTask;
+        if (currentUser == null)
+            return "Unknown User";
+
+        var nameParts = new[] { currentUser.FirstName, currentUser.MiddleName, currentUser.LastName }
+            .Where(s => !string.IsNullOrWhiteSpace(s))
+            .ToList();
+
+        return string.Join(" ", nameParts);
+    }
+
+    private void GoToCreatePost()
+    {
+        Navigation.NavigateTo("/app/make-post");
     }
 }

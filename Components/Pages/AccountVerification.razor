@@ -1,0 +1,339 @@
+@page "/user/verify"
+@rendermode InteractiveServer
+@layout MainLayout
+@using CBOS.Models
+@using CBOS.Services
+@using CBOS.Components.Services
+@using Microsoft.AspNetCore.Components.Forms
+@inject VerificationService VerificationSvc
+@inject AuthService AuthSvc
+@inject NavigationManager Nav
+
+<PageTitle>Account Verification – CBOS</PageTitle>
+
+<div class="verify-container">
+    <img src="/images/city-bg.png" class="verify-city-bg" alt="" />
+    <div class="verify-overlay"></div>
+
+    <div class="verify-card">
+
+        <button class="back-btn" @onclick="GoBack" title="Go back">
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none"
+                 stroke="currentColor" stroke-width="2.5"
+                 stroke-linecap="round" stroke-linejoin="round">
+                <path d="M19 12H5M12 5l-7 7 7 7"/>
+            </svg>
+        </button>
+
+        @* ── Left Panel ── *@
+        <div class="left-panel">
+            <img class="cbos-logo"
+                 src="@VerificationLogoPath"
+                 alt="CBOS Logo"
+                 onerror="this.onerror=null;this.src='/favicon.png';" />
+
+            <h1 class="verify-title">Account<br/>Verification</h1>
+
+            <p class="verify-subtitle">
+                Submit your verification request to access full services in
+                your barangay. Our team will review your documents and
+                notify you within 2–3 business days.
+            </p>
+
+            <p class="left-footer-note">
+                Please fill in all required fields<br/>
+                and upload necessary documents.
+            </p>
+        </div>
+
+        @* ── Right Panel ── *@
+        <div class="right-panel">
+            <h2 class="docs-heading">Required Documents</h2>
+
+            <div class="doc-block">
+                <span class="doc-label">Valid ID</span>
+                <span class="doc-sublabel">
+                    Government-issued ID (Driver's License, Passport, PhilID, etc.)
+                </span>
+                <div class="drop-zone @(_validIdFile != null ? "has-file" : "")"
+                     @ondragover:preventDefault
+                     @ondrop:preventDefault
+                     @onclick="TriggerValidIdPicker">
+
+                    @if (_validIdFile == null)
+                    {
+                        <svg class="upload-icon" viewBox="0 0 24 24" fill="none"
+                             stroke="currentColor" stroke-width="1.6"
+                             stroke-linecap="round" stroke-linejoin="round">
+                            <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+                            <polyline points="17 8 12 3 7 8"/>
+                            <line x1="12" y1="3" x2="12" y2="15"/>
+                        </svg>
+                        <span class="drop-text">Drop your file here, or browse file <br/><em>Supports: JPG, PNG, PDF (Max 10MB)</em></span>
+                    }
+                    else
+                    {
+                        <svg class="upload-icon" viewBox="0 0 24 24" fill="none"
+                             stroke="currentColor" stroke-width="2"
+                             stroke-linecap="round" stroke-linejoin="round">
+                            <polyline points="20 6 9 17 4 12"/>
+                        </svg>
+                        <span class="drop-text">@_validIdFile.Name</span>
+                    }
+
+                    <InputFile id="valid-id-input"
+                               class="file-input-hidden"
+                               accept=".jpg,.jpeg,.png,.pdf"
+                               OnChange="OnValidIdSelected"
+                               @ref="_validIdInput"/>
+                </div>
+            </div>
+
+            <hr class="divider"/>
+
+            <div class="doc-block">
+                <span class="doc-label">Birth Certificate</span>
+                <span class="doc-sublabel">PSA-issued Birth Certificate</span>
+                <div class="drop-zone @(_birthCertFile != null ? "has-file" : "")"
+                     @ondragover:preventDefault
+                     @ondrop:preventDefault
+                     @onclick="TriggerBirthCertPicker">
+
+                    @if (_birthCertFile == null)
+                    {
+                        <svg class="upload-icon" viewBox="0 0 24 24" fill="none"
+                             stroke="currentColor" stroke-width="1.6"
+                             stroke-linecap="round" stroke-linejoin="round">
+                            <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+                            <polyline points="17 8 12 3 7 8"/>
+                            <line x1="12" y1="3" x2="12" y2="15"/>
+                        </svg>
+                        <span class="drop-text">Drop your file here, or browse file <br/><em>Supports: JPG, PNG, PDF (Max 10MB)</em></span>
+                    }
+                    else
+                    {
+                        <svg class="upload-icon" viewBox="0 0 24 24" fill="none"
+                             stroke="currentColor" stroke-width="2"
+                             stroke-linecap="round" stroke-linejoin="round">
+                            <polyline points="20 6 9 17 4 12"/>
+                        </svg>
+                        <span class="drop-text">@_birthCertFile.Name</span>
+                    }
+
+                    <InputFile id="birth-cert-input"
+                               class="file-input-hidden"
+                               accept=".jpg,.jpeg,.png,.pdf"
+                               OnChange="OnBirthCertSelected"
+                               @ref="_birthCertInput"/>
+                </div>
+            </div>
+
+            <div class="submit-row">
+                @if (!_isSubmitting && !HasAllRequiredFiles)
+                {
+                    <span class="file-status">Please upload both required files first.</span>
+                }
+                <button class="submit-btn"
+                        @onclick="SubmitVerificationRequest"
+                        disabled="@_isSubmitting">
+                    @if (_isSubmitting)
+                    {
+                        <span class="spinner"></span>
+                        <span>&nbsp;Submitting…</span>
+                    }
+                    else
+                    {
+                        <span>Submit Verification Request</span>
+                    }
+                </button>
+            </div>
+        </div>
+
+    </div>
+</div>
+
+@if (_showToast)
+{
+    <div class="toast-overlay">
+        <div class="toast @_toastType">
+            @if (_toastType == "success")
+            {
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none"
+                     stroke="currentColor" stroke-width="2.5"
+                     stroke-linecap="round" stroke-linejoin="round">
+                    <polyline points="20 6 9 17 4 12"/>
+                </svg>
+            }
+            else
+            {
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none"
+                     stroke="currentColor" stroke-width="2.5"
+                     stroke-linecap="round" stroke-linejoin="round">
+                    <circle cx="12" cy="12" r="10"/>
+                    <line x1="12" y1="8" x2="12" y2="12"/>
+                    <line x1="12" y1="16" x2="12.01" y2="16"/>
+                </svg>
+            }
+            @_toastMessage
+        </div>
+    </div>
+}
+
+@code {
+    private IBrowserFile? _validIdFile;
+    private IBrowserFile? _birthCertFile;
+
+    private InputFile? _validIdInput;
+    private InputFile? _birthCertInput;
+
+    private bool   _isSubmitting = false;
+    private bool   _showToast    = false;
+    private string _toastMessage = string.Empty;
+    private string _toastType    = "info";
+    private bool HasAllRequiredFiles => _validIdFile != null && _birthCertFile != null;
+
+    private string CurrentUserId      => AuthSvc.CurrentSession?.User?.Id ?? string.Empty;
+    private string CurrentUserEmail   => AuthSvc.UserEmail ?? string.Empty;
+    private string CurrentUserName    => !string.IsNullOrWhiteSpace(AuthSvc.FirstName)
+        ? AuthSvc.FirstName
+        : (!string.IsNullOrWhiteSpace(CurrentUserEmail)
+            ? CurrentUserEmail.Split('@')[0]
+            : "User");
+    private string CurrentAccessToken => AuthSvc.CurrentSession?.AccessToken ?? string.Empty;
+
+    private const string VerificationLogoPath = "/images/cbos-logo-blue.png";
+
+    private void OnValidIdSelected(InputFileChangeEventArgs e)
+    {
+        _validIdFile = e.File;
+        StateHasChanged();
+    }
+
+    private void OnBirthCertSelected(InputFileChangeEventArgs e)
+    {
+        _birthCertFile = e.File;
+        StateHasChanged();
+    }
+
+    private void TriggerValidIdPicker()    { }
+    private void TriggerBirthCertPicker() { }
+
+    private async Task SubmitVerificationRequest()
+    {
+        if (!AuthSvc.IsAuthenticated)
+        {
+            ShowToast("Please sign in before submitting verification.", "error");
+            Nav.NavigateTo("/login");
+            return;
+        }
+
+        if (string.IsNullOrWhiteSpace(CurrentUserId) || string.IsNullOrWhiteSpace(CurrentUserEmail))
+        {
+            ShowToast("No user identity available for upload.", "error");
+            return;
+        }
+
+        if (string.IsNullOrWhiteSpace(CurrentAccessToken))
+        {
+            ShowToast("Your session expired. Please sign in again.", "error");
+            Nav.NavigateTo("/login");
+            return;
+        }
+
+        if (!HasAllRequiredFiles)
+        {
+            ShowToast("Please upload all necessary documents.", "error");
+            return;
+        }
+
+        var validIdFile    = _validIdFile!;
+        var birthCertFile  = _birthCertFile!;
+
+        _isSubmitting = true;
+        StateHasChanged();
+
+        try
+        {
+            var userProfileId = await VerificationSvc.GetUserProfileIdAsync(CurrentUserEmail, CurrentAccessToken);
+            if (userProfileId == null || userProfileId <= 0)
+            {
+                ShowToast("Could not find your profile record. Please contact support.", "error");
+                return;
+            }
+
+            ShowToast("Uploading Valid ID…", "info");
+            var validIdUrl = await VerificationSvc.UploadFileAsync(
+                validIdFile, "valid-id", CurrentUserId, CurrentAccessToken);
+
+            if (validIdUrl == null)
+            {
+                ShowToast("Failed to upload Valid ID. Please try again.", "error");
+                return;
+            }
+
+            ShowToast("Uploading Birth Certificate…", "info");
+            var birthCertUrl = await VerificationSvc.UploadFileAsync(
+                birthCertFile, "birth-certificate", CurrentUserId, CurrentAccessToken);
+
+            if (birthCertUrl == null)
+            {
+                ShowToast("Failed to upload Birth Certificate. Please try again.", "error");
+                return;
+            }
+
+            var ticket = new VerificationTicket
+            {
+                UserId              = userProfileId.Value,
+                UserEmail           = CurrentUserEmail,
+                UserFullName        = CurrentUserName,
+                ValidIdUrl          = validIdUrl,
+                BirthCertificateUrl = birthCertUrl,
+                CreatedDate         = DateTime.UtcNow,
+                IsApproved          = null,
+                ApprovedDate        = null,
+                ApprovedBy          = null,
+                Status              = "Pending"
+            };
+
+            var success = await VerificationSvc.CreateTicketAsync(ticket, CurrentAccessToken);
+
+            if (success)
+            {
+                ShowToast("Verification request submitted!", "success");
+                await Task.Delay(2800);
+                Nav.NavigateTo("/app/profile");
+            }
+            else
+            {
+                ShowToast("Something went wrong. Please try again later.", "error");
+            }
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"[AccountVerification] Unhandled error: {ex.Message}");
+            ShowToast("An unexpected error occurred. Please try again.", "error");
+        }
+        finally
+        {
+            _isSubmitting = false;
+            StateHasChanged();
+        }
+    }
+
+    private void GoBack() => Nav.NavigateTo("/app/profile");
+
+    private void ShowToast(string message, string type)
+    {
+        _toastMessage = message;
+        _toastType    = type;
+        _showToast    = true;
+        StateHasChanged();
+
+        _ = Task.Run(async () =>
+        {
+            await Task.Delay(4000);
+            _showToast = false;
+            await InvokeAsync(StateHasChanged);
+        });
+    }
+}

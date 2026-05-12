@@ -1,5 +1,7 @@
 @page "/app/incidents"
 @layout MainLayout
+@rendermode InteractiveServer
+@inject UserPostSupabaseImpl Service
 
 <div class="services-container">
     <div class="services-main">
@@ -12,34 +14,34 @@
                 <a href="#" class="see-all-link">See all Reports</a>
             </div>
             <div class="reports-list">
-                <div class="report-item">
-                    <div class="report-info">
-                        <h3>Uncollected garbage</h3>
-                        <div class="report-meta">
-                            <span class="badge badge-complaint">Complaint</span>
-                            <span class="report-label">Type:</span>
+                @if (reports == null)
+                {
+                    <div style="padding: 16px; color: #999;">Loading reports...</div>
+                }
+                else if (reports.Count == 0)
+                {
+                    <div style="padding: 16px; color: #999;">No reports available.</div>
+                }
+                else
+                {
+                    @foreach (var report in reports)
+                    {
+                        <div class="report-item">
+                            <div class="report-info">
+                                <h3>@report.Title</h3>
+                                <div class="report-meta">
+                                    <span class="report-label">Type:</span>
+                                    <span class="badge @GetCategoryBadgeClass(report.Category)">@report.Category</span>
+                                </div>
+                            </div>
+                            <div class="report-status">
+                                <span class="report-label">Status:</span>
+                                <span class="status-badge @GetStatusBadgeClass(report.GetStatusBadge())">@report.GetStatusBadge()</span>
+                                <button class="expand-btn">▶</button>
+                            </div>
                         </div>
-                    </div>
-                    <div class="report-status">
-                        <span class="report-label">Status:</span>
-                        <span class="status-badge status-pending">Pending</span>
-                        <button class="expand-btn">▶</button>
-                    </div>
-                </div>
-                <div class="report-item">
-                    <div class="report-info">
-                        <h3>Street Brawl at Lopez St.</h3>
-                        <div class="report-meta">
-                            <span class="badge badge-emergency">Emergency</span>
-                            <span class="report-label">Type:</span>
-                        </div>
-                    </div>
-                    <div class="report-status">
-                        <span class="report-label">Status:</span>
-                        <span class="status-badge status-responded">Responded</span>
-                        <button class="expand-btn">▶</button>
-                    </div>
-                </div>
+                    }
+                }
             </div>
         </div>
 
@@ -50,24 +52,29 @@
                 <a href="#" class="see-all-link">See all Appointments</a>
             </div>
             <div class="appointments-list">
-                <div class="appointment-item">
-                    <div class="appointment-info">
-                        <h3>November 24, 2024 - Complaint Hearing</h3>
-                    </div>
-                    <div class="appointment-status">
-                        <span class="status-badge status-approved">Approved</span>
-                        <button class="expand-btn">▶</button>
-                    </div>
-                </div>
-                <div class="appointment-item">
-                    <div class="appointment-info">
-                        <h3>November 17, 2024 - Complaint Hearing</h3>
-                    </div>
-                    <div class="appointment-status">
-                        <span class="status-badge status-reschedule">Reschedule</span>
-                        <button class="expand-btn">▶</button>
-                    </div>
-                </div>
+                @if (appointments == null)
+                {
+                    <div style="padding: 16px; color: #999;">Loading appointments...</div>
+                }
+                else if (appointments.Count == 0)
+                {
+                    <div style="padding: 16px; color: #999;">No appointments available.</div>
+                }
+                else
+                {
+                    @foreach (var appointment in appointments)
+                    {
+                        <div class="appointment-item">
+                            <div class="appointment-info">
+                                <h3>@appointment.Title</h3>
+                            </div>
+                            <div class="appointment-status">
+                                <span class="status-badge @GetStatusBadgeClass(appointment.GetStatusBadge())">@appointment.GetStatusBadge()</span>
+                                <button class="expand-btn">▶</button>
+                            </div>
+                        </div>
+                    }
+                }
             </div>
         </div>
 
@@ -78,15 +85,29 @@
                 <a href="#" class="see-all-link">See all Posts</a>
             </div>
             <div class="posts-list">
-                <div class="post-item">
-                    <div class="post-info">
-                        <h3>Missing Orange Cat</h3>
-                    </div>
-                    <div class="post-status">
-                        <span class="status-badge status-urgent">Urgent</span>
-                        <button class="expand-btn">▶</button>
-                    </div>
-                </div>
+                @if (posts == null)
+                {
+                    <div style="padding: 16px; color: #999;">Loading posts...</div>
+                }
+                else if (posts.Count == 0)
+                {
+                    <div style="padding: 16px; color: #999;">No posts available.</div>
+                }
+                else
+                {
+                    @foreach (var post in posts)
+                    {
+                        <div class="post-item">
+                            <div class="post-info">
+                                <h3>@post.Title</h3>
+                            </div>
+                            <div class="post-status">
+                                <span class="status-badge @GetStatusBadgeClass(post.GetStatusBadge())">@post.GetStatusBadge()</span>
+                                <button class="expand-btn">▶</button>
+                            </div>
+                        </div>
+                    }
+                }
             </div>
         </div>
     </div>
@@ -96,7 +117,9 @@
         <!-- Hotlines Card -->
         <div class="sidebar-card hotlines-card">
             <h3 class="sidebar-title">Hotlines</h3>
-            <div class="hotlines-image">[HOTLINES IMAGE]</div>
+            <div class="hotlines-image">
+                <img src="images/Hotline.png" alt="Hotlines" />
+            </div>
         </div>
 
         <!-- Available Services Card -->
@@ -378,8 +401,12 @@
     display: flex;
     align-items: center;
     justify-content: center;
-    color: white;
-    font-size: 0.9rem;
+    overflow: hidden;
+}
+.hotlines-image img {
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
 }
 
 .services-list-sidebar {
@@ -441,3 +468,52 @@
     }
 }
 </style>
+
+@code {
+    private List<ReportViewModel>? reports;
+    private List<AppointmentViewModel>? appointments;
+    private List<PostViewModel>? posts;
+
+    protected override async Task OnInitializedAsync()
+    {
+        try
+        {
+            reports = await Service.GetReportsAsync();
+            appointments = await Service.GetAppointmentsAsync();
+            posts = await Service.GetPostsAsync();
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Error loading incident data: {ex.Message}");
+            reports = new List<ReportViewModel>();
+            appointments = new List<AppointmentViewModel>();
+            posts = new List<PostViewModel>();
+        }
+    }
+
+    private string GetStatusBadgeClass(string status)
+    {
+        return status switch
+        {
+            "Pending" => "status-pending",
+            "Responded" => "status-responded",
+            "Resolved" => "status-approved",
+            "Approved" => "status-approved",
+            "Completed" => "status-approved",
+            "Upcoming" => "status-reschedule",
+            "Urgent" => "status-urgent",
+            "Active" => "status-responded",
+            _ => "status-pending"
+        };
+    }
+
+    private string GetCategoryBadgeClass(string category)
+    {
+        return category switch
+        {
+            "Complaint" or "complaint" => "badge-complaint",
+            "Emergency" or "emergency" => "badge-emergency",
+            _ => "badge-complaint"
+        };
+    }
+}

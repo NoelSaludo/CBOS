@@ -1,0 +1,166 @@
+@rendermode InteractiveServer
+@implements IDisposable
+
+@using Microsoft.AspNetCore.Components.Server.ProtectedBrowserStorage
+@using CBOS.Components.Shared
+
+@inject ProtectedSessionStorage ProtectedSessionStorage
+@inject AdminSupabase AdminSupabase
+@inject ILogger<AdminTopbar> Logger
+@inject NavigationManager Navigation
+
+<header class="topbar">
+    <div class="topbar-left">
+        <span class="topbar-brand">CBOS Admin Workspace</span>
+        <div class="search-container">
+            <span class="search-icon">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <circle cx="11" cy="11" r="8"></circle>
+                    <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+                </svg>
+            </span>
+            <input type="text" class="search-input" placeholder="Search records, residents, or reports..." />
+        </div>
+    </div>
+    <div class="topbar-actions">
+        <div class="topbar-datetime">@TopbarDateTimeText</div>
+        <div class="notification-bell">
+            <span class="bell-icon">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"></path>
+                    <path d="M13.73 21a2 2 0 0 1-3.46 0"></path>
+                </svg>
+            </span>
+            <span class="bell-dot"></span>
+        </div>
+        <div class="admin-profile @(isProfileDropdownOpen ? "dropdown-open" : "")" @onclick="ToggleProfileDropdown" @onclick:stopPropagation>
+            <div class="profile-text">
+                <span class="profile-name">@adminFullName</span>
+                <span class="profile-role">BARANGAY ADMIN</span>
+            </div>
+            <div class="profile-avatar-container">
+                <div class="profile-initials-avatar">
+                    @GetInitials(adminFullName)
+                </div>
+                <div class="status-indicator"></div>
+            </div>
+
+            @if (isProfileDropdownOpen)
+            {
+                <div class="profile-dropdown">
+                    <div class="dropdown-header">
+                        <span class="dropdown-title">Account</span>
+                    </div>
+                    <div class="dropdown-items">
+                        <button class="dropdown-item" @onclick="NavigateToSettings">
+                            <span class="item-icon">
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                    <circle cx="12" cy="12" r="3"></circle>
+                                    <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path>
+                                </svg>
+                            </span>
+                            <span class="item-text">Settings</span>
+                        </button>
+                        <div class="dropdown-divider"></div>
+                        <button class="dropdown-item logout-item" @onclick="HandleLogout">
+                            <span class="item-icon">
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                    <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path>
+                                    <polyline points="16 17 21 12 16 7"></polyline>
+                                    <line x1="21" y1="12" x2="9" y2="12"></line>
+                                </svg>
+                            </span>
+                            <span class="item-text">Logout</span>
+                        </button>
+                    </div>
+                </div>
+            }
+        </div>
+    </div>
+</header>
+
+@code {
+    private DateTime _currentDateTime = DateTime.Now;
+    private System.Timers.Timer? _clockTimer;
+    private string adminFullName = "Official Name";
+    private bool isProfileDropdownOpen = false;
+
+    private void ToggleProfileDropdown() => isProfileDropdownOpen = !isProfileDropdownOpen;
+
+    private void NavigateToSettings()
+    {
+        isProfileDropdownOpen = false;
+        Navigation.NavigateTo("/admin/settings");
+    }
+
+    private async Task HandleLogout()
+    {
+        isProfileDropdownOpen = false;
+        await ProtectedSessionStorage.DeleteAsync("adminSessionKey");
+        Navigation.NavigateTo("/Admin/Login");
+    }
+
+    private string TopbarDateTimeText => _currentDateTime.ToString("dddd, MMMM dd, yyyy | hh:mm:ss tt");
+
+    private string GetInitials(string name)
+    {
+        if (string.IsNullOrWhiteSpace(name) || name == "Official Name") return "A";
+        
+        var parts = name.Split(' ', StringSplitOptions.RemoveEmptyEntries);
+        if (parts.Length == 0) return "A";
+        
+        return parts[0][0].ToString().ToUpper();
+    }
+
+    protected override void OnInitialized()
+    {
+        _clockTimer = new System.Timers.Timer(1000);
+        _clockTimer.AutoReset = true;
+        _clockTimer.Elapsed += OnClockTick;
+        _clockTimer.Start();
+    }
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender)
+        {
+            try
+            {
+                var result = await ProtectedSessionStorage.GetAsync<string>("adminSessionKey");
+
+                if (result.Success && !string.IsNullOrWhiteSpace(result.Value))
+                {
+                    var admin = await AdminSupabase.GetAdminBySessionKey(result.Value);
+                    if (admin != null)
+                    {
+                        var fullName = admin.GetName();
+                        if (!string.IsNullOrWhiteSpace(fullName))
+                        {
+                            adminFullName = System.Text.RegularExpressions.Regex.Replace(fullName, @"\s+", " ").Trim();
+                            StateHasChanged();
+                        }
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                Logger.LogError(ex, "Error fetching admin name for Topbar.");
+            }
+        }
+    }
+
+    private void OnClockTick(object? sender, System.Timers.ElapsedEventArgs e)
+    {
+        _currentDateTime = DateTime.Now;
+        _ = InvokeAsync(StateHasChanged);
+    }
+
+    public void Dispose()
+    {
+        if (_clockTimer is null) return;
+
+        _clockTimer.Elapsed -= OnClockTick;
+        _clockTimer.Stop();
+        _clockTimer.Dispose();
+    }
+}

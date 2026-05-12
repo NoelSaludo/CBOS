@@ -1,7 +1,9 @@
+using CBOS.Components.Model;
 using Supabase.Postgrest.Attributes;
 using Supabase.Postgrest.Models;
+using static Supabase.Postgrest.Constants;
 
-namespace CBOS.Components.Pages.Admin;
+namespace CBOS.Components.Shared;
 
 public enum AdminSupabaseCode
 {
@@ -24,19 +26,14 @@ public struct AdminLoginResult
     }
 }
 // handles all supabase related operations for admin login and authentication
-public class AdminSupabase {
+public class AdminSupabase : ISupabase {
     
     private readonly ILogger<AdminSupabase> logger;
-    private readonly Supabase.Client supabase;
-    public AdminSupabase(Supabase.Client supabase,ILogger<AdminSupabase> logger) {
-        this.supabase = supabase;
+    private Admin currentAdmin;
+    public AdminSupabase(Supabase.Client supabase,ILogger<AdminSupabase> logger) : base(supabase) {
         this.logger = logger;
      }
 
-    public async Task SignUp(Model.Admin admin)
-    {
-        await supabase.From<Model.Admin>().Insert(admin);
-    }
     public async Task<bool> CheckSessionKey(string sessionKey)
     {
         var session = await supabase.From<AdminSession>()
@@ -45,13 +42,38 @@ public class AdminSupabase {
         return session != null;
     }
 
+    /// <summary>
+    /// Retrieves the admin user associated with a given session key.
+    /// The session key format is a 24-character base64 string followed by the verification number.
+    /// </summary>
+    public async Task<Model.Admin?> GetAdminBySessionKey(string sessionKey)
+    {
+        if (string.IsNullOrEmpty(sessionKey) || sessionKey.Length <= 24)
+            return null;
+
+        try
+        {
+            string verificationNumber = sessionKey.Substring(24);
+            var admin = await supabase.From<Model.Admin>()
+                .Filter("verification_number", Operator.Equals, verificationNumber)
+                .Single();
+                
+            return admin;
+        }
+        catch (Exception ex)
+        {
+            logger.LogError(ex, "Failed to retrieve admin for session key.");
+            return null;
+        }
+    }
+
     public async Task DeleteSession(string sessionKey)
     {
         await supabase.From<AdminSession>()
             .Where(s => s.SessonKey == sessionKey)
             .Delete();
     }
-    public async Task<AdminLoginResult> Login(string verificationNumber, string password)
+    public async Task<AdminLoginResult> LoginAndSetCurrentAdmin(string verificationNumber, string password)
     {
         AdminLoginResult result= new AdminLoginResult();
         
@@ -73,6 +95,8 @@ public class AdminSupabase {
                     expirationAt = DateTime.UtcNow.AddHours(1)
                 });
 
+                this.currentAdmin = admin;
+
                 return result;
             }
             result.Code = AdminSupabaseCode.InvalidCredentials;
@@ -92,6 +116,12 @@ public class AdminSupabase {
         // Clear the session from the database
         // This would typically find the current session and delete it
         logger.LogInformation("User logged out");
+        this.currentAdmin = null;
+    }
+
+    public long GetCurrentAdminId()
+    {
+        return currentAdmin?.Id ?? 0;
     }
 }
 

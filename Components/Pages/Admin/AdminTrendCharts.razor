@@ -1,0 +1,157 @@
+@using CBOS.Components.Model
+@using ApexCharts
+
+<div class="dashboard-grid-2">
+    <div class="architectural-card line-chart-card">
+        <div class="card-header-split">
+            <h2 class="card-title">Incident Report Trends</h2>
+        </div>
+        <div class="chart-placeholder">
+            @if (IsLoading)
+            {
+                <div class="chart-skeleton-group">
+                    <div class="chart-skeleton-body">
+                        <div class="skeleton skeleton-wave-line" style="height: 3px; width: 80%; margin-bottom: 1.75rem;"></div>
+                        <div class="skeleton skeleton-wave-line" style="height: 3px; width: 65%; margin-bottom: 1.75rem;"></div>
+                        <div class="skeleton skeleton-wave-line" style="height: 3px; width: 90%; margin-bottom: 1.75rem;"></div>
+                        <div class="skeleton skeleton-wave-line" style="height: 3px; width: 55%; margin-bottom: 1.75rem;"></div>
+                        <div class="skeleton skeleton-wave-line" style="height: 3px; width: 72%;"></div>
+                    </div>
+                    <div class="chart-skeleton-axis">
+                        @for (var i = 0; i < 6; i++)
+                        {
+                            <div class="skeleton skeleton-axis-label"></div>
+                        }
+                    </div>
+                </div>
+            }
+            else if (IncidentTrendData == null || !IncidentTrendData.Any())
+            {
+                <div class="empty-state">
+                    <p class="empty-state-text">No incident trend data available.</p>
+                </div>
+            }
+            else
+            {
+                <ApexChart TItem="IncidentTrendData"
+                           @ref="incidentChart"
+                           Height="@("250")"
+                           Options="IncidentChartOptions">
+                    <ApexPointSeries TItem="IncidentTrendData"
+                                     Items='IncidentTrendData.Where(x => x.Category == "EMERGENCY").ToList()'
+                                     Name="Emergency"
+                                     SeriesType="SeriesType.Line"
+                                     XValue="@(e => e.Month)"
+                                     YValue="@(e => e.Count)" />
+                    <ApexPointSeries TItem="IncidentTrendData"
+                                     Items='IncidentTrendData.Where(x => x.Category == "COMPLAINT").ToList()'
+                                     Name="Complaint"
+                                     SeriesType="SeriesType.Line"
+                                     XValue="@(e => e.Month)"
+                                     YValue="@(e => e.Count)" />
+                    <ApexPointSeries TItem="IncidentTrendData"
+                                     Items='IncidentTrendData.Where(x => x.Category == "SUGGESTION").ToList()'
+                                     Name="Suggestion"
+                                     SeriesType="SeriesType.Line"
+                                     XValue="@(e => e.Month)"
+                                     YValue="@(e => e.Count)" />
+                    <ApexPointSeries TItem="IncidentTrendData"
+                                     Items='IncidentTrendData.Where(x => x.Category == "OTHER").ToList()'
+                                     Name="Other"
+                                     SeriesType="SeriesType.Line"
+                                     XValue="@(e => e.Month)"
+                                     YValue="@(e => e.Count)" />
+                </ApexChart>
+            }
+        </div>
+    </div>
+
+    <div class="architectural-card line-chart-card">
+        <div class="card-header-split">
+            <h2 class="card-title">Appointment Trends</h2>
+        </div>
+        <div class="chart-placeholder">
+            @if (IsLoading)
+            {
+                <div class="chart-skeleton-group">
+                    <div class="chart-skeleton-body">
+                        <div class="skeleton skeleton-wave-line" style="height: 3px; width: 75%; margin-bottom: 1.75rem;"></div>
+                        <div class="skeleton skeleton-wave-line" style="height: 3px; width: 88%; margin-bottom: 1.75rem;"></div>
+                        <div class="skeleton skeleton-wave-line" style="height: 3px; width: 60%; margin-bottom: 1.75rem;"></div>
+                        <div class="skeleton skeleton-wave-line" style="height: 3px; width: 82%; margin-bottom: 1.75rem;"></div>
+                        <div class="skeleton skeleton-wave-line" style="height: 3px; width: 68%;"></div>
+                    </div>
+                    <div class="chart-skeleton-axis">
+                        @for (var i = 0; i < 6; i++)
+                        {
+                            <div class="skeleton skeleton-axis-label"></div>
+                        }
+                    </div>
+                </div>
+            }
+            else if (AppointmentTrendData == null || !AppointmentTrendData.Any())
+            {
+                <div class="empty-state">
+                    <p class="empty-state-text">No appointment trend data available.</p>
+                </div>
+            }
+            else
+            {
+                <ApexChart TItem="AppointmentTrendData"
+                           @ref="appointmentChart"
+                           Height="@("250")"
+                           Options="AppointmentChartOptions">
+                    <ApexPointSeries TItem="AppointmentTrendData"
+                                     Items='AppointmentTrendData.Where(x => x.Category == "DOCUMENT REQUESTS").ToList()'
+                                     Name="Documents"
+                                     SeriesType="SeriesType.Line"
+                                     XValue="@(e => e.Month)"
+                                     YValue="@(e => e.Count)" />
+                    <ApexPointSeries TItem="AppointmentTrendData"
+                                     Items='AppointmentTrendData.Where(x => x.Category == "COMPLAINT & MEDIATION").ToList()'
+                                     Name="Mediation"
+                                     SeriesType="SeriesType.Line"
+                                     XValue="@(e => e.Month)"
+                                     YValue="@(e => e.Count)" />
+                    <ApexPointSeries TItem="AppointmentTrendData"
+                                     Items='AppointmentTrendData.Where(x => x.Category == "PERMITS & CLEARANCES").ToList()'
+                                     Name="Permits"
+                                     SeriesType="SeriesType.Line"
+                                     XValue="@(e => e.Month)"
+                                     YValue="@(e => e.Count)" />
+                    <ApexPointSeries TItem="AppointmentTrendData"
+                                     Items='AppointmentTrendData.Where(x => x.Category == "COMMUNITY PROGRAMS").ToList()'
+                                     Name="Programs"
+                                     SeriesType="SeriesType.Line"
+                                     XValue="@(e => e.Month)"
+                                     YValue="@(e => e.Count)" />
+                    <ApexPointSeries TItem="AppointmentTrendData"
+                                     Items='AppointmentTrendData.Where(x => x.Category == "ASSISTANCE SERVICES").ToList()'
+                                     Name="Assistance"
+                                     SeriesType="SeriesType.Line"
+                                     XValue="@(e => e.Month)"
+                                     YValue="@(e => e.Count)" />
+                </ApexChart>
+            }
+        </div>
+    </div>
+</div>
+
+
+@code {
+    [Parameter] public List<IncidentTrendData> IncidentTrendData { get; set; } = new();
+    [Parameter] public List<AppointmentTrendData> AppointmentTrendData { get; set; } = new();
+    [Parameter] public bool IsLoading { get; set; }
+
+    [Parameter] public ApexChartOptions<IncidentTrendData> IncidentChartOptions { get; set; } = new();
+    [Parameter] public ApexChartOptions<AppointmentTrendData> AppointmentChartOptions { get; set; } = new();
+
+    private ApexChart<IncidentTrendData> incidentChart = default!;
+    private ApexChart<AppointmentTrendData> appointmentChart = default!;
+
+    public async Task RenderAllAsync()
+    {
+        if (incidentChart != null) await incidentChart.RenderAsync();
+        if (appointmentChart != null) await appointmentChart.RenderAsync();
+    }
+}

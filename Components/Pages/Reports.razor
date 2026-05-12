@@ -1,126 +1,887 @@
 @page "/app/reports"
 @layout MainLayout
+@rendermode InteractiveServer
 @inject NavigationManager Navigation
 @inject IJSRuntime JS
+@inject Supabase.Client Supabase
+@inject CBOS.Components.Services.AuthService AuthService
+@inject IHttpClientFactory HttpClientFactory
+@using CBOS.Components.Model
+@using System.Text.Json
 
-<div class="reports-wrapper">
-    <div class="reports-container">
-        <!-- Back Button -->
-        <button class="back-button" @onclick="GoBack">
-            <span class="back-arrow">←</span>
-        </button>
+<div class="report-container">
+    <img src="/images/city-bg.png" class="report-city-bg" alt="" />
+    <div class="report-overlay"></div>
 
-        <!-- Title -->
-        <h1 class="reports-title">File a Report</h1>
-
-        <!-- Report Type Selection -->
-        <div class="report-type-section">
-            <p class="report-question">What kind of report are you making?</p>
-            <div class="report-type-buttons">
-                <button 
-                    type="button" 
-                    class="report-type-btn suggestion-btn @(selectedReportType == "Suggestion" ? "active" : "")"
-                    @onclick="@(() => SelectReportType("Suggestion"))">
-                    Suggestion
-                </button>
-                <button 
-                    type="button" 
-                    class="report-type-btn complaint-btn @(selectedReportType == "Complaint" ? "active" : "")"
-                    @onclick="@(() => SelectReportType("Complaint"))">
-                    <span class="checkmark">✓</span> Complaint
-                </button>
-                <button 
-                    type="button" 
-                    class="report-type-btn emergency-btn @(selectedReportType == "Emergency" ? "active" : "")"
-                    @onclick="@(() => SelectReportType("Emergency"))">
-                    Emergency
-                </button>
-                <button 
-                    type="button" 
-                    class="report-type-btn other-btn @(selectedReportType == "Other" ? "active" : "")"
-                    @onclick="@(() => SelectReportType("Other"))">
-                    Other
-                </button>
-            </div>
+    <div class="report-card">
+        <div class="report-header">
+            <button class="back-btn" @onclick="GoBack">←</button>
+            <h1>File a Report</h1>
+            <div class="header-spacer"></div>
         </div>
 
-        <!-- Form -->
-        <form @onsubmit="HandleSubmit">
-            <!-- Header/Topic Section -->
-            <div class="form-section">
-                <label class="section-label">Header</label>
-                <input 
-                    type="text"
-                    class="header-input"
-                    @bind="reportHeader"
-                    placeholder="Brief title for your report"
-                />
-            </div>
+        @if (!isVerified)
+        {
+            <div class="blocked-screen">
+                <div class="blocked-icon-ring">
+                    <span class="blocked-lock">🔒</span>
+                </div>
+                <h2 class="blocked-title">Verification Required</h2>
+                <p class="blocked-text">
+                    Your account must be verified before you can file a report with the barangay.
+                </p>
 
-            <!-- Description Section -->
-            <div class="form-section">
-                <label class="section-label">Add description to your report</label>
-                <textarea 
-                    class="report-textarea"
-                    @bind="reportDescription"
-                    placeholder="Provide detailed information about your report..."
-                    rows="6">
-                </textarea>
-            </div>
+                <div class="blocked-steps">
+                    <div class="blocked-step">
+                        <div class="step-icon">📄</div>
+                        <div class="step-info">
+                            <div class="step-label">Upload Documents</div>
+                            <div class="step-desc">Valid ID or birth certificate</div>
+                        </div>
+                    </div>
+                    <div class="step-arrow">›</div>
+                    <div class="blocked-step">
+                        <div class="step-icon">🔍</div>
+                        <div class="step-info">
+                            <div class="step-label">Admin Review</div>
+                            <div class="step-desc">Usually within 1–2 days</div>
+                        </div>
+                    </div>
+                    <div class="step-arrow">›</div>
+                    <div class="blocked-step">
+                        <div class="step-icon">✅</div>
+                        <div class="step-info">
+                            <div class="step-label">Get Verified</div>
+                            <div class="step-desc">File reports to the barangay</div>
+                        </div>
+                    </div>
+                </div>
 
-            <!-- Media Section -->
-            <div class="form-section">
-                <label class="section-label">Add photo or video to your report (optional)</label>
-                
-                @if (uploadedMedia.Count > 0)
+                <div class="blocked-actions">
+                    <a href="/user/verify" class="btn-verify">🛡️ Verify My Account</a>
+                    <button class="btn-back" @onclick="GoBack">Go Back</button>
+                </div>
+            </div>
+        }
+        else
+        {
+
+        @if (!string.IsNullOrEmpty(errorMessage))
+        {
+            <div class="report-error">⚠ @errorMessage</div>
+        }
+
+        <div class="report-content">
+
+            @* ── LEFT: Report Type ── *@
+            <div class="report-types">
+                <p class="type-label">What kind of report?</p>
+
+                @foreach (var type in reportTypes)
                 {
-                    <div class="media-gallery">
-                        @foreach (var (index, media) in uploadedMedia.Select((m, i) => (i, m)))
-                        {
-                            @if (index < 3)
-                            {
-                                <div class="media-item">
-                                    <img src="@media" alt="Media @index" />
-                                    <button type="button" class="remove-media-btn" @onclick="@(() => RemoveMedia(index))">×</button>
-                                </div>
-                            }
-                        }
-                        @if (uploadedMedia.Count > 3)
-                        {
-                            <div class="media-item more-indicator">
-                                <div class="more-count">+@(uploadedMedia.Count - 3)</div>
-                            </div>
-                        }
+                    <div class="type-group @(selectedReportType == type.Key ? "active" : "")">
+                        <button class="type-btn @(selectedReportType == type.Key ? "selected" : "")"
+                                @onclick="@(() => SelectReportType(type.Key))">
+                            <span class="type-dot" style="background:@type.Value"></span>
+                            @type.Key
+                        </button>
                     </div>
                 }
-
-                <button type="button" class="attach-media-btn" @onclick="HandleAttachMedia">
-                    Attach media
-                </button>
-                <InputFile 
-                    @ref="fileInput" 
-                    id="reportFileInput"
-                    style="display:none;" 
-                    accept="image/*,video/*"
-                    OnChange="HandleFileUpload" 
-                    multiple
-                />
             </div>
 
-            <!-- Submit Button -->
-            <button type="submit" class="submit-button">
-                Submit
-            </button>
-        </form>
+            <div class="report-col-divider"></div>
+
+            @* ── CENTER: Form ── *@
+            <div class="report-form">
+                <div class="field-group">
+                    <label>Header</label>
+                    <input type="text"
+                           @bind="reportHeader"
+                           placeholder="Brief title for your report" />
+                </div>
+
+                <div class="field-group">
+                    <label>Description</label>
+                    <textarea @bind="reportDescription"
+                              placeholder="Provide detailed information about your report..."
+                              rows="5"></textarea>
+                </div>
+
+                <div class="field-group">
+                    <label>Photo or Video <span class="optional-tag">optional</span></label>
+
+                    <div class="media-drop-zone" @onclick="HandleAttachMedia">
+                        @if (uploadedMedia.Count > 0)
+                        {
+                            <div class="media-gallery" @onclick:stopPropagation="true">
+                                @foreach (var (index, media) in uploadedMedia.Select((m, i) => (i, m)))
+                                {
+                                    @if (index < 3)
+                                    {
+                                        <div class="media-item">
+                                            <img src="@media" alt="Media @index" />
+                                            <button type="button" class="remove-media-btn" @onclick="@(() => RemoveMedia(index))" @onclick:stopPropagation="true">×</button>
+                                        </div>
+                                    }
+                                }
+                                @if (uploadedMedia.Count > 3)
+                                {
+                                    <div class="media-item more-indicator">
+                                        <div class="more-count">+@(uploadedMedia.Count - 3)</div>
+                                    </div>
+                                }
+                            </div>
+                            <button type="button" class="attach-btn" @onclick:stopPropagation="true" @onclick="HandleAttachMedia">
+                                📎 Add more
+                            </button>
+                        }
+                        else
+                        {
+                            <div class="media-drop-icon">🖼️</div>
+                            <div class="media-drop-hint">Click to attach photos or videos</div>
+                            <button type="button" class="attach-btn" @onclick:stopPropagation="true" @onclick="HandleAttachMedia">
+                                📎 Browse files
+                            </button>
+                        }
+                    </div>
+
+                    <InputFile @ref="fileInput"
+                               id="reportFileInput"
+                               style="display:none;"
+                               accept="image/*,video/*"
+                               OnChange="HandleFileUpload"
+                               multiple />
+                </div>
+            </div>
+
+            <div class="report-col-divider"></div>
+
+            @* ── RIGHT: Notice & Submit ── *@
+            <div class="report-side">
+                <div class="notice-panel">
+                    <div class="notice-panel-icon">📋</div>
+                    <div class="notice-title">Notice</div>
+                    <div class="notice-text">
+                        After submission of your report, it will be reviewed by barangay admins. Expect updates on the status of your report.
+                    </div>
+                </div>
+
+                <div class="status-legend">
+                    <div class="status-item"><span class="dot pending"></span> Pending</div>
+                    <div class="status-item"><span class="dot approved"></span> Approved</div>
+                    <div class="status-item"><span class="dot rejected"></span> Rejected</div>
+                </div>
+
+                <button class="submit-btn" @onclick="HandleSubmit" disabled="@isSubmitting">
+                    @if (isSubmitting)
+                    {
+                        <span class="spinner"></span>
+                        <span>Submitting...</span>
+                    }
+                    else
+                    {
+                        <span>Submit Report</span>
+                    }
+                </button>
+            </div>
+
+        </div>
+        }
     </div>
 </div>
+
+@if (showSuccess)
+{
+    <div class="success-overlay">
+        <div class="success-card">
+            <div class="success-icon">✅</div>
+            <h2>Report Submitted!</h2>
+            <p>Your report is pending admin review. You'll be updated on its status.</p>
+            <button class="success-btn" @onclick="GoBack">Back</button>
+        </div>
+    </div>
+}
+
+<style>
+    .report-container {
+        position: fixed;
+        top: 56px;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: 24px;
+        box-sizing: border-box;
+        background: linear-gradient(160deg, #00d4ff 0%, #0099ff 45%, #0066ff 100%);
+        overflow: hidden;
+    }
+
+    .report-city-bg {
+        position: fixed;
+        top: 56px;
+        left: 0;
+        width: 100%;
+        height: calc(100% - 56px);
+        object-fit: cover;
+        object-position: bottom;
+        mix-blend-mode: luminosity;
+        opacity: 0.55;
+        pointer-events: none;
+        z-index: 0;
+    }
+
+    .report-overlay {
+        position: fixed;
+        top: 56px;
+        left: 0;
+        width: 100%;
+        height: calc(100% - 56px);
+        background: linear-gradient(160deg, rgba(0,180,255,0.35) 0%, rgba(0,80,200,0.45) 100%);
+        pointer-events: none;
+        z-index: 0;
+    }
+
+    .report-card {
+        position: relative;
+        z-index: 1;
+        background: #fff;
+        border-radius: 24px;
+        width: 100%;
+        max-width: 1100px;
+        box-shadow: 0 8px 40px rgba(0,0,0,0.22);
+        padding: 0 0 28px 0;
+        overflow: hidden;
+    }
+
+    .report-header {
+        display: flex;
+        align-items: center;
+        padding: 22px 32px 18px 32px;
+        border-bottom: 1.5px solid #f0f4ff;
+        position: relative;
+    }
+
+    .report-header h1 {
+        position: absolute;
+        left: 50%;
+        transform: translateX(-50%);
+        font-size: 1.6rem;
+        font-weight: 700;
+        color: #0066ff;
+        margin: 0;
+        white-space: nowrap;
+    }
+
+    .back-btn {
+        background: #f0f4ff;
+        border: none;
+        font-size: 1.1rem;
+        color: #0066ff;
+        cursor: pointer;
+        width: 36px;
+        height: 36px;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        transition: background 0.15s;
+        flex-shrink: 0;
+        z-index: 1;
+    }
+
+    .back-btn:hover { background: #dbeafe; }
+
+    .header-spacer {
+        width: 36px;
+        flex-shrink: 0;
+        margin-left: auto;
+    }
+
+    .blocked-screen {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        padding: 36px 32px 40px;
+        text-align: center;
+    }
+
+    .blocked-icon-ring {
+        width: 84px;
+        height: 84px;
+        border-radius: 50%;
+        background: linear-gradient(135deg, #e8f0ff 0%, #dbeafe 100%);
+        border: 3px solid #c7d7ff;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        margin-bottom: 20px;
+        box-shadow: 0 4px 18px rgba(0, 102, 255, 0.13);
+    }
+
+    .blocked-lock { font-size: 2.2rem; line-height: 1; }
+
+    .blocked-title {
+        font-size: 1.55rem;
+        font-weight: 800;
+        color: #0052cc;
+        margin: 0 0 8px 0;
+        letter-spacing: -0.02em;
+    }
+
+    .blocked-text {
+        font-size: 0.9rem;
+        color: #64748b;
+        line-height: 1.7;
+        max-width: 380px;
+        margin: 0 0 24px 0;
+    }
+
+    .blocked-steps {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        margin-bottom: 28px;
+        background: #f8fafc;
+        border: 1px solid #e2e8f0;
+        border-radius: 16px;
+        padding: 16px 24px;
+        flex-wrap: wrap;
+        justify-content: center;
+    }
+
+    .blocked-step {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        text-align: left;
+    }
+
+    .step-icon {
+        font-size: 1.3rem;
+        width: 42px;
+        height: 42px;
+        background: white;
+        border-radius: 10px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        box-shadow: 0 2px 6px rgba(0,0,0,0.07);
+        flex-shrink: 0;
+    }
+
+    .step-info { display: flex; flex-direction: column; }
+
+    .step-label {
+        font-size: 0.82rem;
+        font-weight: 700;
+        color: #334155;
+    }
+
+    .step-desc {
+        font-size: 0.72rem;
+        color: #94a3b8;
+        margin-top: 1px;
+    }
+
+    .step-arrow {
+        color: #93c5fd;
+        font-size: 1.5rem;
+        font-weight: 700;
+        flex-shrink: 0;
+        line-height: 1;
+    }
+
+    .blocked-actions {
+        display: flex;
+        gap: 12px;
+        flex-wrap: wrap;
+        justify-content: center;
+    }
+
+    .btn-verify {
+        background: linear-gradient(90deg, #0099ff, #0066ff);
+        color: #fff;
+        text-decoration: none;
+        border-radius: 50px;
+        padding: 11px 28px;
+        font-size: 0.9rem;
+        font-weight: 700;
+        box-shadow: 0 3px 10px rgba(0,102,255,0.3);
+        transition: opacity 0.2s;
+    }
+
+    .btn-verify:hover { opacity: 0.88; color: #fff; }
+
+    .btn-back {
+        background: #f0f4ff;
+        color: #0066ff;
+        border: none;
+        border-radius: 50px;
+        padding: 11px 28px;
+        font-size: 0.9rem;
+        font-weight: 700;
+        cursor: pointer;
+        transition: background 0.15s;
+    }
+
+    .btn-back:hover { background: #dbeafe; }
+
+    .report-error {
+        margin: 12px 28px 0;
+        background: #fef2f2;
+        border: 1px solid #f5a0a0;
+        color: #e50000;
+        border-radius: 8px;
+        padding: 10px 14px;
+        font-size: 0.88rem;
+    }
+
+    .report-content {
+        display: flex;
+        gap: 24px;
+        padding: 20px 28px 0 28px;
+    }
+
+    /* ── LEFT ── */
+    .report-types {
+        flex: 1.2;
+        display: flex;
+        flex-direction: column;
+        gap: 8px;
+    }
+
+    .type-label {
+        font-size: 0.85rem;
+        font-weight: 600;
+        color: #64748b;
+        margin: 0 0 4px 0;
+    }
+
+    .type-group {
+        background: #f5f7fa;
+        border-radius: 12px;
+        overflow: hidden;
+    }
+
+    .type-btn {
+        width: 100%;
+        background: none;
+        border: none;
+        text-align: left;
+        font-size: 0.9rem;
+        font-weight: 600;
+        color: #64748b;
+        padding: 11px 16px;
+        border-radius: 12px;
+        cursor: pointer;
+        transition: background 0.2s, color 0.2s;
+        font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+    }
+
+    .type-btn.selected {
+        background: #0066ff;
+        color: #fff;
+    }
+
+    .type-btn.selected .type-dot { border-color: rgba(255,255,255,0.5); }
+
+    .type-dot {
+        width: 10px;
+        height: 10px;
+        border-radius: 50%;
+        flex-shrink: 0;
+        border: 2px solid transparent;
+    }
+
+    /* ── CENTER ── */
+    .report-form {
+        flex: 2;
+        display: flex;
+        flex-direction: column;
+        gap: 14px;
+    }
+
+    .field-group label {
+        font-size: 0.85rem;
+        font-weight: 600;
+        color: #64748b;
+        display: block;
+        margin-bottom: 6px;
+    }
+
+    .optional-tag {
+        font-size: 0.7rem;
+        font-weight: 500;
+        color: #94a3b8;
+        background: #f1f5f9;
+        border-radius: 4px;
+        padding: 1px 6px;
+        margin-left: 6px;
+        text-transform: uppercase;
+        letter-spacing: 0.04em;
+        vertical-align: middle;
+    }
+
+    .field-group input[type="text"] {
+        width: 100%;
+        border-radius: 10px;
+        border: 1.5px solid #e2e8f0;
+        padding: 9px 12px;
+        font-size: 0.88rem;
+        background: #f8fafc;
+        color: #334155;
+        outline: none;
+        transition: border-color 0.15s;
+        box-sizing: border-box;
+        font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
+    }
+
+    .field-group input[type="text"]:focus { border-color: #0066ff; background: #fff; }
+
+    .field-group textarea {
+        width: 100%;
+        border-radius: 10px;
+        border: 1.5px solid #e2e8f0;
+        padding: 9px 12px;
+        font-size: 0.88rem;
+        background: #f8fafc;
+        color: #334155;
+        resize: none;
+        font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
+        outline: none;
+        transition: border-color 0.15s;
+        box-sizing: border-box;
+    }
+
+    .field-group textarea:focus { border-color: #0066ff; }
+
+    .media-gallery {
+        display: flex;
+        gap: 10px;
+        margin-bottom: 10px;
+        flex-wrap: wrap;
+    }
+
+    .media-item {
+        position: relative;
+        border-radius: 8px;
+        overflow: hidden;
+        width: 100px;
+        height: 100px;
+        background: #f5f5f5;
+    }
+
+    .media-item img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+        display: block;
+    }
+
+    .media-item.more-indicator {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        background: rgba(0,0,0,0.3);
+    }
+
+    .more-count {
+        color: white;
+        font-size: 1.5rem;
+        font-weight: 600;
+    }
+
+    .remove-media-btn {
+        position: absolute;
+        top: 4px;
+        right: 4px;
+        background: rgba(0,0,0,0.55);
+        color: white;
+        border: none;
+        border-radius: 50%;
+        width: 22px;
+        height: 22px;
+        font-size: 16px;
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+
+    .attach-btn {
+        background: #f0f4ff;
+        color: #0066ff;
+        border: 1.5px solid #c7d7ff;
+        border-radius: 50px;
+        padding: 8px 20px;
+        font-size: 0.85rem;
+        font-weight: 600;
+        cursor: pointer;
+        transition: background 0.15s;
+    }
+
+    .attach-btn:hover { background: #dbeafe; }
+
+    /* ── RIGHT ── */
+    .report-side {
+        flex: 1;
+        display: flex;
+        flex-direction: column;
+        gap: 14px;
+    }
+
+    .notice-title {
+        color: #0066ff;
+        font-size: 0.95rem;
+        font-weight: 700;
+    }
+
+    .notice-text {
+        color: #94a3b8;
+        font-size: 0.82rem;
+        line-height: 1.6;
+    }
+
+    .status-legend {
+        display: flex;
+        flex-direction: column;
+        gap: 7px;
+        padding: 10px 12px;
+        background: #f8fafc;
+        border-radius: 10px;
+        border: 1px solid #e2e8f0;
+    }
+
+    .status-item {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        font-size: 0.8rem;
+        color: #475569;
+        font-weight: 500;
+    }
+
+    .dot {
+        width: 9px;
+        height: 9px;
+        border-radius: 50%;
+        flex-shrink: 0;
+    }
+
+    .dot.pending  { background: #f59e0b; }
+    .dot.approved { background: #10b981; }
+    .dot.rejected { background: #ef4444; }
+
+    .submit-btn {
+        background: linear-gradient(90deg, #0099ff, #0066ff);
+        color: #fff;
+        border: none;
+        border-radius: 50px;
+        padding: 11px 28px;
+        font-size: 0.95rem;
+        font-weight: 700;
+        cursor: pointer;
+        transition: opacity 0.2s, transform 0.15s;
+        font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
+        box-shadow: 0 3px 10px rgba(0,102,255,0.3);
+        margin-top: auto;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 8px;
+        width: 100%;
+    }
+
+    .submit-btn:hover:not(:disabled) {
+        opacity: 0.9;
+        transform: translateY(-1px);
+    }
+
+    .submit-btn:disabled { opacity: 0.6; cursor: not-allowed; }
+
+    .spinner {
+        width: 14px;
+        height: 14px;
+        border: 2px solid rgba(255,255,255,0.4);
+        border-top-color: #fff;
+        border-radius: 50%;
+        animation: spin 0.7s linear infinite;
+        flex-shrink: 0;
+    }
+
+    @@keyframes spin { to { transform: rotate(360deg); } }
+
+    .report-col-divider {
+        width: 1px;
+        background: linear-gradient(to bottom, transparent, #dde5f5 30%, #dde5f5 70%, transparent);
+        flex-shrink: 0;
+        align-self: stretch;
+        margin: 0 4px;
+    }
+
+    .notice-panel {
+        background: linear-gradient(135deg, #eef5ff 0%, #e8f0ff 100%);
+        border: 1px solid #c7d7ff;
+        border-radius: 14px;
+        padding: 16px;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        text-align: center;
+        gap: 6px;
+    }
+
+    .notice-panel-icon { font-size: 1.6rem; line-height: 1; margin-bottom: 2px; }
+
+    .media-drop-zone {
+        border: 2px dashed #c7d7ff;
+        border-radius: 12px;
+        padding: 20px 16px;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 6px;
+        background: #f8fbff;
+        transition: border-color 0.15s, background 0.15s;
+        cursor: pointer;
+    }
+
+    .media-drop-zone:hover { border-color: #0066ff; background: #eff5ff; }
+
+    .media-drop-icon { font-size: 1.6rem; line-height: 1; }
+
+    .media-drop-hint { font-size: 0.78rem; color: #94a3b8; }
+
+    /* ── Success Overlay ── */
+    .success-overlay {
+        position: fixed;
+        inset: 0;
+        background: rgba(0,0,0,0.5);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        z-index: 1000;
+    }
+
+    .success-card {
+        background: white;
+        border-radius: 20px;
+        padding: 40px;
+        max-width: 380px;
+        width: 90%;
+        text-align: center;
+        box-shadow: 0 20px 60px rgba(0,0,0,0.2);
+    }
+
+    .success-icon { font-size: 2.5rem; margin-bottom: 12px; }
+
+    .success-card h2 {
+        color: #0066ff;
+        margin: 0 0 10px 0;
+        font-size: 1.4rem;
+        font-weight: 700;
+    }
+
+    .success-card p {
+        color: #64748b;
+        margin: 0 0 24px 0;
+        font-size: 0.9rem;
+        line-height: 1.6;
+    }
+
+    .success-btn {
+        background: linear-gradient(90deg, #0099ff, #0066ff);
+        color: #fff;
+        border: none;
+        border-radius: 50px;
+        padding: 10px 32px;
+        font-size: 0.95rem;
+        font-weight: 700;
+        cursor: pointer;
+        box-shadow: 0 3px 10px rgba(0,102,255,0.3);
+    }
+
+    @@media (max-width: 1000px) {
+        .report-container { overflow-y: auto; align-items: flex-start; }
+        .report-content { flex-direction: column; }
+        .report-card { margin: 16px 0; }
+    }
+
+    @@media (max-width: 640px) {
+        .report-card { border-radius: 12px; }
+        .report-header, .report-content { padding: 14px; }
+        .report-header h1 { font-size: 1.2rem; }
+    }
+</style>
 
 @code {
     private string selectedReportType = "Complaint";
     private string reportHeader = "";
     private string reportDescription = "";
     private List<string> uploadedMedia = new List<string>();
-    private InputFile fileInput;
+    private InputFile? fileInput;
+    private bool isSubmitting;
+    private bool showSuccess;
+    private string errorMessage = "";
+    private bool isVerified = true;
+
+    private readonly Dictionary<string, string> reportTypes = new()
+    {
+        ["Suggestion"] = "#10b981",
+        ["Complaint"]  = "#f59e0b",
+        ["Emergency"]  = "#ef4444",
+        ["Other"]      = "#6366f1"
+    };
+
+    protected override async Task OnInitializedAsync()
+    {
+        if (!AuthService.IsAuthenticated || string.IsNullOrEmpty(AuthService.UserEmail))
+        {
+            Navigation.NavigateTo("/login");
+            return;
+        }
+
+        var profile = await Supabase
+            .From<UserProfile>()
+            .Match(new Dictionary<string, string> { { "emailaddress", AuthService.UserEmail } })
+            .Single();
+
+        if (profile != null)
+        {
+            isVerified = await CheckIsVerifiedAsync(profile.Id);
+        }
+    }
+
+    private async Task<bool> CheckIsVerifiedAsync(long userId)
+    {
+        var supabaseUrl = Environment.GetEnvironmentVariable("SUPABASE_URL");
+        var supabaseKey = Environment.GetEnvironmentVariable("SUPABASE_KEY");
+        var accessToken = AuthService.CurrentSession?.AccessToken;
+
+        if (string.IsNullOrEmpty(supabaseUrl) || string.IsNullOrEmpty(supabaseKey))
+            return false;
+
+        var token = string.IsNullOrEmpty(accessToken) ? supabaseKey : accessToken;
+        var url = $"{supabaseUrl}/rest/v1/verification_tickets?userid=eq.{userId}&status=in.(Approved,Verified)&select=id&limit=1";
+
+        using var request = new HttpRequestMessage(HttpMethod.Get, url);
+        request.Headers.Add("apikey", supabaseKey);
+        request.Headers.Add("Authorization", $"Bearer {token}");
+
+        var http = HttpClientFactory.CreateClient();
+        var response = await http.SendAsync(request);
+        if (!response.IsSuccessStatusCode) return false;
+
+        var json = await response.Content.ReadAsStringAsync();
+        using var doc = JsonDocument.Parse(json);
+        return doc.RootElement.ValueKind == JsonValueKind.Array && doc.RootElement.GetArrayLength() > 0;
+    }
 
     private void GoBack()
     {
@@ -131,6 +892,15 @@
     {
         selectedReportType = type;
     }
+
+    private static string MapCategoryToEnum(string label) => label switch
+    {
+        "Suggestion" => "suggestion",
+        "Complaint"  => "complaint",
+        "Emergency"  => "emergency",
+        "Other"      => "others",
+        _            => "others"
+    };
 
     private async Task HandleAttachMedia()
     {
@@ -185,296 +955,94 @@
 
     private async Task HandleSubmit()
     {
-        // TODO: Implement report submission logic
-        // This should send the report data to your backend
-        Console.WriteLine($"Report submitted: Type={selectedReportType}, Header={reportHeader}");
-        selectedReportType = "Complaint";
-        reportHeader = "";
-        reportDescription = "";
-        uploadedMedia.Clear();
+        errorMessage = "";
+
+        if (!AuthService.IsAuthenticated || string.IsNullOrEmpty(AuthService.UserEmail))
+        {
+            Navigation.NavigateTo("/login");
+            return;
+        }
+
+        if (string.IsNullOrWhiteSpace(reportHeader))
+        {
+            errorMessage = "Please enter a header for your report.";
+            return;
+        }
+
+        if (string.IsNullOrWhiteSpace(reportDescription))
+        {
+            errorMessage = "Please enter a description for your report.";
+            return;
+        }
+
+        isSubmitting = true;
+
+        try
+        {
+            var profile = await Supabase
+                .From<UserProfile>()
+                .Match(new Dictionary<string, string> { { "emailaddress", AuthService.UserEmail } })
+                .Single();
+
+            if (profile == null)
+            {
+                errorMessage = "Unable to find your user profile. Please log in again.";
+                return;
+            }
+
+            var newReport = new Report
+            {
+                UserId = profile.Id,
+                Category = MapCategoryToEnum(selectedReportType),
+                Title = reportHeader.Trim(),
+                Content = reportDescription.Trim(),
+                CreatedAt = DateTime.UtcNow
+            };
+
+            var insertedReport = await Supabase.From<Report>().Insert(newReport);
+            var reportId = insertedReport.Models.FirstOrDefault()?.Id ?? 0;
+
+            if (reportId == 0)
+            {
+                errorMessage = "Report was created but the ID could not be retrieved.";
+                return;
+            }
+
+            try
+            {
+                var ticket = new Ticket
+                {
+                    Type = "report",
+                    SourceId = reportId,
+                    SubmittedBy = profile.Id,
+                    Status = "Pending",
+                    CreatedAt = DateTime.UtcNow
+                };
+
+                await Supabase.From<Ticket>().Insert(ticket);
+            }
+            catch
+            {
+                // Compensating delete: if ticket creation fails, remove the orphan report
+                await Supabase.From<Report>()
+                    .Where(r => r.Id == reportId)
+                    .Delete();
+                throw;
+            }
+
+            selectedReportType = "Complaint";
+            reportHeader = "";
+            reportDescription = "";
+            uploadedMedia.Clear();
+            showSuccess = true;
+        }
+        catch (Exception ex)
+        {
+            errorMessage = $"Failed to submit report: {ex.Message}";
+        }
+        finally
+        {
+            isSubmitting = false;
+        }
     }
 }
-
-<style>
-.reports-wrapper {
-    background: linear-gradient(135deg, #00a8e8 0%, #0078d4 100%);
-    min-height: 100vh;
-    padding: 20px;
-}
-
-.reports-container {
-    background: white;
-    border-radius: 20px;
-    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.1);
-    max-width: 900px;
-    margin: 40px auto;
-    padding: 40px;
-    position: relative;
-}
-
-.back-button {
-    position: absolute;
-    top: 30px;
-    left: 30px;
-    background: none;
-    border: none;
-    cursor: pointer;
-    font-size: 28px;
-    color: #0078d4;
-    padding: 8px 12px;
-    transition: opacity 0.2s;
-}
-
-.back-button:hover {
-    opacity: 0.7;
-}
-
-.back-arrow {
-    display: inline-block;
-}
-
-.reports-title {
-    text-align: center;
-    color: #0078d4;
-    font-size: 2.5rem;
-    font-weight: 600;
-    margin: 0 0 30px 0;
-    padding-top: 20px;
-}
-
-.report-type-section {
-    text-align: center;
-    margin-bottom: 40px;
-}
-
-.report-question {
-    color: #666;
-    font-size: 1rem;
-    margin: 0 0 20px 0;
-}
-
-.report-type-buttons {
-    display: flex;
-    gap: 12px;
-    justify-content: center;
-    flex-wrap: wrap;
-}
-
-.report-type-btn {
-    border: none;
-    border-radius: 24px;
-    padding: 10px 24px;
-    font-size: 0.95rem;
-    font-weight: 500;
-    cursor: pointer;
-    transition: all 0.2s;
-    color: white;
-    position: relative;
-}
-
-.suggestion-btn {
-    background-color: #28a745;
-}
-
-.suggestion-btn:hover {
-    background-color: #218838;
-}
-
-.suggestion-btn.active {
-    transform: scale(1.05);
-    box-shadow: 0 4px 12px rgba(40, 167, 69, 0.3);
-}
-
-.complaint-btn {
-    background-color: #ffc107;
-    color: #333;
-}
-
-.complaint-btn:hover {
-    background-color: #e0a800;
-}
-
-.complaint-btn.active {
-    transform: scale(1.05);
-    box-shadow: 0 4px 12px rgba(255, 193, 7, 0.3);
-}
-
-.checkmark {
-    margin-right: 6px;
-}
-
-.emergency-btn {
-    background-color: #dc3545;
-}
-
-.emergency-btn:hover {
-    background-color: #c82333;
-}
-
-.emergency-btn.active {
-    transform: scale(1.05);
-    box-shadow: 0 4px 12px rgba(220, 53, 69, 0.3);
-}
-
-.other-btn {
-    background-color: #6c757d;
-}
-
-.other-btn:hover {
-    background-color: #5a6268;
-}
-
-.other-btn.active {
-    transform: scale(1.05);
-    box-shadow: 0 4px 12px rgba(108, 117, 125, 0.3);
-}
-
-.form-section {
-    margin-bottom: 30px;
-}
-
-.section-label {
-    display: block;
-    color: #666;
-    font-size: 1rem;
-    margin-bottom: 12px;
-    font-weight: 500;
-}
-
-.header-input {
-    width: 100%;
-    border: 1px solid #e0e0e0;
-    border-radius: 8px;
-    padding: 12px 16px;
-    font-size: 0.95rem;
-    color: #333;
-    background-color: #f5f5f5;
-    transition: border-color 0.2s;
-}
-
-.header-input:focus {
-    outline: none;
-    border-color: #0078d4;
-    background-color: #fff;
-}
-
-.report-textarea {
-    width: 100%;
-    border: 1px solid #e0e0e0;
-    border-radius: 8px;
-    padding: 16px;
-    font-size: 0.95rem;
-    font-family: inherit;
-    color: #333;
-    resize: vertical;
-    background-color: #f5f5f5;
-    transition: border-color 0.2s;
-}
-
-.report-textarea:focus {
-    outline: none;
-    border-color: #0078d4;
-    background-color: #fff;
-}
-
-.report-textarea::placeholder {
-    color: #999;
-}
-
-.media-gallery {
-    display: flex;
-    gap: 12px;
-    margin-bottom: 12px;
-    flex-wrap: wrap;
-}
-
-.media-item {
-    position: relative;
-    border-radius: 8px;
-    overflow: hidden;
-    width: 150px;
-    height: 150px;
-    background-color: #f5f5f5;
-}
-
-.media-item img {
-    width: 100%;
-    height: 100%;
-    object-fit: cover;
-    display: block;
-}
-
-.media-item.more-indicator {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    background-color: rgba(0, 0, 0, 0.3);
-}
-
-.more-count {
-    color: white;
-    font-size: 2rem;
-    font-weight: 600;
-}
-
-.remove-media-btn {
-    position: absolute;
-    top: 8px;
-    right: 8px;
-    background: rgba(0, 0, 0, 0.6);
-    color: white;
-    border: none;
-    border-radius: 50%;
-    width: 32px;
-    height: 32px;
-    font-size: 24px;
-    cursor: pointer;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    transition: background 0.2s;
-}
-
-.remove-media-btn:hover {
-    background: rgba(0, 0, 0, 0.8);
-}
-
-.attach-media-btn {
-    background-color: #0078d4;
-    color: white;
-    border: none;
-    border-radius: 24px;
-    padding: 10px 24px;
-    font-size: 0.95rem;
-    font-weight: 500;
-    cursor: pointer;
-    transition: background-color 0.2s;
-}
-
-.attach-media-btn:hover {
-    background-color: #005fa3;
-}
-
-.submit-button {
-    width: 100%;
-    background-color: #0078d4;
-    color: white;
-    border: none;
-    border-radius: 24px;
-    padding: 14px 32px;
-    font-size: 1rem;
-    font-weight: 600;
-    cursor: pointer;
-    transition: background-color 0.2s;
-    margin-top: 20px;
-}
-
-.submit-button:hover {
-    background-color: #005fa3;
-}
-
-.submit-button:active {
-    transform: scale(0.98);
-}
-</style>
-

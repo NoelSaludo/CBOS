@@ -1,0 +1,153 @@
+.dashboard-grid-2 {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 1.5rem;
+    align-items: start;
+    animation: stagger-in 0.6s var(--ease-out) 0.4s both;
+    margin-bottom: 1.5rem;
+}
+
+@keyframes stagger-in {
+    from { opacity: 0; transform: translateY(10px); }
+    to   { opacity: 1; transform: translateY(0); }
+}
+
+.architectural-card {
+    background: var(--surface-card);
+    border-radius: 16px;
+    border: 1px solid var(--outline);
+    box-shadow: var(--shadow-md);
+    padding: 1.5rem;
+    transition: all 0.3s var(--ease-out);
+    min-width: 0;
+    overflow: hidden;
+}
+
+.architectural-card:hover {
+    box-shadow: var(--shadow-lg);
+    border-color: var(--accent);
+}
+
+.card-header-split {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 1.25rem;
+}
+
+.card-title {
+    font-size: 1rem;
+    font-weight: 700;
+    color: var(--primary);
+    margin: 0;
+    letter-spacing: -0.01em;
+}
+
+.chart-placeholder {
+    position: relative;
+    height: 250px;
+    margin-top: 1.5rem;
+    background: transparent;
+}
+
+/* Skeleton Loading */
+.skeleton {
+    position: relative;
+    background: #e2e8f0;
+    border-radius: var(--radius-md);
+    overflow: hidden;
+    isolation: isolate;
+}
+
+.skeleton::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(
+        90deg,
+        transparent 0%,
+        rgba(255, 255, 255, 0.5) 35%,
+        rgba(255, 255, 255, 0.8) 50%,
+        rgba(255, 255, 255, 0.5) 65%,
+        transparent 100%
+    );
+    transform: translateX(-100%);
+    animation: skeleton-wave 1.6s cubic-bezier(0.4, 0, 0.2, 1) infinite;
+}
+
+@keyframes skeleton-wave {
+    0%   { transform: translateX(-100%); }
+    100% { transform: translateX(100%); }
+}
+
+.skeleton-chart { height: 250px; width: 100%; }
+
+/* Stagger the two chart skeletons */
+.architectural-card:nth-child(1) .skeleton::after { animation-delay: 0s; }
+.architectural-card:nth-child(2) .skeleton::after { animation-delay: 0.15s; }
+
+/* Structured chart skeleton */
+.chart-skeleton-group {
+    display: flex;
+    flex-direction: column;
+    height: 250px;
+    justify-content: space-between;
+}
+
+.chart-skeleton-body {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    padding: 1rem 0;
+}
+
+.skeleton-wave-line {
+    border-radius: 2px;
+}
+
+.chart-skeleton-body .skeleton:nth-child(1)::after { animation-delay: 0s; }
+.chart-skeleton-body .skeleton:nth-child(2)::after { animation-delay: 0.1s; }
+.chart-skeleton-body .skeleton:nth-child(3)::after { animation-delay: 0.2s; }
+.chart-skeleton-body .skeleton:nth-child(4)::after { animation-delay: 0.3s; }
+.chart-skeleton-body .skeleton:nth-child(5)::after { animation-delay: 0.4s; }
+
+.chart-skeleton-axis {
+    display: flex;
+    justify-content: space-between;
+    gap: 0.5rem;
+    padding-top: 0.75rem;
+    border-top: 1px solid #e2e8f0;
+}
+
+.skeleton-axis-label {
+    width: 36px;
+    height: 10px;
+    border-radius: 4px;
+}
+
+/* Empty States */
+.empty-state {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 3rem 1rem;
+    text-align: center;
+    color: var(--secondary);
+    background: linear-gradient(135deg, var(--surface) 0%, #f1f5f9 100%);
+    border-radius: var(--radius-lg);
+    border: 1.5px dashed var(--outline);
+}
+
+.empty-state-text {
+    font-size: 0.85rem;
+    font-weight: 500;
+    margin: 0;
+}
+
+@media (max-width: 1200px) {
+    .dashboard-grid-2 {
+        grid-template-columns: 1fr;
+    }
+}

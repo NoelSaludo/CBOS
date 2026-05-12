@@ -3,3 +3,6 @@ obj/Debug/
 obj/Release/
 .vscode/
 .idea/
+.env
+litellm_config.yaml
+obj/

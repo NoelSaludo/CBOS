@@ -9,20 +9,24 @@ namespace CBOS.Components.Services;
 public class AuthService
 {
     private Session? _session;
+    private string   _firstName = "";        // ← ADDED
 
     public Session? CurrentSession => _session;
     public bool IsAuthenticated => _session?.User != null;
     public string? UserEmail => _session?.User?.Email;
+    public string FirstName => _firstName;   // ← ADDED
 
-    public void SetSession(Session session)
+    public void SetSession(Session session, string firstName = "")  // ← ADDED firstName param
     {
-        _session = session;
+        _session   = session;
+        _firstName = firstName;              // ← ADDED
         NotifyStateChanged();
     }
 
     public void ClearSession()
     {
-        _session = null;
+        _session   = null;
+        _firstName = "";                     // ← ADDED
         NotifyStateChanged();
     }
 

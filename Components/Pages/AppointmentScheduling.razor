@@ -1,44 +1,75 @@
 @page "/app/appointments"
 @layout MainLayout
+@rendermode InteractiveServer
+@inject Supabase.Client Supabase
+@inject CBOS.Components.Services.AuthService AuthService
+@inject NavigationManager Navigation
+@using CBOS.Components.Model
 
 <div class="appointment-container">
+    <img src="/images/city-bg.png" class="appt-city-bg" alt="" />
+    <div class="appt-overlay"></div>
+
     <div class="appointment-card">
         <div class="appointment-header">
-            <button class="back-btn">←</button>
+            <button class="back-btn" @onclick="GoBack">←</button>
             <h1>Schedule an Appointment</h1>
+            <div class="header-spacer"></div>
         </div>
-        <div class="appointment-content">
-            <!-- Left: Reason for appointment -->
-            <div class="appointment-reasons">
-                <div class="reason-group">
-                    <button class="reason-main">Document Requests</button>
-                </div>
-                <div class="reason-group active">
-                    <button class="reason-main selected">Complaint & Mediation</button>
-                    <div class="reason-sub">
-                        <label><input type="radio" name="complaintType" checked> Mediation / Complaint Hearing</label>
-                        <label><input type="radio" name="complaintType"> Blotter Report Filing</label>
-                    </div>
-                </div>
-                <div class="reason-group">
-                    <button class="reason-main">Permits & Clearances</button>
-                </div>
-                <div class="reason-group">
-                    <button class="reason-main">Community Programs</button>
-                </div>
-                <div class="reason-group">
-                    <button class="reason-main">Assistance Services</button>
-                    <div class="reason-note">Additional requirement per appointment type reminder here if any*</div>
-                </div>
+
+        @if (_submitSuccess)
+        {
+            <div class="appt-success">
+                ✅ Appointment submitted successfully! It is currently <strong>Pending</strong> approval from the barangay.
             </div>
-            <!-- Center: Description & Calendar -->
+        }
+
+        @if (!string.IsNullOrEmpty(_errorMessage))
+        {
+            <div class="appt-error">⚠ @_errorMessage</div>
+        }
+
+        <div class="appointment-content">
+
+            @* ── LEFT: Appointment Types ── *@
+            <div class="appointment-reasons">
+                @foreach (var type in _appointmentTypes)
+                {
+                    <div class="reason-group @(_selectedType == type.Key ? "active" : "")">
+                        <button class="reason-main @(_selectedType == type.Key ? "selected" : "")"
+                                @onclick="() => SelectType(type.Key)">
+                            @type.Key
+                        </button>
+                        @if (_selectedType == type.Key)
+                        {
+                            <div class="reason-sub">
+                                @foreach (var sub in type.Value)
+                                {
+                                    <label>
+                                        <input type="radio"
+                                               name="subType"
+                                               checked="@(_selectedSubType == sub)"
+                                               @onchange="() => _selectedSubType = sub" />
+                                        @sub
+                                    </label>
+                                }
+                            </div>
+                        }
+                    </div>
+                }
+            </div>
+
+            @* ── CENTER: Description & Calendar ── *@
             <div class="appointment-details">
                 <div class="desc-group">
                     <label>Add short description (optional)</label>
-                    <textarea placeholder="Lorem ipsum dolor sit amet, consectetur adipiscing elit. Suspendisse euismod erat sed odio convallis."></textarea>
+                    <textarea placeholder="Describe your appointment..."
+                              @bind="_description"
+                              @bind:event="oninput"></textarea>
                 </div>
+
                 <div class="calendar-group">
-                    <label>Pick a schdule available</label>
+                    <label>Pick an available schedule</label>
                     <div class="calendar-mock">
                         <div class="calendar-header">
                             <button class="cal-nav" @onclick="PreviousMonth">←</button>
@@ -47,7 +78,10 @@
                         </div>
                         <table class="calendar-table">
                             <thead>
-                                <tr><th>Sun</th><th>Mon</th><th>Tue</th><th>Wed</th><th>Thu</th><th>Fri</th><th>Sat</th></tr>
+                                <tr>
+                                    <th>Sun</th><th>Mon</th><th>Tue</th>
+                                    <th>Wed</th><th>Thu</th><th>Fri</th><th>Sat</th>
+                                </tr>
                             </thead>
                             <tbody>
                                 @foreach (var week in GetCalendarWeeks())
@@ -59,7 +93,11 @@
                                             {
                                                 <td class="inactive"></td>
                                             }
-                                            else if (day == SelectedDay && CurrentDate.Year == SelectedDate.Year && CurrentDate.Month == SelectedDate.Month)
+                                            else if (IsPastDay(day))
+                                            {
+                                                <td class="past">@day</td>
+                                            }
+                                            else if (IsSelectedDay(day))
                                             {
                                                 <td class="selected" @onclick="() => SelectDate(day)">@day</td>
                                             }
@@ -72,302 +110,652 @@
                                 }
                             </tbody>
                         </table>
+                        @if (SelectedDate.HasValue)
+                        {
+                            <div class="selected-date-display">
+                                Selected: <strong>@SelectedDate.Value.ToString("MMMM dd, yyyy")</strong>
+                            </div>
+                        }
                     </div>
                 </div>
             </div>
-            <!-- Right: Notice & Submit -->
+
+            @* ── RIGHT: Notice & Submit ── *@
             <div class="appointment-side">
                 <div class="notice-title">Notice</div>
                 <div class="notice-text">
-                    After submission of requested appointment schedule, wait for pending approval from barangay admins. Expect re-schedules or rejection especially on very busy days
+                    After submission of your requested appointment schedule, wait for pending approval
+                    from barangay admins. Expect re-schedules or rejection especially on very busy days.
                 </div>
-                <button class="submit-btn">Submit</button>
+
+                <div class="status-legend">
+                    <div class="status-item"><span class="dot pending"></span> Pending</div>
+                    <div class="status-item"><span class="dot approved"></span> Approved</div>
+                    <div class="status-item"><span class="dot rejected"></span> Rejected</div>
+                    <div class="status-item"><span class="dot rescheduled"></span> Rescheduled</div>
+                </div>
+
+                <button class="submit-btn"
+                        @onclick="HandleSubmit"
+                        disabled="@_isSubmitting">
+                    @if (_isSubmitting)
+                    {
+                        <span class="spinner"></span>
+                        <span>Submitting...</span>
+                    }
+                    else
+                    {
+                        <span>Submit Appointment</span>
+                    }
+                </button>
             </div>
+
         </div>
     </div>
 </div>
 
 <style>
-.appointment-container {
-    min-height: 100vh;
-    background: linear-gradient(135deg, #00B4D8 0%, #2196f3 100%);
-    padding: 0;
-    margin: 0;
-}
-.appointment-card {
-    background: #fff;
-    border-radius: 32px;
-    max-width: 950px;
-    margin: 40px auto;
-    box-shadow: 0 4px 32px rgba(0,0,0,0.10);
-    padding: 0 0 32px 0;
-}
-.appointment-header {
-    display: flex;
-    align-items: center;
-    gap: 16px;
-    padding: 32px 32px 0 32px;
-}
-.appointment-header h1 {
-    font-size: 2.5rem;
-    font-weight: 700;
-    color: #1b8ef2;
-    margin: 0;
-}
-.back-btn {
-    background: none;
-    border: none;
-    font-size: 2rem;
-    color: #1b8ef2;
-    cursor: pointer;
-    margin-right: 8px;
-}
-.appointment-content {
-    display: flex;
-    gap: 32px;
-    padding: 24px 32px 0 32px;
-}
-.appointment-reasons {
-    flex: 1.2;
-    display: flex;
-    flex-direction: column;
-    gap: 12px;
-}
-.reason-group {
-    background: #f5f7fa;
-    border-radius: 12px;
-    margin-bottom: 4px;
-    padding: 0;
-}
-.reason-main {
-    width: 100%;
-    background: none;
-    border: none;
-    text-align: left;
-    font-size: 1.1rem;
-    font-weight: 600;
-    color: #888;
-    padding: 12px 16px;
-    border-radius: 12px;
-    cursor: pointer;
-    transition: background 0.2s, color 0.2s;
-}
-.reason-main.selected, .reason-group.active .reason-main {
-    background: #1b8ef2;
-    color: #fff;
-}
-.reason-sub {
-    padding: 8px 24px 8px 32px;
-    display: flex;
-    flex-direction: column;
-    gap: 6px;
-}
-.reason-note {
-    font-size: 0.9rem;
-    color: #aaa;
-    padding: 8px 16px 8px 32px;
-}
-.appointment-details {
-    flex: 2.2;
-    display: flex;
-    flex-direction: column;
-    gap: 24px;
-}
-.desc-group label {
-    font-size: 1.1rem;
-    font-weight: 500;
-    color: #888;
-}
-.desc-group textarea {
-    width: 100%;
-    min-height: 60px;
-    border-radius: 8px;
-    border: 1px solid #e0e0e0;
-    padding: 12px;
-    margin-top: 8px;
-    font-size: 1rem;
-    background: #f7f7f7;
-    color: #444;
-    resize: none;
-}
-.calendar-group label {
-    font-size: 1.1rem;
-    font-weight: 500;
-    color: #888;
-    margin-bottom: 8px;
-    display: block;
-}
-.calendar-mock {
-    background: #fff;
-    border-radius: 16px;
-    box-shadow: 0 1px 4px rgba(0,0,0,0.07);
-    padding: 16px;
-    width: 320px;
-}
-.calendar-header {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    font-weight: 600;
-    color: #1b8ef2;
-    margin-bottom: 8px;
-}
-.cal-nav {
-    background: none;
-    border: none;
-    font-size: 1.2rem;
-    color: #1b8ef2;
-    cursor: pointer;
-}
-.calendar-table {
-    width: 100%;
-    border-collapse: collapse;
-    text-align: center;
-    font-size: 1rem;
-    color: #444;
-}
-.calendar-table th {
-    color: #aaa;
-    font-weight: 500;
-    padding-bottom: 4px;
-}
-.calendar-table td {
-    padding: 4px 0;
-    border-radius: 50%;
-    cursor: pointer;
-    transition: background 0.2s, color 0.2s;
-}
-.calendar-table td.selected {
-    background: #1b8ef2;
-    color: #fff;
-    font-weight: 700;
-}
-.calendar-table td.inactive {
-    color: #ccc;
-    cursor: default;
-}
-.appointment-side {
-    flex: 1.2;
-    display: flex;
-    flex-direction: column;
-    align-items: flex-start;
-    gap: 24px;
-    padding-left: 16px;
-}
-.notice-title {
-    color: #1b8ef2;
-    font-size: 1.1rem;
-    font-weight: 600;
-    margin-bottom: 4px;
-}
-.notice-text {
-    color: #aaa;
-    font-size: 0.98rem;
-    line-height: 1.4;
-    margin-bottom: 16px;
-}
-.submit-btn {
-    background: #1b8ef2;
-    color: #fff;
-    border: none;
-    border-radius: 24px;
-    padding: 12px 36px;
-    font-size: 1.2rem;
-    font-weight: 700;
-    cursor: pointer;
-    transition: background 0.2s;
-    margin-top: 16px;
-}
-.submit-btn:hover {
-    background: #1976d2;
-}
-@@media (max-width: 1100px) {
+    /* ── Container: perfectly centered, no scroll ── */
+    .appointment-container {
+        position: fixed;
+        top: 56px;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        display: flex;
+        align-items: center;        /* ← vertical center */
+        justify-content: center;    /* ← horizontal center */
+        padding: 24px;
+        box-sizing: border-box;
+        background: linear-gradient(160deg, #00d4ff 0%, #0099ff 45%, #0066ff 100%);
+        overflow: hidden;           /* ← no scrollbar */
+    }
+
+    .appt-city-bg {
+        position: fixed;
+        top: 56px;
+        left: 0;
+        width: 100%;
+        height: calc(100% - 56px);
+        object-fit: cover;
+        object-position: bottom;
+        mix-blend-mode: luminosity;
+        opacity: 0.55;
+        pointer-events: none;
+        z-index: 0;
+    }
+
+    .appt-overlay {
+        position: fixed;
+        top: 56px;
+        left: 0;
+        width: 100%;
+        height: calc(100% - 56px);
+        background: linear-gradient(160deg, rgba(0,180,255,0.35) 0%, rgba(0,80,200,0.45) 100%);
+        pointer-events: none;
+        z-index: 0;
+    }
+
+    /* ── Card ── */
+    .appointment-card {
+        position: relative;
+        z-index: 1;
+        background: #fff;
+        border-radius: 24px;
+        width: 100%;
+        max-width: 1100px;
+        box-shadow: 0 8px 40px rgba(0,0,0,0.22);
+        padding: 0 0 28px 0;
+        overflow: hidden;
+    }
+
+    /* ── Header: back btn left, title centered, spacer right ── */
+    .appointment-header {
+        display: flex;
+        align-items: center;
+        padding: 22px 32px 18px 32px;
+        border-bottom: 1.5px solid #f0f4ff;
+        position: relative;
+    }
+
+    .appointment-header h1 {
+        position: absolute;        /* ← takes it out of flow so it truly centers */
+        left: 50%;
+        transform: translateX(-50%);
+        font-size: 1.6rem;
+        font-weight: 700;
+        color: #0066ff;
+        margin: 0;
+        white-space: nowrap;
+    }
+
+    .back-btn {
+        background: #f0f4ff;
+        border: none;
+        font-size: 1.1rem;
+        color: #0066ff;
+        cursor: pointer;
+        width: 36px;
+        height: 36px;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        transition: background 0.15s;
+        flex-shrink: 0;
+        z-index: 1;
+    }
+
+    .back-btn:hover { background: #dbeafe; }
+
+    /* pushes the title to true center by balancing the back button */
+    .header-spacer {
+        width: 36px;
+        flex-shrink: 0;
+        margin-left: auto;
+    }
+
+    .appt-success {
+        margin: 12px 28px 0;
+        background: #f0fff4;
+        border: 1px solid #9ae6b4;
+        color: #276749;
+        border-radius: 8px;
+        padding: 10px 14px;
+        font-size: 0.88rem;
+    }
+
+    .appt-error {
+        margin: 12px 28px 0;
+        background: #fef2f2;
+        border: 1px solid #f5a0a0;
+        color: #e50000;
+        border-radius: 8px;
+        padding: 10px 14px;
+        font-size: 0.88rem;
+    }
+
     .appointment-content {
-        flex-direction: column;
+        display: flex;
         gap: 24px;
+        padding: 20px 28px 0 28px;
     }
-    .appointment-side {
-        align-items: stretch;
-        padding-left: 0;
+
+    /* ── LEFT ── */
+    .appointment-reasons {
+        flex: 1.2;
+        display: flex;
+        flex-direction: column;
+        gap: 8px;
     }
+
+    .reason-group {
+        background: #f5f7fa;
+        border-radius: 12px;
+        overflow: hidden;
+    }
+
+    .reason-main {
+        width: 100%;
+        background: none;
+        border: none;
+        text-align: left;
+        font-size: 0.9rem;
+        font-weight: 600;
+        color: #64748b;
+        padding: 11px 16px;
+        border-radius: 12px;
+        cursor: pointer;
+        transition: background 0.2s, color 0.2s;
+        font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
+    }
+
+    .reason-main.selected {
+        background: #0066ff;
+        color: #fff;
+        border-radius: 12px 12px 0 0;
+    }
+
+    .reason-sub {
+        padding: 8px 16px 10px 20px;
+        display: flex;
+        flex-direction: column;
+        gap: 6px;
+        background: #eef2ff;
+    }
+
+    .reason-sub label {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        font-size: 0.83rem;
+        color: #334155;
+        cursor: pointer;
+    }
+
+    .reason-sub input[type="radio"] { accent-color: #0066ff; }
+
+    /* ── CENTER ── */
+    .appointment-details {
+        flex: 2;
+        display: flex;
+        flex-direction: column;
+        gap: 16px;
+    }
+
+    .desc-group label,
+    .calendar-group label {
+        font-size: 0.85rem;
+        font-weight: 600;
+        color: #64748b;
+        display: block;
+        margin-bottom: 6px;
+    }
+
+    .desc-group textarea {
+        width: 100%;
+        min-height: 60px;
+        border-radius: 10px;
+        border: 1.5px solid #e2e8f0;
+        padding: 9px 12px;
+        font-size: 0.88rem;
+        background: #f8fafc;
+        color: #334155;
+        resize: none;
+        font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
+        outline: none;
+        transition: border-color 0.15s;
+        box-sizing: border-box;
+    }
+
+    .desc-group textarea:focus { border-color: #0066ff; }
+
     .calendar-mock {
+        background: #fff;
+        border-radius: 14px;
+        border: 1.5px solid #e2e8f0;
+        padding: 14px;
+    }
+
+    .calendar-header {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        font-weight: 700;
+        color: #0066ff;
+        margin-bottom: 8px;
+        font-size: 0.9rem;
+    }
+
+    .cal-nav {
+        background: none;
+        border: none;
+        font-size: 1rem;
+        color: #0066ff;
+        cursor: pointer;
+        padding: 4px 8px;
+        border-radius: 6px;
+        transition: background 0.15s;
+    }
+
+    .cal-nav:hover { background: #eef2ff; }
+
+    .calendar-table {
+        width: 100%;
+        border-collapse: collapse;
+        text-align: center;
+        font-size: 0.84rem;
+    }
+
+    .calendar-table th {
+        color: #94a3b8;
+        font-weight: 600;
+        padding-bottom: 4px;
+        font-size: 0.75rem;
+    }
+
+    .calendar-table td {
+        padding: 5px 2px;
+        border-radius: 50%;
+        cursor: pointer;
+        transition: background 0.15s, color 0.15s;
+        width: 32px;
+        height: 32px;
+    }
+
+    .calendar-table td:hover:not(.inactive):not(.past) {
+        background: #eef2ff;
+        color: #0066ff;
+    }
+
+    .calendar-table td.selected {
+        background: #0066ff;
+        color: #fff;
+        font-weight: 700;
+    }
+
+    .calendar-table td.inactive {
+        color: #e2e8f0;
+        cursor: default;
+    }
+
+    .calendar-table td.past {
+        color: #cbd5e1;
+        cursor: not-allowed;
+        text-decoration: line-through;
+    }
+
+    .selected-date-display {
+        text-align: center;
+        margin-top: 8px;
+        font-size: 0.82rem;
+        color: #64748b;
+        padding-top: 8px;
+        border-top: 1px solid #f0f4ff;
+    }
+
+    /* ── RIGHT ── */
+    .appointment-side {
+        flex: 1;
+        display: flex;
+        flex-direction: column;
+        gap: 14px;
+    }
+
+    .notice-title {
+        color: #0066ff;
+        font-size: 0.95rem;
+        font-weight: 700;
+    }
+
+    .notice-text {
+        color: #94a3b8;
+        font-size: 0.82rem;
+        line-height: 1.6;
+    }
+
+    .status-legend {
+        display: flex;
+        flex-direction: column;
+        gap: 7px;
+        padding: 10px 12px;
+        background: #f8fafc;
+        border-radius: 10px;
+        border: 1px solid #e2e8f0;
+    }
+
+    .status-item {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        font-size: 0.8rem;
+        color: #475569;
+        font-weight: 500;
+    }
+
+    .dot {
+        width: 9px;
+        height: 9px;
+        border-radius: 50%;
+        flex-shrink: 0;
+    }
+
+    .dot.pending     { background: #f59e0b; }
+    .dot.approved    { background: #10b981; }
+    .dot.rejected    { background: #ef4444; }
+    .dot.rescheduled { background: #6366f1; }
+
+    .submit-btn {
+        background: linear-gradient(90deg, #0099ff, #0066ff);
+        color: #fff;
+        border: none;
+        border-radius: 50px;
+        padding: 11px 28px;
+        font-size: 0.95rem;
+        font-weight: 700;
+        cursor: pointer;
+        transition: opacity 0.2s, transform 0.15s;
+        font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
+        box-shadow: 0 3px 10px rgba(0, 102, 255, 0.3);
+        margin-top: auto;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 8px;
         width: 100%;
     }
-}
-@@media (max-width: 700px) {
-    .appointment-card {
-        border-radius: 0;
-        margin: 0;
-        box-shadow: none;
-        padding: 0;
+
+    .submit-btn:hover:not(:disabled) {
+        opacity: 0.9;
+        transform: translateY(-1px);
     }
-    .appointment-header, .appointment-content {
-        padding: 16px;
+
+    .submit-btn:disabled { opacity: 0.6; cursor: not-allowed; }
+
+    .spinner {
+        width: 14px;
+        height: 14px;
+        border: 2px solid rgba(255,255,255,0.4);
+        border-top-color: #fff;
+        border-radius: 50%;
+        animation: spin 0.7s linear infinite;
+        flex-shrink: 0;
     }
-}
+
+    @@keyframes spin { to { transform: rotate(360deg); } }
+
+    @@media (max-width: 1000px) {
+        .appointment-container { overflow-y: auto; align-items: flex-start; }
+        .appointment-content { flex-direction: column; }
+        .appointment-card { margin: 16px 0; }
+    }
+
+    @@media (max-width: 640px) {
+        .appointment-card { border-radius: 12px; }
+        .appointment-header, .appointment-content { padding: 14px; }
+        .appointment-header h1 { font-size: 1.2rem; }
+    }
 </style>
 
 @code {
-    private DateTime CurrentDate = DateTime.Now;
-    private DateTime SelectedDate = DateTime.Now;
-    private int SelectedDay = DateTime.Now.Day;
-
-    private void NextMonth()
+    private Dictionary<string, List<string>> _appointmentTypes = new()
     {
-        CurrentDate = CurrentDate.AddMonths(1);
+        ["Document Requests"] = new()
+        {
+            "Certificate of Residency",
+            "Certificate of Indigency",
+            "Barangay Clearance",
+            "Business Permit Application",
+            "Other Documents"
+        },
+        ["Complaint & Mediation"] = new()
+        {
+            "Mediation / Complaint Hearing",
+            "Blotter Report Filing"
+        },
+        ["Permits & Clearances"] = new()
+        {
+            "Barangay Business Permit",
+            "Construction / Renovation Permit",
+            "Barangay Clearance"
+        },
+        ["Community Programs"] = new()
+        {
+            "Health Program",
+            "Livelihood Program",
+            "Youth Program",
+            "Senior Citizen Program"
+        },
+        ["Assistance Services"] = new()
+        {
+            "Financial Assistance",
+            "Medical Assistance",
+            "Legal Assistance",
+            "Educational Assistance"
+        }
+    };
+
+    private string    _selectedType    = "";
+    private string    _selectedSubType = "";
+    private string    _description     = "";
+    private bool      _isSubmitting;
+    private bool      _submitSuccess;
+    private string    _errorMessage    = "";
+    private DateTime  CurrentDate      = DateTime.Now;
+    private DateTime? SelectedDate     = null;
+
+    private void GoBack() => Navigation.NavigateTo("/app/feed");
+
+    private void SelectType(string type)
+    {
+        _selectedType    = type;
+        _selectedSubType = _appointmentTypes[type].First();
+        _submitSuccess   = false;
+        _errorMessage    = "";
     }
 
-    private void PreviousMonth()
-    {
-        CurrentDate = CurrentDate.AddMonths(-1);
-    }
+    private void NextMonth()     => CurrentDate = CurrentDate.AddMonths(1);
+    private void PreviousMonth() => CurrentDate = CurrentDate.AddMonths(-1);
 
     private void SelectDate(int day)
     {
-        SelectedDate = new DateTime(CurrentDate.Year, CurrentDate.Month, day);
-        SelectedDay = day;
+        var date = new DateTime(CurrentDate.Year, CurrentDate.Month, day);
+        if (date < DateTime.Today) return;
+        SelectedDate = date;
+    }
+
+    private bool IsSelectedDay(int day)
+    {
+        if (!SelectedDate.HasValue) return false;
+        return SelectedDate.Value.Year  == CurrentDate.Year  &&
+               SelectedDate.Value.Month == CurrentDate.Month &&
+               SelectedDate.Value.Day   == day;
+    }
+
+    private bool IsPastDay(int day)
+    {
+        var date = new DateTime(CurrentDate.Year, CurrentDate.Month, day);
+        return date < DateTime.Today;
     }
 
     private List<List<int>> GetCalendarWeeks()
     {
-        var weeks = new List<List<int>>();
-        var firstDayOfMonth = new DateTime(CurrentDate.Year, CurrentDate.Month, 1);
-        var lastDayOfMonth = firstDayOfMonth.AddMonths(1).AddDays(-1);
-        
-        // Get the day of week for the first day (0 = Sunday, 6 = Saturday)
-        int firstDayOfWeek = (int)firstDayOfMonth.DayOfWeek;
-        
+        var weeks       = new List<List<int>>();
+        var firstDay    = new DateTime(CurrentDate.Year, CurrentDate.Month, 1);
+        var lastDay     = firstDay.AddMonths(1).AddDays(-1);
+        int startOffset = (int)firstDay.DayOfWeek;
         var currentWeek = new List<int>();
-        
-        // Add empty cells for days before the first day of the month
-        for (int i = 0; i < firstDayOfWeek; i++)
-        {
-            currentWeek.Add(0);
-        }
-        
-        // Add days of the month
-        for (int day = 1; day <= lastDayOfMonth.Day; day++)
+
+        for (int i = 0; i < startOffset; i++) currentWeek.Add(0);
+
+        for (int day = 1; day <= lastDay.Day; day++)
         {
             currentWeek.Add(day);
-            if (currentWeek.Count == 7)
-            {
-                weeks.Add(currentWeek);
-                currentWeek = new List<int>();
-            }
+            if (currentWeek.Count == 7) { weeks.Add(currentWeek); currentWeek = new(); }
         }
-        
-        // Add remaining empty cells
-        while (currentWeek.Count > 0 && currentWeek.Count < 7)
-        {
-            currentWeek.Add(0);
-        }
-        
-        if (currentWeek.Count > 0)
-        {
-            weeks.Add(currentWeek);
-        }
-        
+
+        while (currentWeek.Count > 0 && currentWeek.Count < 7) currentWeek.Add(0);
+        if (currentWeek.Count > 0) weeks.Add(currentWeek);
+
         return weeks;
     }
-}
 
+    private async Task HandleSubmit()
+{
+    _errorMessage  = "";
+    _submitSuccess = false;
+
+    if (string.IsNullOrEmpty(_selectedType))
+    {
+        _errorMessage = "Please select an appointment type.";
+        return;
+    }
+    if (string.IsNullOrEmpty(_selectedSubType))
+    {
+        _errorMessage = "Please select a specific appointment reason.";
+        return;
+    }
+    if (!SelectedDate.HasValue)
+    {
+        _errorMessage = "Please select a date for your appointment.";
+        return;
+    }
+    if (SelectedDate.Value < DateTime.Today)
+    {
+        _errorMessage = "Please select a future date.";
+        return;
+    }
+
+    var email = Supabase.Auth.CurrentSession?.User?.Email;
+    if (string.IsNullOrEmpty(email))
+    {
+        Navigation.NavigateTo("/login", replace: true);
+        return;
+    }
+
+    _isSubmitting = true;
+    StateHasChanged();
+
+    try
+    {
+        // ── Get public.users.id ─────────────────────────────────────────
+        var userResult = await Supabase
+            .From<UserProfile>()
+            .Select("id")
+            .Match(new Dictionary<string, string> { { "emailaddress", email.ToLower() } })
+            .Single();
+
+        if (userResult == null)
+        {
+            _errorMessage = "Your account was not found in the system. Please contact the barangay office.";
+            return;
+        }
+
+        // ── Insert appointment ──────────────────────────────────────────
+        var appointmentResponse = await Supabase
+            .From<Appointment>()
+            .Insert(new Appointment
+            {
+                UserId          = userResult.Id,
+                AppointmentType = $"{_selectedType} – {_selectedSubType}",
+                ScheduledDate   = SelectedDate.Value,
+                Description     = string.IsNullOrWhiteSpace(_description) ? null : _description.Trim(),
+            });
+
+        var insertedAppointment = appointmentResponse.Models.FirstOrDefault();
+
+        if (insertedAppointment == null)
+        {
+            _errorMessage = "Appointment was created but could not be confirmed. Please check your appointments.";
+            return;
+        }
+
+        // ── Insert ticket linked to the appointment ─────────────────────
+        await Supabase
+            .From<Ticket>()
+            .Insert(new Ticket
+            {
+                Type        = "appointment",   // ← ticket type
+                SourceId    = insertedAppointment.Id,  // ← appointment.id
+                SubmittedBy = userResult.Id,   // ← public.users.id
+                Status      = "Pending",       // ← mirrors appointment status
+                ApprovedBy  = null             // ← no admin yet
+            });
+
+        _submitSuccess    = true;
+        _selectedType    = "";
+        _selectedSubType = "";
+        _description     = "";
+        SelectedDate     = null;
+    }
+    catch (Exception ex)
+    {
+        _errorMessage = $"Failed to submit appointment: {ex.Message}";
+    }
+    finally
+    {
+        _isSubmitting = false;
+        StateHasChanged();
+    }
+}
+}
