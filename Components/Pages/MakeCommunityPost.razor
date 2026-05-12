@@ -866,7 +866,8 @@
                     Type = "post",
                     SourceId = postId,
                     SubmittedBy = userId,
-                    Status = "Pending"
+                    Status = "Pending",
+                    CreatedAt = DateTime.UtcNow
                 };
 
                 await Supabase.From<Ticket>().Insert(ticket);
