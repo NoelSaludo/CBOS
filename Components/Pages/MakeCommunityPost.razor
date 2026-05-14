@@ -847,7 +847,8 @@
                 Title = postTitle.Trim(),
                 Author = author,
                 Description = postDescription.Trim(),
-                MediaLink = mediaLinks
+                MediaLink = mediaLinks,
+                CreatedAt = DateTime.UtcNow
             };
 
             var insertedPost = await Supabase.From<UserPost>().Insert(newPost);

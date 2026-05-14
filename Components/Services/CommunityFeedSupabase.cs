@@ -63,7 +63,7 @@ public class CommunityFeedSupabase : ISupabase
                 Author = author,
                 Content = post.Description,
                 PrimaryImageUrl = GetPrimaryImageUrl(post.MediaLink),
-                CreatedAt = post.CreatedAt,
+                CreatedAt = DateTime.SpecifyKind(post.CreatedAt ?? DateTime.UtcNow, DateTimeKind.Utc).ToLocalTime(),
                 LikeCount = 0, // Can be extended to fetch from a likes table if needed
                 CommentCount = 0 // Can be extended to fetch from a comments table if needed
             });

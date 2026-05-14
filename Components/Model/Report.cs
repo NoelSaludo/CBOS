@@ -10,7 +10,7 @@ public class Report : BaseModel
     public long Id { get; set; }
 
     [Column("created_at")]
-    public DateTime CreatedAt { get; set; }
+    public DateTime? CreatedAt { get; set; }
 
     [Column("userid")]
     public long UserId { get; set; }
@@ -22,7 +22,7 @@ public class Report : BaseModel
     public string Content { get; set; } = "";
 
     [Column("approved_at")]
-    public DateTime ApprovedAt { get; set; }
+    public DateTime? ApprovedAt { get; set; }
 
     [Column("approved_by")]
     public long? ApprovedBy { get; set; }
